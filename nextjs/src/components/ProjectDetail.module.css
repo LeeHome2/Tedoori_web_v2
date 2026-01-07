@@ -1,0 +1,423 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding-top: 80px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .container {
+    flex-direction: row-reverse; /* Swap columns on desktop */
+    align-items: flex-start;
+  }
+}
+
+.infoColumn {
+  width: 100%;
+  padding: 20px;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .infoColumn {
+    width: 30%;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.detailsTrigger {
+  cursor: pointer;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.detailsList {
+  display: none;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.detailsList.open {
+  display: block;
+}
+
+.detailItem {
+  margin-bottom: 10px;
+}
+
+.detailLabel {
+  font-weight: bold;
+  display: block;
+}
+
+.imageColumn {
+  width: 100%;
+  padding: 0 20px 20px 20px;
+}
+
+@media (min-width: 768px) {
+  .imageColumn {
+    width: 70%;
+    padding-left: 20px;
+    padding-right: 20px; /* Add right padding instead */
+  }
+}
+
+/* Grid Layout matching NP2F float style but using modern CSS Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Mobile: 1 column */
+  gap: 20px;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr); /* Tablet/Small Desktop: 2 columns */
+  }
+}
+
+@media (min-width: 1440px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr); /* Large Desktop: 3 columns */
+  }
+}
+
+.imageWrapper {
+  width: 100%;
+  position: relative;
+  cursor: zoom-in; /* Indicate zoom capability */
+}
+
+.textWrapper {
+  cursor: default;
+}
+.textWrapper:hover {
+    cursor: pointer; /* Indicate editable */
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: opacity 0.3s ease;
+}
+
+.imageWrapper:hover .image {
+  opacity: 0.9;
+}
+
+/* Updated Text Item Styling */
+.textItem {
+  width: 100%;
+  cursor: pointer;
+  box-sizing: border-box;
+  font-size: 16px;
+  line-height: 1.5;
+  background-color: #fff9c4; /* Default sticky note yellow if not overridden */
+  padding: 20px;
+  min-height: 200px; /* Ensure visibility */
+  border-radius: 4px; /* Optional rounded corners */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow-y: auto; /* Scrollable if too long */
+  word-wrap: break-word; /* Break long words */
+  white-space: pre-wrap; /* Preserve newlines */
+  color: #333;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Admin Image Controls */
+.adminOverlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+    z-index: 10;
+    align-items: center;
+}
+
+.controlsRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.visibilitySelect {
+    padding: 5px;
+    border-radius: 4px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.deleteBtn {
+    padding: 5px 10px;
+    background: rgba(255,0,0,0.7);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.dragHandle {
+    padding: 5px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    cursor: grab;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Lightbox Styles */
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.98); /* Mostly white background like typical architectural sites */
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightboxImageWrapper {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  transition: transform 0.3s ease;
+}
+
+.lightboxImage {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  display: block;
+}
+
+.lightboxTextItem {
+  aspect-ratio: 1 / 1;
+  width: 40rem; /* Responsive sizing using rem */
+  max-width: 100%; /* Prevent overflow on small screens */
+  max-height: 100%;
+  background-color: #fff9c4;
+  color: #333;
+  display: flex;
+  justify-content: flex-start; /* Align text to start horizontally */
+  align-items: flex-start; /* Align text to start vertically */
+  text-align: left; /* Ensure text alignment is left */
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.2);
+  
+  /* Text Handling */
+  overflow: hidden;
+  word-wrap: break-word;
+  white-space: pre-wrap; /* Preserve newlines but wrap */
+  
+  /* Multi-line ellipsis for long text */
+  display: -webkit-box;
+  -webkit-line-clamp: 12; /* Adjust based on typical content */
+  -webkit-box-orient: vertical;
+  
+  /* Font sizing */
+  font-size: clamp(1rem, 2vmin, 2rem);
+  line-height: 1.5;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  z-index: 1001;
+  width: 30px;
+  height: 30px;
+}
+
+.prevBtn,
+.nextBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  padding: 20px;
+  z-index: 1001;
+  font-size: 24px;
+  user-select: none;
+}
+
+.prevBtn {
+  left: 20px;
+}
+
+.nextBtn {
+  right: 20px;
+}
+
+/* Thumbnail strip in lightbox (Optional but requested) */
+.thumbnailStrip {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    max-width: 80vw;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+}
+
+.thumbnail {
+    height: 50px;
+    width: auto;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.thumbnail.active {
+    opacity: 1;
+    border: 2px solid black;
+}
+
+/* Upload UI */
+.uploadSection {
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    text-align: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.uploadInput {
+    display: none;
+}
+
+.uploadLabel, .addTextBtn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: black;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    font-size: 14px;
+}
+
+.progressBar {
+    width: 100%;
+    height: 10px;
+    background: #eee;
+    border-radius: 5px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: black;
+    transition: width 0.3s ease;
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modalContent {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.modalTitle {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modalTextarea {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modalBtn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.cancelBtn {
+    background: #ccc;
+}
+
+.saveBtn {
+    background: black;
+    color: white;
+}
