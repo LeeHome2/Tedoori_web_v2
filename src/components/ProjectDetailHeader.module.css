@@ -89,8 +89,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px; 
-  height: 16px;
+  /* Match SVG intrinsic size */
+  width: 12px; 
+  height: 8px;
   transition: opacity 0.2s ease;
 }
 

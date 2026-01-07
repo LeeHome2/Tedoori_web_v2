@@ -126,7 +126,7 @@
         "width": 1200,
         "height": 800,
         "alt": "detail_2.png",
-        "visibility": "private"
+        "visibility": "public"
       },
       {
         "type": "text",
@@ -152,7 +152,8 @@
         "src": "/uploads/1767782098895-detail_4.jpg",
         "width": 1200,
         "height": 800,
-        "alt": "detail_4.jpg"
+        "alt": "detail_4.jpg",
+        "visibility": "private"
       }
     ]
   },

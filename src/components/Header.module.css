@@ -66,12 +66,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
   transition: opacity 0.2s ease;
-  /* Size adjustment relative to logo (80% of ~20px height is ~16px) */
-  width: 16px; 
-  height: 16px;
+  /* Match SVG intrinsic size */
+  width: 12px; 
+  height: 8px;
 }
 
 .menuTrigger:hover {
