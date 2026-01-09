@@ -91,7 +91,7 @@
   justify-content: center;
   /* Match SVG intrinsic size */
   width: 12px; 
-  height: 8px;
+  height: 26px;
   transition: opacity 0.2s ease;
 }
 
