@@ -20,7 +20,45 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const project = projects.find(p => p.id === initialProject.id) || initialProject;
 
   const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
+  
+  // Edit Details State
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [editedDetails, setEditedDetails] = useState(project.details || {});
+
+  // Update editedDetails when project changes
+  useEffect(() => {
+    setEditedDetails(project.details || {});
+  }, [project.details]);
+
+  const handleDetailChange = (key: string, value: string) => {
+    setEditedDetails(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveDetails = async () => {
+    await updateProject({ ...project, details: editedDetails as any });
+    setIsEditingDetails(false);
+  };
+
+  const handleCancelDetails = () => {
+    setEditedDetails(project.details || {});
+    setIsEditingDetails(false);
+  };
+
+  const detailFields = [
+    { key: 'year', label: 'Year' },
+    { key: 'location', label: 'Location' },
+    { key: 'client', label: 'Client' },
+    { key: 'mandataire', label: 'Lead Architect' },
+    { key: 'partners', label: 'Partner' },
+    { key: 'team', label: 'With' },
+    { key: 'program', label: 'Program' },
+    { key: 'area', label: 'Area' },
+    { key: 'cost', label: 'Cost' },
+    { key: 'mission', label: 'Mission' },
+    { key: 'status', label: 'Status' },
+    { key: 'photographer', label: 'Photographer' },
+  ];
   
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -282,62 +320,69 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         </div>
         
         <div className={styles.detailsTrigger} onClick={toggleDetails}>
-          {showDetails ? "fermer infos" : "infos"}
+          infos
         </div>
 
+        {isAdmin && adminMode && (
+             <div style={{ marginBottom: '10px' }}>
+                 {!isEditingDetails ? (
+                     <button 
+                        onClick={() => setIsEditingDetails(true)}
+                        style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
+                     >
+                         Edit Infos
+                     </button>
+                 ) : (
+                     <div style={{ display: 'flex', gap: '5px' }}>
+                         <button 
+                            onClick={handleSaveDetails}
+                            style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+                         >
+                             Save
+                         </button>
+                         <button 
+                            onClick={handleCancelDetails}
+                            style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
+                         >
+                             Cancel
+                         </button>
+                     </div>
+                 )}
+             </div>
+        )}
+
         <div className={`${styles.detailsList} ${showDetails ? styles.open : ""}`}>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Année</span>
-            {details.year}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Lieu</span>
-            {details.location}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Maîtrise d’ouvrage</span>
-            {details.client}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Mandataire</span>
-            {details.mandataire}
-          </div>
-           {details.partners && (
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Associé</span>
-              {details.partners}
-            </div>
+          {!isEditingDetails ? (
+            detailFields.map(field => {
+                // Show item if it has a value OR if we are in admin mode (so we can see empty fields to edit later? No, edit mode handles that)
+                // Actually, in view mode, we usually hide empty fields.
+                // But let's follow existing logic: render conditional for partners/team, others always?
+                // The original code rendered some conditionally (partners, team) and others always.
+                const val = (details as any)[field.key];
+                if (!val && (field.key === 'partners' || field.key === 'team')) return null;
+                
+                return (
+                    <div className={styles.detailItem} key={field.key}>
+                        <span className={styles.detailLabel}>{field.label}</span>
+                        {val}
+                    </div>
+                );
+            })
+          ) : (
+             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                 {detailFields.map(field => (
+                     <div key={field.key} style={{ display: 'flex', flexDirection: 'column' }}>
+                         <label style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>{field.label}</label>
+                         <input 
+                             type="text" 
+                             value={(editedDetails as any)[field.key] || ''}
+                             onChange={(e) => handleDetailChange(field.key, e.target.value)}
+                             style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '100%' }}
+                         />
+                     </div>
+                 ))}
+             </div>
           )}
-           {details.team && (
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Avec</span>
-              {details.team}
-            </div>
-          )}
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Programme</span>
-            {details.program}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Superficie</span>
-            {details.area}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Coût</span>
-            {details.cost}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Mission</span>
-            {details.mission}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Statut</span>
-            {details.status}
-          </div>
-          <div className={styles.detailItem}>
-            <span className={styles.detailLabel}>Photographe</span>
-            {details.photographer}
-          </div>
         </div>
       </div>
 
@@ -468,15 +513,17 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                          <div style={{ 
                              height: '100%', 
                              width: '50px', 
-                             background: '#fff9c4', 
+                             background: '#ffffff', 
                              display: 'flex', 
                              alignItems: 'center', 
                              justifyContent: 'center', 
                              fontSize: '10px',
                              overflow: 'hidden',
-                             color: '#333'
+                             color: '#333',
+                             border: '1px solid #ccc',
+                             boxSizing: 'border-box'
                          }}>
-                             TxT
+                             {item.content.charAt(0)}
                          </div>
                      )}
                  </div>

@@ -133,11 +133,11 @@
   box-sizing: border-box;
   font-size: 16px;
   line-height: 1.5;
-  background-color: #fff9c4; /* Default sticky note yellow if not overridden */
+  background-color: #ffffff; /* Changed to white */
   padding: 20px;
   min-height: 200px; /* Ensure visibility */
-  border-radius: 4px; /* Optional rounded corners */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-radius: 0; /* Square corners */
+  border: 1px solid #ccc; /* Changed to gray border */
   overflow-y: auto; /* Scrollable if too long */
   word-wrap: break-word; /* Break long words */
   white-space: pre-wrap; /* Preserve newlines */
@@ -234,15 +234,15 @@
   width: 40rem; /* Responsive sizing using rem */
   max-width: 100%; /* Prevent overflow on small screens */
   max-height: 100%;
-  background-color: #fff9c4;
+  background-color: #ffffff;
   color: #333;
   display: flex;
   justify-content: flex-start; /* Align text to start horizontally */
   align-items: flex-start; /* Align text to start vertically */
   text-align: left; /* Ensure text alignment is left */
   padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0.25rem 1rem rgba(0,0,0,0.2);
+  border-radius: 0;
+  border: 1px solid #ccc; /* Changed to gray border */
   
   /* Text Handling */
   overflow: hidden;

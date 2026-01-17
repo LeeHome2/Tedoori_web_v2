@@ -31,6 +31,7 @@
   text-transform: uppercase;
   display: block;
   line-height: 0;
+  order: 1;
 }
 
 .logoImage {
@@ -70,6 +71,7 @@
   /* Match SVG intrinsic size */
   width: 12px; 
   height: 8px;
+  order: 2; /* Move Menu Icon to the right (second) */
 }
 
 .menuTrigger:hover {

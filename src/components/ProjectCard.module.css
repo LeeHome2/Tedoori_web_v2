@@ -28,15 +28,17 @@
 }
 
 .overlayInfo {
-  position: absolute;
-  bottom: 5px;
-  left: 10px;
-  color: white;
-  z-index: 5;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  pointer-events: none; /* Let clicks pass through to the link */
+  /* Position removed to place below image */
+  /* position: absolute; */
+  /* bottom: 5px; */
+  /* left: 10px; */
+  color: black; /* Changed to black */
+  /* z-index: 5; */
+  /* text-shadow: 0 1px 3px rgba(0,0,0,0.5); */
+  /* pointer-events: none; */
   font-size: 18px;
   line-height: 1.2;
+  margin-top: 8px; /* Add some spacing */
 }
 
 .number {

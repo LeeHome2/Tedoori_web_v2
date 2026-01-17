@@ -28,9 +28,10 @@
 .brand {
   font-weight: bold;
   text-transform: uppercase;
-  margin-right: 20px;
+  margin-right: 0; /* Removed 20px margin */
   display: block;
   line-height: 0;
+  order: 1; /* Move Logo to the left (first) */
 }
 
 .logoImage {
@@ -49,6 +50,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    order: 3;
 }
 
 .navArrow {
@@ -71,11 +73,12 @@
 .menuNav {
   position: absolute;
   top: 100%; /* Below header */
-  left: 20px; /* Align with left padding */
+  left: 0px; /* Align with left padding */
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
   pointer-events: none;
+  order: 4;
 }
 
 .menuNav.open {
@@ -93,6 +96,7 @@
   width: 12px; 
   height: 26px;
   transition: opacity 0.2s ease;
+  order: 2; /* Move Menu Icon to the right (second) */
 }
 
 .menuTrigger:hover {
