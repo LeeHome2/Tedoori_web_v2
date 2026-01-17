@@ -39,6 +39,28 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. 저장소 연결
+1. [Vercel](https://vercel.com)에 로그인
+2. "New Project" 클릭
+3. GitHub에서 `Tedoori_web_v2` 저장소 선택
+4. "Import" 클릭
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 2. 환경 변수 설정
+배포 전에 **반드시** 다음 환경 변수를 설정해야 합니다:
+
+**Vercel Dashboard → Settings → Environment Variables** 에서 추가:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+```
+
+환경 변수 값은 Supabase Dashboard → Settings → API에서 확인할 수 있습니다.
+
+> **중요**: `.env.local.example` 파일을 참고하여 모든 필수 환경 변수를 설정하세요.
+
+### 3. 배포
+환경 변수 설정 후 "Deploy" 버튼을 클릭하면 자동으로 배포됩니다.
+
+배포 관련 자세한 내용은 [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying)을 참고하세요.
