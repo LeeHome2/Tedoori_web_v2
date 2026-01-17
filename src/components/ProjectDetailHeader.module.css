@@ -1,0 +1,149 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  background-color: transparent;
+  padding: 20px;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.inner {
+  display: flex;
+  align-items: flex-start;
+  pointer-events: auto;
+  position: relative;
+}
+
+.leftGroup {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    position: relative;
+    z-index: 102; /* Above menu */
+}
+
+.brand {
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-right: 20px;
+  display: block;
+  line-height: 0;
+}
+
+.logoImage {
+  width: 40px; /* Mobile default */
+  height: auto;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .logoImage {
+    width: 60px; /* Desktop */
+  }
+}
+
+.projectNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navArrow {
+    width: 20px;
+    height: 10px; /* Placeholder for arrow image aspect */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navArrow img {
+    width: auto;
+    height: 10px;
+}
+
+.projectId {
+    font-weight: normal;
+}
+
+.menuNav {
+  position: absolute;
+  top: 100%; /* Below header */
+  left: 20px; /* Align with left padding */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  pointer-events: none;
+}
+
+.menuNav.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.menuTrigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Match SVG intrinsic size */
+  width: 12px; 
+  height: 26px;
+  transition: opacity 0.2s ease;
+}
+
+.menuTrigger:hover {
+  opacity: 1;
+}
+
+.menuTrigger:hover .menuIcon path {
+    stroke: #666; /* Hover color change */
+}
+
+/* Default state: Pointing Right (>) */
+.menuIcon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-90deg); /* Initial state: > */
+  transition: transform 0.3s ease-in-out;
+  opacity: 0.8;
+}
+
+.menuIcon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Active state: Pointing Down (v) */
+.menuTrigger.active .menuIcon {
+  transform: rotate(0deg); /* Expanded state: v */
+}
+
+.menuList {
+  list-style: none;
+  margin-top: 10px; /* Slight spacing from trigger */
+}
+
+.menuList li {
+  margin-bottom: 5px;
+}
+
+.menuList a {
+  text-decoration: none;
+}
+
+.menuList a:hover {
+  text-decoration: underline;
+}
+
+.unlink {
+  margin-top: 10px;
+  font-size: 0.8em;
+  color: #666;
+}

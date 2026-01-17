@@ -1,0 +1,650 @@
+[
+  {
+    "id": "112",
+    "title": "test11",
+    "imageUrl": "/uploads/1767786359247-detail_1.jpg",
+    "slug": "test11",
+    "link": "/projet/test11",
+    "details": {
+      "year": "2026",
+      "location": "",
+      "client": "",
+      "mandataire": "",
+      "program": "",
+      "area": "",
+      "cost": "",
+      "mission": "",
+      "status": "",
+      "photographer": ""
+    },
+    "galleryImages": []
+  },
+  {
+    "id": "113",
+    "title": "test22",
+    "imageUrl": "/uploads/1767786350948-detail_2.jpg",
+    "slug": "test22",
+    "link": "/projet/test22",
+    "details": {
+      "year": "2026",
+      "location": "",
+      "client": "",
+      "mandataire": "",
+      "program": "",
+      "area": "",
+      "cost": "",
+      "mission": "",
+      "status": "",
+      "photographer": ""
+    },
+    "galleryImages": [],
+    "isVisible": "private"
+  },
+  {
+    "id": "320",
+    "title": "ADIDAS Arena",
+    "slug": "adidas-arena",
+    "imageUrl": "https://placehold.co/600x400?text=ADIDAS+Arena",
+    "link": "/projet/adidas-arena",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-320-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_320.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - ADIDAS Arena"
+      },
+      {
+        "type": "image",
+        "id": "sample-320-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_320.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - ADIDAS Arena"
+      },
+      {
+        "type": "image",
+        "id": "sample-320-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_320.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - ADIDAS Arena"
+      },
+      {
+        "type": "image",
+        "id": "sample-320-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_320.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - ADIDAS Arena"
+      },
+      {
+        "type": "image",
+        "id": "sample-320-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_320.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - ADIDAS Arena"
+      }
+    ],
+    "isVisible": true
+  },
+  {
+    "id": "257",
+    "title": "IMVT",
+    "slug": "257-imvt",
+    "imageUrl": "/uploads/1767784660246-detail_4.jpg",
+    "link": "/projet/257-imvt",
+    "details": {
+      "year": "2017",
+      "location": "Marseille",
+      "client": "OPPIC",
+      "mandataire": "NP2F",
+      "partners": "Marion Bernard, Point Supreme, Jacques Lucan",
+      "team": "Atelier Roberta, DVVD, Alto ingénierie, VPEAS, Peutz, 8-18",
+      "program": "Construction de l'Institut Méditerranéen de la Ville et des Territoires",
+      "area": "12 500 m² (+ 8 500 m² d'espaces extérieurs)",
+      "cost": "26 000 000",
+      "mission": "Complète",
+      "status": "livré en 2023",
+      "photographer": "@Maxime Delvaux, @Antoine Espinasseau"
+    },
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "img-existing-1",
+        "src": "/uploads/1767782112408-detail_3.png",
+        "width": 1200,
+        "height": 800,
+        "alt": "detail_3.png"
+      },
+      {
+        "type": "image",
+        "id": "img-existing-2",
+        "src": "/uploads/1767782110105-detail_2.png",
+        "width": 1200,
+        "height": 800,
+        "alt": "detail_2.png",
+        "visibility": "public"
+      },
+      {
+        "type": "text",
+        "id": "txt-1767783203480-wh551t4qi",
+        "content": "한밭수목원 목조전망대·목조브릿지 / 우수작 5점 선정\nhttps://www.chungnamilbo.co.kr/news/articleView.html?idxno=842312\naaaaaaaa\n11111111111\n2222222222222",
+        "style": {
+          "backgroundColor": "#f5f5f5",
+          "fontSize": "16px"
+        },
+        "visibility": "public"
+      },
+      {
+        "type": "image",
+        "id": "img-existing-3",
+        "src": "/uploads/1767782107337-detail_1.png",
+        "width": 1200,
+        "height": 800,
+        "alt": "detail_1.png"
+      },
+      {
+        "type": "image",
+        "id": "img-existing-4",
+        "src": "/uploads/1767782098895-detail_4.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "detail_4.jpg",
+        "visibility": "private"
+      }
+    ]
+  },
+  {
+    "id": "223",
+    "title": "Cathédrale des sports",
+    "slug": "cathedrale-des-sports-2",
+    "imageUrl": "https://placehold.co/600x400?text=Cathedrale",
+    "link": "/projet/cathedrale-des-sports-2",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-223-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_223.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Cathédrale des sports"
+      },
+      {
+        "type": "image",
+        "id": "sample-223-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_223.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Cathédrale des sports"
+      },
+      {
+        "type": "image",
+        "id": "sample-223-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_223.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Cathédrale des sports"
+      },
+      {
+        "type": "image",
+        "id": "sample-223-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_223.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Cathédrale des sports"
+      },
+      {
+        "type": "image",
+        "id": "sample-223-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_223.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Cathédrale des sports"
+      }
+    ]
+  },
+  {
+    "id": "409",
+    "title": "FIRA Barcelona",
+    "slug": "fira-barcelona",
+    "imageUrl": "https://placehold.co/800x600?text=FIRA",
+    "link": "/projet/fira-barcelona",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-409-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_409.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - FIRA Barcelona"
+      },
+      {
+        "type": "image",
+        "id": "sample-409-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_409.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - FIRA Barcelona"
+      },
+      {
+        "type": "image",
+        "id": "sample-409-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_409.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - FIRA Barcelona"
+      },
+      {
+        "type": "image",
+        "id": "sample-409-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_409.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - FIRA Barcelona"
+      },
+      {
+        "type": "image",
+        "id": "sample-409-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_409.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - FIRA Barcelona"
+      }
+    ]
+  },
+  {
+    "id": "388",
+    "title": "Centre sportif Victoria",
+    "slug": "centre-sportif-victoria",
+    "imageUrl": "https://placehold.co/600x400?text=Victoria",
+    "link": "/projet/centre-sportif-victoria",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-388-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_388.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Centre sportif Victoria"
+      },
+      {
+        "type": "image",
+        "id": "sample-388-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_388.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Centre sportif Victoria"
+      },
+      {
+        "type": "image",
+        "id": "sample-388-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_388.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Centre sportif Victoria"
+      },
+      {
+        "type": "image",
+        "id": "sample-388-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_388.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Centre sportif Victoria"
+      },
+      {
+        "type": "image",
+        "id": "sample-388-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_388.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Centre sportif Victoria"
+      }
+    ]
+  },
+  {
+    "id": "404",
+    "title": "Complexe sportif",
+    "slug": "complexe-sportif",
+    "imageUrl": "https://placehold.co/600x400?text=Complexe",
+    "link": "/projet/complexe-sportif",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-404-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_404.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Complexe sportif"
+      },
+      {
+        "type": "image",
+        "id": "sample-404-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_404.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Complexe sportif"
+      },
+      {
+        "type": "image",
+        "id": "sample-404-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_404.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Complexe sportif"
+      },
+      {
+        "type": "image",
+        "id": "sample-404-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_404.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Complexe sportif"
+      },
+      {
+        "type": "image",
+        "id": "sample-404-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_404.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Complexe sportif"
+      }
+    ]
+  },
+  {
+    "id": "402",
+    "title": "Logements / Parking",
+    "slug": "logements-zac-littorale",
+    "imageUrl": "https://placehold.co/600x500?text=Logements",
+    "link": "/projet/logements-zac-littorale",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-402-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_402.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Logements / Parking"
+      },
+      {
+        "type": "image",
+        "id": "sample-402-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_402.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Logements / Parking"
+      },
+      {
+        "type": "image",
+        "id": "sample-402-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_402.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Logements / Parking"
+      },
+      {
+        "type": "image",
+        "id": "sample-402-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_402.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Logements / Parking"
+      },
+      {
+        "type": "image",
+        "id": "sample-402-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_402.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Logements / Parking"
+      }
+    ]
+  },
+  {
+    "id": "398",
+    "title": "Groupe scolaire",
+    "slug": "groupe-scolaire",
+    "imageUrl": "https://placehold.co/600x400?text=Ecole",
+    "link": "/projet/groupe-scolaire",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-398-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_398.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Groupe scolaire"
+      },
+      {
+        "type": "image",
+        "id": "sample-398-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_398.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Groupe scolaire"
+      },
+      {
+        "type": "image",
+        "id": "sample-398-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_398.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Groupe scolaire"
+      },
+      {
+        "type": "image",
+        "id": "sample-398-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_398.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Groupe scolaire"
+      },
+      {
+        "type": "image",
+        "id": "sample-398-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_398.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Groupe scolaire"
+      }
+    ]
+  },
+  {
+    "id": "393",
+    "title": "Stade Union Saint-Gilloise",
+    "slug": "stade-union-saint-gilloise",
+    "imageUrl": "https://placehold.co/600x400?text=Stade",
+    "link": "/projet/stade-union-saint-gilloise",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-393-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_393.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Stade Union Saint-Gilloise"
+      },
+      {
+        "type": "image",
+        "id": "sample-393-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_393.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Stade Union Saint-Gilloise"
+      },
+      {
+        "type": "image",
+        "id": "sample-393-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_393.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Stade Union Saint-Gilloise"
+      },
+      {
+        "type": "image",
+        "id": "sample-393-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_393.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Stade Union Saint-Gilloise"
+      },
+      {
+        "type": "image",
+        "id": "sample-393-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_393.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Stade Union Saint-Gilloise"
+      }
+    ]
+  },
+  {
+    "id": "390",
+    "title": "Hôpital Gustave Roussy",
+    "slug": "nouveau-centre-de-recherche-hopital-gustave-roussy",
+    "imageUrl": "https://placehold.co/600x400?text=Hopital",
+    "link": "/projet/nouveau-centre-de-recherche-hopital-gustave-roussy",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-390-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_390.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Hôpital Gustave Roussy"
+      },
+      {
+        "type": "image",
+        "id": "sample-390-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_390.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Hôpital Gustave Roussy"
+      },
+      {
+        "type": "image",
+        "id": "sample-390-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_390.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Hôpital Gustave Roussy"
+      },
+      {
+        "type": "image",
+        "id": "sample-390-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_390.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Hôpital Gustave Roussy"
+      },
+      {
+        "type": "image",
+        "id": "sample-390-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_390.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Hôpital Gustave Roussy"
+      }
+    ]
+  },
+  {
+    "id": "367",
+    "title": "Centre de Basket / Bureaux",
+    "slug": "centre-de-basket-bureaux",
+    "imageUrl": "https://placehold.co/600x400?text=Basket",
+    "link": "/projet/centre-de-basket-bureaux",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-367-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_367.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Centre de Basket / Bureaux"
+      },
+      {
+        "type": "image",
+        "id": "sample-367-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_367.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Centre de Basket / Bureaux"
+      },
+      {
+        "type": "image",
+        "id": "sample-367-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_367.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Centre de Basket / Bureaux"
+      },
+      {
+        "type": "image",
+        "id": "sample-367-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_367.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Centre de Basket / Bureaux"
+      },
+      {
+        "type": "image",
+        "id": "sample-367-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_367.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Centre de Basket / Bureaux"
+      }
+    ]
+  },
+  {
+    "id": "352",
+    "title": "Salle d’armes et dojo",
+    "slug": "centre-sportif-blr",
+    "imageUrl": "https://placehold.co/600x400?text=Dojo",
+    "link": "/projet/centre-sportif-blr",
+    "galleryImages": [
+      {
+        "type": "image",
+        "id": "sample-352-1",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_1_352.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 1 - Salle d’armes et dojo"
+      },
+      {
+        "type": "image",
+        "id": "sample-352-2",
+        "src": "https://placehold.co/800x1200/png?text=sample_2_352.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 2 - Salle d’armes et dojo"
+      },
+      {
+        "type": "image",
+        "id": "sample-352-3",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_3_352.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 3 - Salle d’armes et dojo"
+      },
+      {
+        "type": "image",
+        "id": "sample-352-4",
+        "src": "https://placehold.co/800x1200/png?text=sample_4_352.png",
+        "width": 800,
+        "height": 1200,
+        "alt": "샘플 이미지 4 - Salle d’armes et dojo"
+      },
+      {
+        "type": "image",
+        "id": "sample-352-5",
+        "src": "https://placehold.co/1200x800/jpg?text=sample_5_352.jpg",
+        "width": 1200,
+        "height": 800,
+        "alt": "샘플 이미지 5 - Salle d’armes et dojo"
+      }
+    ]
+  }
+]
