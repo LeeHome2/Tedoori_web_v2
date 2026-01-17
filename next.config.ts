@@ -24,13 +24,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
+        protocol: "https" as const,
         hostname: "placehold.co",
       },
       ...(supabaseHostname
         ? [
             {
-              protocol: "https",
+              protocol: "https" as const,
               hostname: supabaseHostname,
             },
           ]
@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
       ...(sftpPublicHostname
         ? [
             {
-              protocol: "https",
+              protocol: "https" as const,
               hostname: sftpPublicHostname,
             },
           ]
