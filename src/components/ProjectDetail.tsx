@@ -21,6 +21,13 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
 
   const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
   const [showDetails, setShowDetails] = useState(true);
+
+  // Collapse details by default on mobile
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setShowDetails(false);
+    }
+  }, []);
   
   // Edit Details State
   const [isEditingDetails, setIsEditingDetails] = useState(false);

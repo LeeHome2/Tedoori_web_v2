@@ -61,6 +61,10 @@ export async function GET() {
     details: row.details || {},
     galleryImages: row.gallery_images || [],
     isVisible: row.is_visible,
+    // Extract layout info from details if present
+    cardWidth: row.details?.cardWidth,
+    cardHeight: row.details?.cardHeight,
+    lockedAspectRatio: row.details?.lockedAspectRatio,
   }));
 
   return NextResponse.json(projects);
@@ -104,6 +108,17 @@ export async function POST(request: Request) {
       photographer: ""
     };
   }
+  
+  // Inject layout info into details for storage
+  if (newProject.cardWidth || newProject.cardHeight || newProject.lockedAspectRatio !== undefined) {
+      newProject.details = {
+          ...newProject.details,
+          cardWidth: newProject.cardWidth,
+          cardHeight: newProject.cardHeight,
+          lockedAspectRatio: newProject.lockedAspectRatio
+      } as any;
+  }
+
   if (!newProject.galleryImages) {
     newProject.galleryImages = [];
   }
@@ -148,6 +163,9 @@ export async function POST(request: Request) {
     details: data.details,
     galleryImages: data.gallery_images,
     isVisible: data.is_visible,
+    cardWidth: data.details?.cardWidth,
+    cardHeight: data.details?.cardHeight,
+    lockedAspectRatio: data.details?.lockedAspectRatio,
   };
 
   return NextResponse.json(savedProject);
@@ -186,6 +204,15 @@ export async function PUT(request: Request) {
   // Single project update
   const project: Project = body;
 
+  // Inject layout info into details for storage
+  // Ensure we preserve existing details if any
+  const detailsToSave = {
+      ...(project.details || {}),
+      cardWidth: project.cardWidth,
+      cardHeight: project.cardHeight,
+      lockedAspectRatio: project.lockedAspectRatio
+  };
+
   const { data, error } = await supabase
     .from('projects')
     .update({
@@ -193,7 +220,7 @@ export async function PUT(request: Request) {
       slug: project.slug,
       image_url: project.imageUrl,
       link: project.link,
-      details: project.details,
+      details: detailsToSave,
       gallery_images: project.galleryImages,
       is_visible: project.isVisible,
     })
@@ -215,6 +242,9 @@ export async function PUT(request: Request) {
     details: data.details,
     galleryImages: data.gallery_images,
     isVisible: data.is_visible,
+    cardWidth: data.details?.cardWidth,
+    cardHeight: data.details?.cardHeight,
+    lockedAspectRatio: data.details?.lockedAspectRatio,
   };
 
   return NextResponse.json(updatedProject);

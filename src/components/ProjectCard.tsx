@@ -17,6 +17,25 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const { isAdmin, adminMode } = useAdmin();
+  const { deleteProject, updateProject } = useProjects();
+  
+  // Resize State
+  const [isResizing, setIsResizing] = useState(false);
+  const [lockedRatio, setLockedRatio] = useState(!!project.lockedAspectRatio);
+  const [dimensions, setDimensions] = useState({ 
+      width: project.cardWidth, 
+      height: project.cardHeight 
+  });
+  const cardRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<{x: number, y: number, w: number, h: number} | null>(null);
+
+  // Sync dimensions when project updates or resize mode ends
+  useEffect(() => {
+      if (!isResizing) {
+          setDimensions({ width: project.cardWidth, height: project.cardHeight });
+          setLockedRatio(!!project.lockedAspectRatio);
+      }
+  }, [project, isResizing]);
   
   const {
     attributes,
@@ -26,18 +45,140 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
     transform,
     transition,
     isDragging
-  } = useSortable({ id: project.id, disabled: !isAdmin || !adminMode }); // Disable drag if not admin or adminMode is off
+  } = useSortable({ id: project.id, disabled: !isAdmin || !adminMode || isResizing }); // Disable drag if resizing
+
+  const hasCustomSize = !!dimensions.width;
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    // If resizing, disable transition to prevent lag. 
+    // Otherwise, combine dnd transition with our width/height transition logic (or let CSS handle it if dnd transition is null)
+    // Note: dnd transition is usually for transform. 
+    // If we simply set 'none', we kill width transition too.
+    // If we set `transition` (string), it overrides CSS.
+    // So we need to be careful.
+    // Ideally: transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined)
+    // If undefined, CSS applies.
+    transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
+    
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as const,
+    
+    width: hasCustomSize ? `${dimensions.width}px` : undefined,
+    height: hasCustomSize ? `${dimensions.height}px` : undefined,
+    
+    // Logic discussed:
+    // resizing -> none (allow expansion)
+    // custom size -> 100% (limit to parent width)
+    // default -> undefined (fallback to CSS max-width: 400px - actually 100% now)
+    maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
+    
+    // Logic discussed:
+    // custom size -> 0 0 auto (respect width/height, don't grow/shrink)
+    // default -> undefined (fallback to CSS flex: 1 1 220px)
+    flex: hasCustomSize ? '0 0 auto' : undefined,
+    
+    // Override CSS min-width (280px) if custom size is set, to allow resizing down to 200px
+    minWidth: hasCustomSize ? '0' : undefined,
+
+    zIndex: isResizing ? 100 : 'auto',
   };
 
-  const { deleteProject, updateProject } = useProjects();
+  // Combine refs
+  const setRefs = (node: HTMLDivElement | null) => {
+      setNodeRef(node);
+      // @ts-ignore
+      cardRef.current = node;
+  };
+
   const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
   const visibilityRef = useRef<HTMLDivElement>(null);
+
+  // Resize Handlers
+  const startResize = (e: React.MouseEvent | React.TouchEvent, direction: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+      
+      if (!cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      
+      resizeStartRef.current = {
+          x: clientX,
+          y: clientY,
+          w: rect.width,
+          h: rect.height
+      };
+      
+      // Initialize dimensions if they were undefined (auto)
+      if (!dimensions.width || !dimensions.height) {
+          setDimensions({ width: rect.width, height: rect.height });
+      }
+
+      const onMove = (moveEvent: MouseEvent | TouchEvent) => {
+          if (!resizeStartRef.current) return;
+          
+          const moveX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : (moveEvent as MouseEvent).clientX;
+          const moveY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : (moveEvent as MouseEvent).clientY;
+          
+          const deltaX = moveX - resizeStartRef.current.x;
+          const deltaY = moveY - resizeStartRef.current.y;
+          
+          let newWidth = resizeStartRef.current.w;
+          let newHeight = resizeStartRef.current.h;
+          
+          if (direction.includes('E')) newWidth += deltaX;
+          if (direction.includes('W')) newWidth -= deltaX;
+          if (direction.includes('S')) newHeight += deltaY;
+          if (direction.includes('N')) newHeight -= deltaY;
+          
+          // Constraints (200px - 800px)
+          newWidth = Math.max(200, Math.min(newWidth, 1200)); // Allow larger width for desktop
+          newHeight = Math.max(200, Math.min(newHeight, 1200));
+          
+          if (lockedRatio) {
+              const ratio = resizeStartRef.current.w / resizeStartRef.current.h;
+              if (direction.includes('E') || direction.includes('W')) {
+                  newHeight = newWidth / ratio;
+              } else {
+                  newWidth = newHeight * ratio;
+              }
+          }
+          
+          setDimensions({ width: Math.round(newWidth), height: Math.round(newHeight) });
+      };
+      
+      const onUp = () => {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('touchmove', onMove);
+          window.removeEventListener('mouseup', onUp);
+          window.removeEventListener('touchend', onUp);
+      };
+      
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchend', onUp);
+  };
+
+  const handleResizeSave = async () => {
+      if (confirm("Save new size settings?")) {
+          await updateProject({ 
+              ...project, 
+              cardWidth: dimensions.width, 
+              cardHeight: dimensions.height,
+              lockedAspectRatio: lockedRatio
+          });
+          setIsResizing(false);
+      }
+  };
+
+  const handleResizeCancel = () => {
+      setDimensions({ width: project.cardWidth, height: project.cardHeight });
+      setIsResizing(false);
+  };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -123,8 +264,8 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
 
   return (
     // Only attach attributes to the root for accessibility. Listeners are moved to the handle.
-    <div ref={setNodeRef} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''}`} {...attributes}>
-      <Link href={project.link || `/projet/${project.slug}`}>
+    <div ref={setRefs} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''} ${isResizing ? styles.resizing : ''}`} {...attributes}>
+      <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto' }}>
         <div className={styles.imageWrapper}>
           <Image
             src={project.imageUrl}
@@ -139,7 +280,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
             <span className={styles.title}>{project.title}</span>
           </div>
           
-          {isAdmin && adminMode && (
+          {isAdmin && adminMode && !isResizing && (
               <div 
                 className={styles.visibilitySelectContainer}
                 style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}
@@ -188,13 +329,14 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div>
       </Link>
       
-      {isAdmin && adminMode && (
+      {isAdmin && adminMode && !isResizing && (
           <div className={styles.adminOverlay} 
                // Prevent clicks/drags in the overlay area from bubbling up (though listeners are now on handle only)
                onPointerDown={(e) => e.stopPropagation()}
                onMouseDown={(e) => e.stopPropagation()}
                onClick={(e) => e.stopPropagation()}
           >
+              <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
               <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
               <button onClick={handleDelete} className={styles.deleteBtn}>Delete</button>
               
@@ -207,6 +349,48 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
                 :::
               </div>
           </div>
+      )}
+
+      {isResizing && (
+        <>
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleNW}`} onMouseDown={(e) => startResize(e, 'NW')} onTouchStart={(e) => startResize(e, 'NW')} />
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleNE}`} onMouseDown={(e) => startResize(e, 'NE')} onTouchStart={(e) => startResize(e, 'NE')} />
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleSW}`} onMouseDown={(e) => startResize(e, 'SW')} onTouchStart={(e) => startResize(e, 'SW')} />
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleSE}`} onMouseDown={(e) => startResize(e, 'SE')} onTouchStart={(e) => startResize(e, 'SE')} />
+            
+            <div className={styles.resizeOverlay} onMouseDown={(e) => e.stopPropagation()}>
+                <div className={styles.resizeControlsRow}>
+                    <div className={styles.resizeInputGroup}>
+                        <span className={styles.resizeLabel}>W</span>
+                        <input 
+                            className={styles.resizeInput}
+                            type="number" 
+                            value={dimensions.width || ''} 
+                            onChange={(e) => setDimensions(p => ({ ...p, width: parseInt(e.target.value) || 0 }))}
+                        />
+                    </div>
+                    <div className={styles.resizeInputGroup}>
+                        <span className={styles.resizeLabel}>H</span>
+                        <input 
+                            className={styles.resizeInput}
+                            type="number" 
+                            value={dimensions.height || ''} 
+                            onChange={(e) => setDimensions(p => ({ ...p, height: parseInt(e.target.value) || 0 }))}
+                        />
+                    </div>
+                </div>
+                <div className={styles.resizeControlsRow}>
+                    <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
+                        <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
+                        Lock Ratio
+                    </label>
+                </div>
+                <div className={styles.resizeControlsRow}>
+                    <button className={styles.resizeBtn} onClick={handleResizeSave}>Save</button>
+                    <button className={`${styles.resizeBtn} ${styles.cancel}`} onClick={handleResizeCancel}>Cancel</button>
+                </div>
+            </div>
+        </>
       )}
     </div>
   );

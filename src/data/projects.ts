@@ -26,6 +26,9 @@ export interface Project {
   details?: ProjectDetail;
   galleryImages?: GalleryItem[];
   isVisible?: 'public' | 'team' | 'private' | boolean; // Allow boolean for backward compatibility but prefer string
+  cardWidth?: number;
+  cardHeight?: number;
+  lockedAspectRatio?: boolean;
 }
 
 export const projects: Project[] = [
