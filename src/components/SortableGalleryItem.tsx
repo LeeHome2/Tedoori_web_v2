@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Image from "next/image";
@@ -13,10 +14,30 @@ interface SortableGalleryItemProps {
   onDelete: (index: number) => void;
   onClick: (index: number) => void;
   onUpdate?: (index: number, updatedItem: GalleryItem) => void;
+  onEdit?: (index: number, item: GalleryItem) => void;
 }
 
-export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate }: SortableGalleryItemProps) {
+export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, onEdit }: SortableGalleryItemProps) {
   const { isAdmin, adminMode } = useAdmin();
+  
+  // Resize State
+  const [isResizing, setIsResizing] = useState(false);
+  const [lockedRatio, setLockedRatio] = useState(!!item.lockedAspectRatio);
+  const [dimensions, setDimensions] = useState({ 
+      width: item.cardWidth, 
+      height: item.cardHeight 
+  });
+  const itemRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<{x: number, y: number, w: number, h: number} | null>(null);
+
+  // Sync dimensions
+  useEffect(() => {
+      if (!isResizing) {
+          setDimensions({ width: item.cardWidth, height: item.cardHeight });
+          setLockedRatio(!!item.lockedAspectRatio);
+      }
+  }, [item, isResizing]);
+
   const {
     attributes,
     listeners,
@@ -25,13 +46,21 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate }
     transform,
     transition,
     isDragging
-  } = useSortable({ id: item.id, disabled: !isAdmin || !adminMode });
+  } = useSortable({ id: item.id, disabled: !isAdmin || !adminMode || isResizing });
+
+  const hasCustomSize = !!dimensions.width;
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as const,
+    width: hasCustomSize ? `${dimensions.width}px` : undefined,
+    height: hasCustomSize ? `${dimensions.height}px` : undefined,
+    maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
+    flex: hasCustomSize ? '0 0 auto' : undefined,
+    minWidth: hasCustomSize ? '0' : undefined,
+    zIndex: isResizing ? 100 : 'auto',
   };
 
   const handleVisibilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -41,45 +70,137 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate }
       }
   };
 
-  const getVisibilityIcon = () => {
-      switch (item.visibility) {
-          case 'team': return '👥';
-          case 'private': return '🔒';
-          default: return '👁️'; // public
+  const startResize = (e: React.MouseEvent | React.TouchEvent, direction: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+      
+      if (!itemRef.current) return;
+      const rect = itemRef.current.getBoundingClientRect();
+      
+      resizeStartRef.current = {
+          x: clientX,
+          y: clientY,
+          w: rect.width,
+          h: rect.height
+      };
+      
+      if (!dimensions.width || !dimensions.height) {
+          setDimensions({ width: rect.width, height: rect.height });
+      }
+
+      const onMove = (moveEvent: MouseEvent | TouchEvent) => {
+          if (!resizeStartRef.current) return;
+          
+          const moveX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : (moveEvent as MouseEvent).clientX;
+          const moveY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : (moveEvent as MouseEvent).clientY;
+          
+          const deltaX = moveX - resizeStartRef.current.x;
+          const deltaY = moveY - resizeStartRef.current.y;
+          
+          let newWidth = resizeStartRef.current.w;
+          let newHeight = resizeStartRef.current.h;
+          
+          if (direction.includes('E')) newWidth += deltaX;
+          if (direction.includes('W')) newWidth -= deltaX;
+          if (direction.includes('S')) newHeight += deltaY;
+          if (direction.includes('N')) newHeight -= deltaY;
+          
+          newWidth = Math.max(100, Math.min(newWidth, 1600));
+          newHeight = Math.max(100, Math.min(newHeight, 1600));
+          
+          if (lockedRatio) {
+              const ratio = resizeStartRef.current.w / resizeStartRef.current.h;
+              if (direction.includes('E') || direction.includes('W')) {
+                  newHeight = newWidth / ratio;
+              } else {
+                  newWidth = newHeight * ratio;
+              }
+          }
+          
+          setDimensions({ width: Math.round(newWidth), height: Math.round(newHeight) });
+      };
+      
+      const onUp = () => {
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('touchmove', onMove);
+          window.removeEventListener('mouseup', onUp);
+          window.removeEventListener('touchend', onUp);
+      };
+      
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchend', onUp);
+  };
+
+  const handleResizeSave = () => {
+      if (onUpdate && confirm("Save new size settings?")) {
+          onUpdate(index, { 
+              ...item, 
+              cardWidth: dimensions.width, 
+              cardHeight: dimensions.height,
+              lockedAspectRatio: lockedRatio
+          });
+          setIsResizing(false);
       }
   };
 
-  // If not admin and item is not public, hide it? 
-  // Wait, if not admin, we might need to hide it completely from rendering in parent.
-  // But here we can also return null if we want to be safe, though filtering in parent is better.
-  // Assuming parent filters for non-admins.
-  
+  const handleResizeCancel = () => {
+      setDimensions({ width: item.cardWidth, height: item.cardHeight });
+      setIsResizing(false);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onEdit) onEdit(index, item);
+  };
+
+  const setRefs = (node: HTMLDivElement | null) => {
+      setNodeRef(node);
+      // @ts-ignore
+      itemRef.current = node;
+  };
+
   return (
-    <div ref={setNodeRef} style={style} className={`${styles.imageWrapper} ${item.type === 'text' ? styles.textWrapper : ''}`}>
+    <div ref={setRefs} style={style} className={`${styles.imageWrapper} ${item.type === 'text' ? styles.textWrapper : ''} ${isResizing ? styles.resizing : ''}`} {...attributes}>
         {item.type === 'image' ? (
-             <div onClick={() => onClick(index)}>
-                <Image
-                    src={item.src}
-                    alt={item.alt || `Image ${index + 1}`}
-                    width={item.width}
-                    height={item.height}
-                    className={styles.image}
-                    unoptimized
-                    loading="lazy"
-                    style={item.visibility === 'private' ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}
-                />
+             <div onClick={() => !isResizing && onClick(index)}>
+                {item.src ? (
+                    <Image
+                        src={item.src}
+                        alt={item.alt || `Image ${index + 1}`}
+                        width={item.width}
+                        height={item.height}
+                        className={styles.image}
+                        unoptimized
+                        loading="lazy"
+                        style={item.visibility === 'private' ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}
+                    />
+                ) : (
+                    <div style={{ width: '100%', height: '100%', minHeight: '200px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        Image Missing
+                    </div>
+                )}
              </div>
         ) : (
             <div 
                 className={styles.textItem}
-                onClick={() => onClick(index)}
-                style={item.visibility === 'private' ? { opacity: 0.5, backgroundColor: '#eee' } : {}}
+                onClick={() => !isResizing && onClick(index)}
+                style={{
+                    ...(item.visibility === 'private' ? { opacity: 0.5, backgroundColor: '#eee' } : {}),
+                    width: '100%',
+                    height: '100%',
+                    minHeight: 'unset'
+                }}
             >
                 {item.content}
             </div>
         )}
       
-      {isAdmin && adminMode && (
+      {isAdmin && adminMode && !isResizing && (
           <div className={styles.adminOverlay} 
                onClick={(e) => e.stopPropagation()}
                onPointerDown={(e) => e.stopPropagation()}
@@ -97,15 +218,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate }
                       <option value="private">Private</option>
                   </select>
                   
-                  <button 
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if(confirm('Delete this item?')) onDelete(index);
-                    }} 
-                    className={styles.deleteBtn}
-                  >
-                    Delete
-                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                  <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
               </div>
               
               <div className={styles.dragHandle} 
@@ -116,6 +230,48 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate }
                 :::
               </div>
           </div>
+      )}
+
+      {isResizing && (
+        <>
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleNW}`} onMouseDown={(e) => startResize(e, 'NW')} onTouchStart={(e) => startResize(e, 'NW')} />
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleNE}`} onMouseDown={(e) => startResize(e, 'NE')} onTouchStart={(e) => startResize(e, 'NE')} />
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleSW}`} onMouseDown={(e) => startResize(e, 'SW')} onTouchStart={(e) => startResize(e, 'SW')} />
+            <div className={`${styles.resizeHandle} ${styles.resizeHandleSE}`} onMouseDown={(e) => startResize(e, 'SE')} onTouchStart={(e) => startResize(e, 'SE')} />
+            
+            <div className={styles.resizeOverlay} onMouseDown={(e) => e.stopPropagation()}>
+                <div className={styles.resizeControlsRow}>
+                    <div className={styles.resizeInputGroup}>
+                        <span className={styles.resizeLabel}>W</span>
+                        <input 
+                            className={styles.resizeInput}
+                            type="number" 
+                            value={dimensions.width || ''} 
+                            onChange={(e) => setDimensions(p => ({ ...p, width: parseInt(e.target.value) || 0 }))}
+                        />
+                    </div>
+                    <div className={styles.resizeInputGroup}>
+                        <span className={styles.resizeLabel}>H</span>
+                        <input 
+                            className={styles.resizeInput}
+                            type="number" 
+                            value={dimensions.height || ''} 
+                            onChange={(e) => setDimensions(p => ({ ...p, height: parseInt(e.target.value) || 0 }))}
+                        />
+                    </div>
+                </div>
+                <div className={styles.resizeControlsRow}>
+                    <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
+                        <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
+                        Lock Ratio
+                    </label>
+                </div>
+                <div className={styles.resizeControlsRow}>
+                    <button className={styles.resizeBtn} onClick={handleResizeSave}>Save</button>
+                    <button className={`${styles.resizeBtn} ${styles.cancel}`} onClick={handleResizeCancel}>Cancel</button>
+                </div>
+            </div>
+        </>
       )}
     </div>
   );

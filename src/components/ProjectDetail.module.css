@@ -83,22 +83,22 @@
   }
 }
 
-/* Grid Layout matching NP2F float style but using modern CSS Grid */
+/* Flex Layout matching Main Page style */
 .grid {
-  display: grid;
-  grid-template-columns: 1fr; /* Mobile: 1 column */
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 @media (min-width: 1024px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr); /* Tablet/Small Desktop: 2 columns */
+    /* Base columns for items without custom size */
   }
 }
 
 @media (min-width: 1440px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr); /* Large Desktop: 3 columns */
+    /* Base columns for items without custom size */
   }
 }
 
@@ -106,6 +106,19 @@
   width: 100%;
   position: relative;
   cursor: zoom-in; /* Indicate zoom capability */
+  flex: 1 1 100%; /* Default to full width, but allow shrinking/growing */
+}
+
+@media (min-width: 1024px) {
+  .imageWrapper:not([style*="width"]) {
+    flex: 0 0 calc(50% - 10px); /* 2 columns when no custom width */
+  }
+}
+
+@media (min-width: 1440px) {
+  .imageWrapper:not([style*="width"]) {
+    flex: 0 0 calc(33.33% - 13.4px); /* 3 columns when no custom width */
+  }
 }
 
 .textWrapper {
@@ -124,6 +137,118 @@
 
 .imageWrapper:hover .image {
   opacity: 0.9;
+}
+
+/* Resize Styles */
+.resizing {
+    outline: 2px dashed #000;
+    z-index: 50;
+}
+
+.resizeHandle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border: 1px solid black;
+    z-index: 20;
+}
+
+.resizeHandleNW { top: -6px; left: -6px; cursor: nw-resize; }
+.resizeHandleNE { top: -6px; right: -6px; cursor: ne-resize; }
+.resizeHandleSW { bottom: -6px; left: -6px; cursor: sw-resize; }
+.resizeHandleSE { bottom: -6px; right: -6px; cursor: se-resize; }
+
+.resizeOverlay {
+    position: absolute;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.resizeControlsRow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.resizeInputGroup {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.resizeInput {
+    width: 50px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.resizeLabel {
+    font-size: 11px;
+    font-weight: bold;
+    color: #666;
+}
+
+.resizeBtn {
+    padding: 6px 12px;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    flex: 1;
+}
+
+.resizeBtn.cancel {
+    background: #eee;
+    color: black;
+    border: 1px solid #ccc;
+}
+
+.resizeToggleBtn {
+    padding: 6px 12px;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.resizeToggleBtn:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
+}
+
+.editBtn {
+    padding: 6px 12px;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
 }
 
 /* Updated Text Item Styling */
@@ -149,12 +274,17 @@
 /* Admin Image Controls */
 .adminOverlay {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    bottom: 0;
+    right: 0;
     display: flex;
-    gap: 5px;
+    gap: 8px;
     z-index: 10;
-    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px;
+    border-radius: 4px 0 0 0;
+    backdrop-filter: blur(4px);
 }
 
 .controlsRow {
@@ -164,33 +294,45 @@
 }
 
 .visibilitySelect {
-    padding: 5px;
+    padding: 6px;
     border-radius: 4px;
-    border: none;
-    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    background: #f0f0f0;
     font-size: 12px;
     cursor: pointer;
 }
 
 .deleteBtn {
-    padding: 5px 10px;
-    background: rgba(255,0,0,0.7);
-    color: white;
-    border: none;
+    padding: 6px 12px;
+    background: #fff5f5;
+    color: #cc0000;
+    border: 1px solid #ffdada;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+    background: #ffebeb;
+    border-color: #ffbaba;
 }
 
 .dragHandle {
-    padding: 5px;
-    background: rgba(0,0,0,0.5);
-    color: white;
+    padding: 6px 10px;
+    background: #f0f0f0;
+    color: #666;
     cursor: grab;
+    border: 1px solid #ddd;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 14px;
+}
+
+.dragHandle:hover {
+    background: #e0e0e0;
 }
 
 /* Lightbox Styles */
@@ -318,33 +460,6 @@
 }
 
 /* Upload UI */
-.uploadSection {
-    margin-bottom: 20px;
-    padding: 20px;
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    text-align: center;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.uploadInput {
-    display: none;
-}
-
-.uploadLabel, .addTextBtn {
-    display: inline-block;
-    padding: 10px 20px;
-    background: black;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
-    border: none;
-    font-size: 14px;
-}
-
 .progressBar {
     width: 100%;
     height: 10px;
@@ -414,7 +529,18 @@
 }
 
 .cancelBtn {
-    background: #ccc;
+    background: #f0f0f0;
+    color: #333;
+}
+
+.deleteModalBtn {
+    background: #fff5f5;
+    color: #cc0000;
+    border: 1px solid #ffdada;
+}
+
+.deleteModalBtn:hover {
+    background: #ffebeb;
 }
 
 .saveBtn {

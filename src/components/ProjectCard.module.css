@@ -56,36 +56,61 @@
 
 .adminOverlay {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    bottom: 0;
+    right: 0;
     display: flex;
-    gap: 5px;
+    gap: 8px;
     z-index: 10;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px;
+    border-radius: 4px 0 0 0;
+    backdrop-filter: blur(4px);
 }
 
 .editBtn, .deleteBtn, .resizeToggleBtn {
-    padding: 5px 10px;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    border: none;
+    padding: 6px 12px;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.editBtn:hover, .resizeToggleBtn:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
 }
 
 .deleteBtn {
-    background: rgba(255,0,0,0.7);
+    background: #fff5f5;
+    color: #cc0000;
+    border-color: #ffdada;
+}
+
+.deleteBtn:hover {
+    background: #ffebeb;
+    border-color: #ffbaba;
 }
 
 .dragHandle {
-    padding: 5px;
-    background: rgba(0,0,0,0.5);
-    color: white;
+    padding: 6px 10px;
+    background: #f0f0f0;
+    color: #666;
     cursor: grab;
+    border: 1px solid #ddd;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 14px;
+}
+
+.dragHandle:hover {
+    background: #e0e0e0;
 }
 
 .visibilityToggle {
@@ -130,21 +155,21 @@
 }
 
 .visibilitySelectTrigger {
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 4px;
-    border: none;
-    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    background: #f0f0f0;
     font-size: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-width: 80px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
 }
 
 .visibilitySelectTrigger:hover {
-    background: white;
+    background: #e0e0e0;
 }
 
 .visibilityOptions {
@@ -268,3 +293,89 @@
     color: black;
     border: 1px solid #ccc;
 }
+
+/* Video Styles */
+.playButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 5;
+}
+
+.imageWrapper:hover .playButton {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.videoModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.videoContainer {
+    width: 90%;
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    background: black;
+}
+
+.closeVideo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* Memo Styles */
+.memoCard {
+    /* Remove full card background/border to match image cards */
+}
+
+.memoContent {
+    width: 100%;
+    aspect-ratio: 3 / 2; /* Match standard image aspect ratio */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.memoText {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    text-align: center;
+    white-space: pre-wrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 8;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+

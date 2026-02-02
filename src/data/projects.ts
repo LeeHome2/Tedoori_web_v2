@@ -14,8 +14,28 @@ export interface ProjectDetail {
 }
 
 export type GalleryItem = 
-  | { type: 'image'; id: string; src: string; width: number; height: number; alt: string; visibility?: 'public' | 'team' | 'private' }
-  | { type: 'text'; id: string; content: string; style?: { fontSize?: string; textAlign?: string; backgroundColor?: string; color?: string }; visibility?: 'public' | 'team' | 'private' };
+  | { 
+      type: 'image'; 
+      id: string; 
+      src: string; 
+      width: number; 
+      height: number; 
+      alt: string; 
+      visibility?: 'public' | 'team' | 'private';
+      cardWidth?: number;
+      cardHeight?: number;
+      lockedAspectRatio?: boolean;
+    }
+  | { 
+      type: 'text'; 
+      id: string; 
+      content: string; 
+      style?: { fontSize?: string; textAlign?: string; backgroundColor?: string; color?: string }; 
+      visibility?: 'public' | 'team' | 'private';
+      cardWidth?: number;
+      cardHeight?: number;
+      lockedAspectRatio?: boolean;
+    };
 
 export interface Project {
   id: string;
@@ -23,6 +43,9 @@ export interface Project {
   slug: string;
   imageUrl: string;
   link: string;
+  type?: 'project' | 'video' | 'memo';
+  videoId?: string;
+  content?: string;
   details?: ProjectDetail;
   galleryImages?: GalleryItem[];
   isVisible?: 'public' | 'team' | 'private' | boolean; // Allow boolean for backward compatibility but prefer string

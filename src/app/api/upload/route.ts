@@ -37,6 +37,14 @@ export async function POST(request: Request) {
   const filepath = path.join(uploadDir, filename);
 
   try {
+    // Ensure directory exists
+    const fs = await import('fs/promises');
+    try {
+        await fs.access(uploadDir);
+    } catch {
+        await fs.mkdir(uploadDir, { recursive: true });
+    }
+
     await writeFile(filepath, buffer);
     return NextResponse.json({ 
         url: `/uploads/${filename}`,

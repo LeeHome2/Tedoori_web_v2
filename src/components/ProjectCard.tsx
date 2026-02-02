@@ -17,7 +17,7 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const { isAdmin, adminMode } = useAdmin();
-  const { deleteProject, updateProject } = useProjects();
+  const { updateProject } = useProjects();
   
   // Resize State
   const [isResizing, setIsResizing] = useState(false);
@@ -93,6 +93,9 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
 
   const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);
   const visibilityRef = useRef<HTMLDivElement>(null);
+
+  // Video State
+  const [showVideo, setShowVideo] = useState(false);
 
   // Resize Handlers
   const startResize = (e: React.MouseEvent | React.TouchEvent, direction: string) => {
@@ -180,14 +183,6 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
       setIsResizing(false);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (confirm('Are you sure you want to delete this project?')) {
-      deleteProject(project.id);
-    }
-  };
-
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -262,95 +257,134 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
       }
   };
 
+  const isVideo = project.type === 'video';
+  const isMemo = project.type === 'memo';
+
   return (
     // Only attach attributes to the root for accessibility. Listeners are moved to the handle.
-    <div ref={setRefs} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''} ${isResizing ? styles.resizing : ''}`} {...attributes}>
-      <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto' }}>
-        <div className={styles.imageWrapper}>
-          <Image
-            src={project.imageUrl}
-            alt={project.title}
-            width={600}
-            height={400}
-            className={styles.image}
-            unoptimized
-          />
-          <div className={styles.overlayInfo}>
-            <span className={styles.number}>{project.id}</span>
-            <span className={styles.title}>{project.title}</span>
-          </div>
-          
-          {isAdmin && adminMode && !isResizing && (
-              <div 
-                className={styles.visibilitySelectContainer}
-                style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}
-                ref={visibilityRef}
-                onClick={(e) => e.preventDefault()} // Prevent link navigation
-              >
-                  <button 
-                    className={styles.visibilitySelectTrigger}
-                    onClick={toggleVisibilityOptions}
-                    aria-haspopup="listbox"
-                    aria-expanded={showVisibilityOptions}
-                    title="Change Visibility"
-                  >
-                      <span>{getVisibilityLabel(currentVisibility as string)}</span>
-                      <span style={{ fontSize: '10px', marginLeft: '5px' }}>▼</span>
-                  </button>
-                  
-                  <div className={`${styles.visibilityOptions} ${showVisibilityOptions ? styles.open : ''}`} role="listbox">
-                      <div 
-                        className={`${styles.visibilityOption} ${currentVisibility === 'public' ? styles.selected : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleVisibilityChange('public'); }}
-                        role="option"
-                        aria-selected={currentVisibility === 'public'}
-                      >
-                          <span>Public</span>
-                      </div>
-                      <div 
-                        className={`${styles.visibilityOption} ${currentVisibility === 'team' ? styles.selected : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleVisibilityChange('team'); }}
-                        role="option"
-                        aria-selected={currentVisibility === 'team'}
-                      >
-                          <span>Team Only</span>
-                      </div>
-                      <div 
-                        className={`${styles.visibilityOption} ${currentVisibility === 'private' ? styles.selected : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleVisibilityChange('private'); }}
-                        role="option"
-                        aria-selected={currentVisibility === 'private'}
-                      >
-                          <span>Private</span>
-                      </div>
-                  </div>
-              </div>
-          )}
-        </div>
-      </Link>
-      
-      {isAdmin && adminMode && !isResizing && (
-          <div className={styles.adminOverlay} 
-               // Prevent clicks/drags in the overlay area from bubbling up (though listeners are now on handle only)
-               onPointerDown={(e) => e.stopPropagation()}
-               onMouseDown={(e) => e.stopPropagation()}
-               onClick={(e) => e.stopPropagation()}
-          >
-              <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
-              <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
-              <button onClick={handleDelete} className={styles.deleteBtn}>Delete</button>
-              
-              {/* Drag Handle - Attach listeners and activator ref here */}
-              <div className={styles.dragHandle} 
-                   ref={setActivatorNodeRef}
-                   {...listeners}
-                   style={{ cursor: 'grab', touchAction: 'none' }} // Ensure touch action is none for touch drag
-              >
-                :::
-              </div>
-          </div>
-      )}
+    <div ref={setRefs} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''} ${isResizing ? styles.resizing : ''} ${isMemo ? styles.memoCard : ''}`} {...attributes}>
+      <div className={styles.imageWrapper}>
+        {isMemo ? (
+            <div className={styles.memoContent}>
+                <div className={styles.memoText}>{project.content}</div>
+            </div>
+        ) : isVideo ? (
+            <div onClick={() => setShowVideo(true)} style={{ cursor: 'pointer', display: 'block', position: 'relative' }}>
+                {project.imageUrl ? (
+                    <Image
+                        src={project.imageUrl}
+                        alt={project.title}
+                        width={600}
+                        height={400}
+                        className={styles.image}
+                        unoptimized
+                    />
+                ) : (
+                    <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
+                )}
+                <div className={styles.playButton}>
+                    <svg viewBox="0 0 24 24" width="48" height="48">
+                        <path fill="white" d="M8 5v14l11-7z" />
+                    </svg>
+                </div>
+            </div>
+        ) : (
+            <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto', display: 'block' }}>
+                {project.imageUrl ? (
+                    <Image
+                        src={project.imageUrl}
+                        alt={project.title}
+                        width={600}
+                        height={400}
+                        className={styles.image}
+                        unoptimized
+                    />
+                ) : (
+                    <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
+                )}
+            </Link>
+        )}
+        
+        {isAdmin && adminMode && !isResizing && (
+            <div className={styles.adminOverlay} 
+                 onPointerDown={(e) => e.stopPropagation()}
+                 onMouseDown={(e) => e.stopPropagation()}
+                 onClick={(e) => e.stopPropagation()}
+            >
+                <div 
+                  className={styles.visibilitySelectContainer}
+                  ref={visibilityRef}
+                >
+                    <button 
+                      className={styles.visibilitySelectTrigger}
+                      onClick={toggleVisibilityOptions}
+                      aria-haspopup="listbox"
+                      aria-expanded={showVisibilityOptions}
+                      title="Change Visibility"
+                    >
+                        <span>{getVisibilityLabel(currentVisibility as string)}</span>
+                        <span style={{ fontSize: '10px', marginLeft: '5px' }}>▼</span>
+                    </button>
+                    
+                    <div className={`${styles.visibilityOptions} ${showVisibilityOptions ? styles.open : ''}`} role="listbox">
+                        <div 
+                          className={`${styles.visibilityOption} ${currentVisibility === 'public' ? styles.selected : ''}`}
+                          onClick={(e) => { e.stopPropagation(); handleVisibilityChange('public'); }}
+                          role="option"
+                          aria-selected={currentVisibility === 'public'}
+                        >
+                            <span>Public</span>
+                        </div>
+                        <div 
+                          className={`${styles.visibilityOption} ${currentVisibility === 'team' ? styles.selected : ''}`}
+                          onClick={(e) => { e.stopPropagation(); handleVisibilityChange('team'); }}
+                          role="option"
+                          aria-selected={currentVisibility === 'team'}
+                        >
+                            <span>Team Only</span>
+                        </div>
+                        <div 
+                          className={`${styles.visibilityOption} ${currentVisibility === 'private' ? styles.selected : ''}`}
+                          onClick={(e) => { e.stopPropagation(); handleVisibilityChange('private'); }}
+                          role="option"
+                          aria-selected={currentVisibility === 'private'}
+                        >
+                            <span>Private</span>
+                        </div>
+                    </div>
+                </div>
 
+                <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
+                
+                {/* Drag Handle */}
+                <div className={styles.dragHandle} 
+                     ref={setActivatorNodeRef}
+                     {...listeners}
+                     style={{ cursor: 'grab', touchAction: 'none' }}
+                >
+                  :::
+                </div>
+            </div>
+        )}
+      </div>
+
+      {isVideo ? (
+          <div onClick={() => setShowVideo(true)} style={{ cursor: 'pointer' }}>
+            <div className={styles.overlayInfo}>
+              <span className={styles.number}>{project.id}</span>
+              <span className={styles.title}>{project.title}</span>
+            </div>
+          </div>
+      ) : (
+          <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto' }}>
+            <div className={styles.overlayInfo}>
+              <span className={styles.number}>{project.id}</span>
+              <span className={styles.title}>{project.title}</span>
+            </div>
+          </Link>
+      )}
+      
       {isResizing && (
         <>
             <div className={`${styles.resizeHandle} ${styles.resizeHandleNW}`} onMouseDown={(e) => startResize(e, 'NW')} onTouchStart={(e) => startResize(e, 'NW')} />
@@ -391,6 +425,23 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
                 </div>
             </div>
         </>
+      )}
+
+      {showVideo && project.videoId && (
+          <div className={styles.videoModal} onClick={() => setShowVideo(false)}>
+              <button className={styles.closeVideo} onClick={() => setShowVideo(false)}>×</button>
+              <div className={styles.videoContainer} onClick={(e) => e.stopPropagation()}>
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={`https://www.youtube.com/embed/${project.videoId}?autoplay=1`} 
+                    title={project.title} 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+              </div>
+          </div>
       )}
     </div>
   );

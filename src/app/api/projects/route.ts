@@ -61,10 +61,13 @@ export async function GET() {
     details: row.details || {},
     galleryImages: row.gallery_images || [],
     isVisible: row.is_visible,
-    // Extract layout info from details if present
+    // Extract layout and content info from details
     cardWidth: row.details?.cardWidth,
     cardHeight: row.details?.cardHeight,
     lockedAspectRatio: row.details?.lockedAspectRatio,
+    type: row.details?.type || 'project',
+    videoId: row.details?.videoId,
+    content: row.details?.content,
   }));
 
   return NextResponse.json(projects);
@@ -109,15 +112,16 @@ export async function POST(request: Request) {
     };
   }
   
-  // Inject layout info into details for storage
-  if (newProject.cardWidth || newProject.cardHeight || newProject.lockedAspectRatio !== undefined) {
-      newProject.details = {
-          ...newProject.details,
-          cardWidth: newProject.cardWidth,
-          cardHeight: newProject.cardHeight,
-          lockedAspectRatio: newProject.lockedAspectRatio
-      } as any;
-  }
+  // Inject layout and content info into details for storage
+  newProject.details = {
+      ...newProject.details,
+      cardWidth: newProject.cardWidth,
+      cardHeight: newProject.cardHeight,
+      lockedAspectRatio: newProject.lockedAspectRatio,
+      type: newProject.type,
+      videoId: newProject.videoId,
+      content: newProject.content,
+  } as any;
 
   if (!newProject.galleryImages) {
     newProject.galleryImages = [];
@@ -166,6 +170,9 @@ export async function POST(request: Request) {
     cardWidth: data.details?.cardWidth,
     cardHeight: data.details?.cardHeight,
     lockedAspectRatio: data.details?.lockedAspectRatio,
+    type: data.details?.type || 'project',
+    videoId: data.details?.videoId,
+    content: data.details?.content,
   };
 
   return NextResponse.json(savedProject);
@@ -204,13 +211,16 @@ export async function PUT(request: Request) {
   // Single project update
   const project: Project = body;
 
-  // Inject layout info into details for storage
+  // Inject layout and content info into details for storage
   // Ensure we preserve existing details if any
   const detailsToSave = {
       ...(project.details || {}),
       cardWidth: project.cardWidth,
       cardHeight: project.cardHeight,
-      lockedAspectRatio: project.lockedAspectRatio
+      lockedAspectRatio: project.lockedAspectRatio,
+      type: project.type,
+      videoId: project.videoId,
+      content: project.content,
   };
 
   const { data, error } = await supabase
@@ -245,6 +255,9 @@ export async function PUT(request: Request) {
     cardWidth: data.details?.cardWidth,
     cardHeight: data.details?.cardHeight,
     lockedAspectRatio: data.details?.lockedAspectRatio,
+    type: data.details?.type || 'project',
+    videoId: data.details?.videoId,
+    content: data.details?.content,
   };
 
   return NextResponse.json(updatedProject);

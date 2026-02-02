@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import { Project, GalleryItem } from "@/data/projects";
 import styles from "./ProjectDetail.module.css";
@@ -81,6 +81,13 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const [showTextModal, setShowTextModal] = useState(false);
   const [newTextContent, setNewTextContent] = useState("");
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+
+  // Edit Gallery Item State
+  const [editingItemIndex, setEditingTextItemIndex] = useState<number | null>(null);
+  const [showImageEditModal, setShowImageEditModal] = useState(false);
+  const [editImageSrc, setEditImageSrc] = useState("");
+  const [editImageAlt, setEditImageAlt] = useState("");
 
   // DND Sensors
   const sensors = useSensors(
@@ -298,10 +305,137 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       await updateProject(updatedProject);
   };
 
+  const handleEditItem = (index: number, item: GalleryItem) => {
+      if (item.type === 'text') {
+          setEditingTextId(item.id);
+          setNewTextContent(item.content);
+          setShowTextModal(true);
+      } else {
+          setEditingTextItemIndex(index);
+          setEditImageSrc(item.src);
+          setEditImageAlt(item.alt);
+          setShowImageEditModal(true);
+      }
+  };
+
+  const handleSaveImageEdit = async () => {
+      if (editingItemIndex === null || !project.galleryImages) return;
+      
+      const item = project.galleryImages[editingItemIndex];
+      if (item.type !== 'image') return;
+
+      const updatedItem = {
+          ...item,
+          src: editImageSrc,
+          alt: editImageAlt
+      };
+
+      await handleUpdateItem(editingItemIndex, updatedItem);
+      setShowImageEditModal(false);
+      setEditingTextItemIndex(null);
+  };
+
+  const handleImageFileReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || editingItemIndex === null) return;
+
+      setUploading(true);
+      setUploadProgress(0);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+          const res = await fetch('/api/upload', {
+              method: 'POST',
+              body: formData
+          });
+
+          if (!res.ok) throw new Error('Upload failed');
+
+          const data = await res.json();
+          setEditImageSrc(data.url);
+          // Optionally update dimensions if you want to keep original file aspect ratio
+          // But usually we just update the source.
+      } catch (err: any) {
+          setError(err.message);
+      } finally {
+          setUploading(false);
+      }
+  };
+
+  const handleDeleteFromModal = async () => {
+      let indexToDelete = -1;
+      
+      if (editingTextId) {
+          indexToDelete = project.galleryImages?.findIndex(item => item.id === editingTextId) ?? -1;
+      } else if (editingItemIndex !== null) {
+          indexToDelete = editingItemIndex;
+      }
+
+      if (indexToDelete !== -1 && confirm('Are you sure you want to delete this item?')) {
+          await handleDeleteItem(indexToDelete);
+          setShowTextModal(false);
+          setShowImageEditModal(false);
+          setEditingTextId(null);
+          setEditingTextItemIndex(null);
+      }
+  };
+
+  // Close add menu when clicking outside
+  const addMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (addMenuRef.current && !addMenuRef.current.contains(event.target as Node)) {
+            setShowAddMenu(false);
+        }
+    };
+    if (showAddMenu) {
+        document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAddMenu]);
+
   return (
     <div className={styles.container}>
       {isAdmin && (
           <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+              {adminMode && (
+                  <div style={{ position: 'relative' }} ref={addMenuRef}>
+                      <button 
+                        onClick={() => setShowAddMenu(!showAddMenu)} 
+                        style={{ padding: '10px 20px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+                      >
+                          + Add
+                      </button>
+                      {showAddMenu && (
+                          <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '5px', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', borderRadius: '4px', overflow: 'hidden', minWidth: '120px', zIndex: 1001 }}>
+                              <label style={{ display: 'block', padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #eee', color: 'black' }}>
+                                  + Image
+                                  <input 
+                                    type="file" 
+                                    style={{ display: 'none' }} 
+                                    accept="image/*" 
+                                    onChange={(e) => {
+                                        handleFileUpload(e);
+                                        setShowAddMenu(false);
+                                    }} 
+                                  />
+                              </label>
+                              <button 
+                                onClick={() => { 
+                                    handleAddText(); 
+                                    setShowAddMenu(false); 
+                                }} 
+                                style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: 'black' }}
+                              >
+                                  + Text
+                              </button>
+                          </div>
+                      )}
+                  </div>
+              )}
               <button 
                 onClick={toggleAdminMode} 
                 style={{ 
@@ -326,37 +460,39 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
           {details.year}{details.year && details.location ? ", " : ""}{details.location}
         </div>
         
-        <div className={styles.detailsTrigger} onClick={toggleDetails}>
-          infos
-        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+          <div className={styles.detailsTrigger} onClick={toggleDetails} style={{ marginBottom: 0 }}>
+            infos
+          </div>
 
-        {isAdmin && adminMode && (
-             <div style={{ marginBottom: '10px' }}>
-                 {!isEditingDetails ? (
-                     <button 
-                        onClick={() => setIsEditingDetails(true)}
-                        style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
-                     >
-                         Edit Infos
-                     </button>
-                 ) : (
-                     <div style={{ display: 'flex', gap: '5px' }}>
-                         <button 
-                            onClick={handleSaveDetails}
-                            style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
-                         >
-                             Save
-                         </button>
-                         <button 
-                            onClick={handleCancelDetails}
-                            style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
-                         >
-                             Cancel
-                         </button>
-                     </div>
-                 )}
-             </div>
-        )}
+          {isAdmin && adminMode && (
+               <div style={{ display: 'flex' }}>
+                   {!isEditingDetails ? (
+                       <button 
+                          onClick={() => setIsEditingDetails(true)}
+                          style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
+                       >
+                           Edit Infos
+                       </button>
+                   ) : (
+                       <div style={{ display: 'flex', gap: '5px' }}>
+                           <button 
+                              onClick={handleSaveDetails}
+                              style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+                           >
+                               Save
+                           </button>
+                           <button 
+                              onClick={handleCancelDetails}
+                              style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
+                           >
+                               Cancel
+                           </button>
+                       </div>
+                   )}
+               </div>
+          )}
+        </div>
 
         <div className={`${styles.detailsList} ${showDetails ? styles.open : ""}`}>
           {!isEditingDetails ? (
@@ -394,29 +530,12 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       </div>
 
       <div className={styles.imageColumn}>
-        {isAdmin && adminMode && (
-            <div className={styles.uploadSection}>
-                <label className={styles.uploadLabel}>
-                    + Add Image
-                    <input 
-                        type="file" 
-                        className={styles.uploadInput} 
-                        accept="image/*" 
-                        onChange={handleFileUpload} 
-                        disabled={uploading}
-                    />
-                </label>
-                <button className={styles.addTextBtn} onClick={handleAddText}>
-                    + Add Text
-                </button>
-                {uploading && (
-                    <div className={styles.progressBar}>
-                        <div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div>
-                    </div>
-                )}
-                {error && <p style={{ color: 'red', marginTop: '10px', width: '100%' }}>{error}</p>}
+        {isAdmin && adminMode && uploading && (
+            <div className={styles.progressBar}>
+                <div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div>
             </div>
         )}
+        {isAdmin && adminMode && error && <p style={{ color: 'red', marginTop: '10px', width: '100%' }}>{error}</p>}
 
         <DndContext 
             sensors={sensors} 
@@ -435,13 +554,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                     
                     return (
                         <SortableGalleryItem 
-                            key={item.id}
-                            item={item} 
-                            index={index} 
-                            onClick={() => handleItemClick(index)}
-                            onDelete={handleDeleteItem}
-                            onUpdate={handleUpdateItem}
-                        />
+                                key={item.id}
+                                item={item} 
+                                index={index} 
+                                onClick={() => handleItemClick(index)}
+                                onDelete={handleDeleteItem}
+                                onUpdate={handleUpdateItem}
+                                onEdit={handleEditItem}
+                            />
                     );
                 })}
                 </div>
@@ -476,14 +596,18 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         >
             {currentItem && (
                 currentItem.type === 'image' ? (
-                 <Image
-                    src={currentItem.src}
-                    alt={currentItem.alt || "Lightbox Image"}
-                    width={currentItem.width}
-                    height={currentItem.height}
-                    className={styles.lightboxImage}
-                    unoptimized
-                 />
+                 currentItem.src ? (
+                    <Image
+                        src={currentItem.src}
+                        alt={currentItem.alt || "Lightbox Image"}
+                        width={currentItem.width}
+                        height={currentItem.height}
+                        className={styles.lightboxImage}
+                        unoptimized
+                    />
+                 ) : (
+                    <div style={{ color: 'white' }}>Image Missing</div>
+                 )
                 ) : (
                  <div 
                     className={styles.lightboxTextItem}
@@ -515,7 +639,11 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                     }}
                  >
                      {item.type === 'image' ? (
-                         <img src={item.src} alt={`Thumbnail ${index}`} style={{ height: '100%', width: 'auto' }} />
+                         item.src ? (
+                            <img src={item.src} alt={`Thumbnail ${index}`} style={{ height: '100%', width: 'auto' }} />
+                         ) : (
+                            <div style={{ height: '100%', width: '30px', background: '#ccc' }} />
+                         )
                      ) : (
                          <div style={{ 
                              height: '100%', 
@@ -552,7 +680,54 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                   />
                   <div className={styles.modalActions}>
                       <button className={`${styles.modalBtn} ${styles.cancelBtn}`} onClick={() => setShowTextModal(false)}>Cancel</button>
+                      {editingTextId && (
+                          <button className={`${styles.modalBtn} ${styles.deleteModalBtn}`} onClick={handleDeleteFromModal}>Delete</button>
+                      )}
                       <button className={`${styles.modalBtn} ${styles.saveBtn}`} onClick={handleSaveText}>Save</button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Edit Image Modal */}
+      {showImageEditModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowImageEditModal(false)}>
+              <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                  <h3 className={styles.modalTitle}>Edit Image Item</h3>
+                  
+                  <div style={{ marginBottom: '15px' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '12px', display: 'block', marginBottom: '5px' }}>Replace Image:</span>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageFileReplace}
+                        style={{ fontSize: '12px' }}
+                      />
+                      {uploading && <div className={styles.progressBar} style={{ height: '4px' }}><div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div></div>}
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Image URL:</span>
+                      <input 
+                        type="text" 
+                        value={editImageSrc}
+                        onChange={(e) => setEditImageSrc(e.target.value)}
+                        style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Alt Text:</span>
+                      <input 
+                        type="text" 
+                        value={editImageAlt}
+                        onChange={(e) => setEditImageAlt(e.target.value)}
+                        style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                      />
+                  </label>
+                  <div className={styles.modalActions}>
+                      <button className={`${styles.modalBtn} ${styles.cancelBtn}`} onClick={() => setShowImageEditModal(false)}>Cancel</button>
+                      <button className={`${styles.modalBtn} ${styles.deleteModalBtn}`} onClick={handleDeleteFromModal}>Delete</button>
+                      <button className={`${styles.modalBtn} ${styles.saveBtn}`} onClick={handleSaveImageEdit}>Save</button>
                   </div>
               </div>
           </div>
