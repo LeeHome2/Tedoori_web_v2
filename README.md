@@ -64,3 +64,4 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 환경 변수 설정 후 "Deploy" 버튼을 클릭하면 자동으로 배포됩니다.
 
 배포 관련 자세한 내용은 [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying)을 참고하세요.
+
