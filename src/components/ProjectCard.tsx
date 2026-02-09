@@ -260,13 +260,52 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const isVideo = project.type === 'video';
   const isMemo = project.type === 'memo';
 
+  const [isEditingMemo, setIsEditingMemo] = useState(false);
+  const [memoText, setMemoText] = useState(project.content || '');
+
+  const handleMemoClick = (e: React.MouseEvent) => {
+      if (isAdmin && adminMode) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsEditingMemo(true);
+      }
+  };
+
+  const handleMemoBlur = async () => {
+      setIsEditingMemo(false);
+      if (memoText !== project.content) {
+          await updateProject({ ...project, content: memoText });
+      }
+  };
+
+  const handleMemoKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+          setMemoText(project.content || '');
+          setIsEditingMemo(false);
+      }
+      // Allow Enter for new lines in textarea
+  };
+
   return (
     // Only attach attributes to the root for accessibility. Listeners are moved to the handle.
     <div ref={setRefs} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''} ${isResizing ? styles.resizing : ''} ${isMemo ? styles.memoCard : ''}`} {...attributes}>
       <div className={styles.imageWrapper}>
         {isMemo ? (
-            <div className={styles.memoContent}>
-                <div className={styles.memoText}>{project.content}</div>
+            <div className={styles.memoContent} onClick={handleMemoClick}>
+                {isEditingMemo ? (
+                    <textarea
+                        className={styles.memoTextarea}
+                        value={memoText}
+                        onChange={(e) => setMemoText(e.target.value)}
+                        onBlur={handleMemoBlur}
+                        onKeyDown={handleMemoKeyDown}
+                        autoFocus
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()} // Prevent drag start
+                    />
+                ) : (
+                    <div className={styles.memoText}>{project.content}</div>
+                )}
             </div>
         ) : isVideo ? (
             <div onClick={() => setShowVideo(true)} style={{ cursor: 'pointer', display: 'block', position: 'relative' }}>
