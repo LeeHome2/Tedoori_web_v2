@@ -3,6 +3,8 @@ import { getProjects } from "@/lib/db";
 import ProjectDetailHeader from "@/components/ProjectDetailHeader";
 import ProjectDetail from "@/components/ProjectDetail";
 
+export const revalidate = 0;
+
 interface PageProps {
   params: Promise<{
     slug: string;

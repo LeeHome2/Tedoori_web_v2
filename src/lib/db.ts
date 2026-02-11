@@ -22,6 +22,14 @@ export const getProjects = async (): Promise<Project[]> => {
     details: row.details || {},
     galleryImages: row.gallery_images || [],
     isVisible: row.is_visible,
+    type: row.details?.type,
+    content: row.details?.content,
+    videoId: row.details?.videoId,
+    memoStyle: row.details?.memoStyle,
+    descriptionBlocks: row.details?.descriptionBlocks,
+    cardWidth: row.details?.cardWidth,
+    cardHeight: row.details?.cardHeight,
+    lockedAspectRatio: row.details?.lockedAspectRatio,
   }));
 };
 
@@ -47,6 +55,14 @@ export const getProjectBySlug = async (slug: string): Promise<Project | null> =>
     details: data.details || {},
     galleryImages: data.gallery_images || [],
     isVisible: data.is_visible,
+    type: data.details?.type,
+    content: data.details?.content,
+    videoId: data.details?.videoId,
+    memoStyle: data.details?.memoStyle,
+    descriptionBlocks: data.details?.descriptionBlocks,
+    cardWidth: data.details?.cardWidth,
+    cardHeight: data.details?.cardHeight,
+    lockedAspectRatio: data.details?.lockedAspectRatio,
   };
 };
 
