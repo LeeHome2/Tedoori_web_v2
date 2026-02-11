@@ -37,6 +37,20 @@ export type GalleryItem =
       lockedAspectRatio?: boolean;
     };
 
+export interface MemoStyle {
+  fontFamily?: string;
+  fontSize?: string;
+  backgroundColor?: string;
+  color?: string;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
+}
+
+export interface ContentBlock {
+  id: string;
+  type: 'text' | 'image';
+  content: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -46,7 +60,9 @@ export interface Project {
   type?: 'project' | 'video' | 'memo';
   videoId?: string;
   content?: string;
+  memoStyle?: MemoStyle;
   details?: ProjectDetail;
+  descriptionBlocks?: ContentBlock[];
   galleryImages?: GalleryItem[];
   isVisible?: 'public' | 'team' | 'private' | boolean; // Allow boolean for backward compatibility but prefer string
   cardWidth?: number;

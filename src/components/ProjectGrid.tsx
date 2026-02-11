@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Project } from "@/data/projects";
+import { Project, MemoStyle } from "@/data/projects";
 import ProjectCard from "./ProjectCard";
 import styles from "./ProjectGrid.module.css";
 import { useAdmin } from '@/context/AdminContext';
@@ -30,6 +30,7 @@ export default function ProjectGrid() {
   // Memo State
   const [projectType, setProjectType] = useState<'project' | 'video' | 'memo'>('project');
   const [memoContent, setMemoContent] = useState('');
+  const [memoStyle, setMemoStyle] = useState<MemoStyle>({});
 
   // Form State
   const [formId, setFormId] = useState('');
@@ -63,6 +64,7 @@ export default function ProjectGrid() {
       setYoutubeId('');
       setProjectType('project');
       setMemoContent('');
+      setMemoStyle({});
       setFormId('');
       setFormTitle('');
       setIsModalOpen(true);
@@ -77,6 +79,7 @@ export default function ProjectGrid() {
       setYoutubeId(project.videoId || '');
       setProjectType(project.type || 'project');
       setMemoContent(project.content || '');
+      setMemoStyle(project.memoStyle || {});
       setFormId(project.id);
       setFormTitle(project.title);
       setIsModalOpen(true);
@@ -91,6 +94,7 @@ export default function ProjectGrid() {
       setYoutubeId('');
       setProjectType('project');
       setMemoContent('');
+      setMemoStyle({});
       setFormId('');
       setFormTitle('');
   };
@@ -223,13 +227,21 @@ export default function ProjectGrid() {
           type: projectType,
           videoId: projectType === 'video' ? youtubeId : undefined,
           content: projectType === 'memo' ? memoContent : undefined,
+          memoStyle: projectType === 'memo' ? memoStyle : undefined,
       };
 
       if (editingProject) {
           // Keep existing slug/link if editing, unless user cleared link?
           // For now, assume editing doesn't change slug/link unless we add inputs for them.
           // Since we don't have inputs for slug, we preserve the original project's slug.
-          await updateProject({ ...editingProject, ...projectData });
+          const originalId = editingProject.id;
+          const newId = projectData.id;
+
+          if (originalId !== newId) {
+              await updateProject({ ...editingProject, ...projectData }, originalId);
+          } else {
+              await updateProject({ ...editingProject, ...projectData });
+          }
       } else {
           await addProject(projectData);
       }
@@ -398,15 +410,114 @@ export default function ProjectGrid() {
                       )}
 
                       {projectType === 'memo' && (
-                          <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-                              <span style={{fontWeight: 'bold'}}>Memo Content:</span>
-                              <textarea 
-                                value={memoContent}
-                                onChange={(e) => setMemoContent(e.target.value)}
-                                required
-                                style={{ width: '100%', height: '150px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
-                              />
-                          </label>
+                          <>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Family:</span>
+                                      <select 
+                                          value={memoStyle.fontFamily || ''} 
+                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontFamily: e.target.value }))}
+                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                                      >
+                                          <option value="">Default</option>
+                                          <option value="Arial, sans-serif">Arial</option>
+                                          <option value="'Courier New', monospace">Courier New</option>
+                                          <option value="'Georgia', serif">Georgia</option>
+                                          <option value="'Times New Roman', serif">Times New Roman</option>
+                                          <option value="'Verdana', sans-serif">Verdana</option>
+                                      </select>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Size:</span>
+                                      <input 
+                                          type="text"
+                                          placeholder="e.g. 16px"
+                                          value={memoStyle.fontSize || ''} 
+                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontSize: e.target.value }))}
+                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                                      />
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Background:</span>
+                                      <div style={{ display: 'flex', gap: '5px' }}>
+                                          <input 
+                                              type="color"
+                                              value={memoStyle.backgroundColor || '#ffffff'} 
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                          />
+                                          <input 
+                                              type="text"
+                                              value={memoStyle.backgroundColor || ''}
+                                              placeholder="#ffffff"
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                          />
+                                      </div>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Text Color:</span>
+                                      <div style={{ display: 'flex', gap: '5px' }}>
+                                          <input 
+                                              type="color"
+                                              value={memoStyle.color || '#000000'} 
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                          />
+                                          <input 
+                                              type="text"
+                                              value={memoStyle.color || ''}
+                                              placeholder="#000000"
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
+                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                          />
+                                      </div>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', gridColumn: 'span 2' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Alignment:</span>
+                                      <div style={{ display: 'flex', gap: '15px' }}>
+                                          {['left', 'center', 'right', 'justify'].map(align => (
+                                              <label key={align} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '12px' }}>
+                                                  <input 
+                                                      type="radio" 
+                                                      name="textAlign" 
+                                                      value={align}
+                                                      checked={memoStyle.textAlign === align || (!memoStyle.textAlign && align === 'left')}
+                                                      onChange={(e) => setMemoStyle(prev => ({ ...prev, textAlign: e.target.value as any }))}
+                                                  />
+                                                  {align.charAt(0).toUpperCase() + align.slice(1)}
+                                              </label>
+                                          ))}
+                                      </div>
+                                  </label>
+                              </div>
+                              <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
+                                  <span style={{fontWeight: 'bold'}}>Memo Content:</span>
+                                  <textarea 
+                                    value={memoContent}
+                                    onChange={(e) => setMemoContent(e.target.value)}
+                                    required
+                                    maxLength={2000}
+                                    style={{ 
+                                        width: '100%', 
+                                        height: '300px', 
+                                        padding: '20px', 
+                                        border: '1px solid #ccc', 
+                                        borderRadius: '4px', 
+                                        resize: 'vertical',
+                                        // Preview styles
+                                        fontFamily: memoStyle.fontFamily,
+                                        fontSize: memoStyle.fontSize,
+                                        backgroundColor: memoStyle.backgroundColor,
+                                        color: memoStyle.color,
+                                        textAlign: memoStyle.textAlign
+                                    }}
+                                  />
+                                  <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
+                                      {memoContent.length} / 2000
+                                  </div>
+                              </label>
+                          </>
                       )}
                       
                       <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>

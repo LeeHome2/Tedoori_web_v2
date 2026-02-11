@@ -15,7 +15,7 @@ export default async function ProjectPage({ params }: PageProps) {
   const projectIndex = projects.findIndex((p) => p.slug === slug);
   const project = projects[projectIndex];
 
-  if (!project) {
+  if (!project || project.type === 'memo') {
     notFound();
   }
 

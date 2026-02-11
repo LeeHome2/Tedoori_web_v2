@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
-import { Project, GalleryItem } from "@/data/projects";
+import { Project, GalleryItem, ContentBlock } from "@/data/projects";
 import styles from "./ProjectDetail.module.css";
 import { useAdmin } from "@/context/AdminContext";
 import { useProjects } from "@/context/ProjectContext";
@@ -88,6 +88,84 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const [showImageEditModal, setShowImageEditModal] = useState(false);
   const [editImageSrc, setEditImageSrc] = useState("");
   const [editImageAlt, setEditImageAlt] = useState("");
+
+  // Description Blocks State
+  const [descriptionBlocks, setDescriptionBlocks] = useState<ContentBlock[]>(project.descriptionBlocks || []);
+
+  useEffect(() => {
+    setDescriptionBlocks(project.descriptionBlocks || []);
+  }, [project.descriptionBlocks]);
+
+  const handleAddTextBlock = async () => {
+      const newBlock: ContentBlock = {
+          id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: 'text',
+          content: ''
+      };
+      const newBlocks = [...descriptionBlocks, newBlock];
+      setDescriptionBlocks(newBlocks);
+      await updateProject({ ...project, descriptionBlocks: newBlocks });
+  };
+
+  const handleBlockImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      
+      setUploading(true);
+      setError(null);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+          const res = await fetch('/api/upload', { method: 'POST', body: formData });
+          if (!res.ok) throw new Error('Upload failed');
+          const data = await res.json();
+          
+          const newBlock: ContentBlock = {
+              id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              type: 'image',
+              content: data.url
+          };
+          const newBlocks = [...descriptionBlocks, newBlock];
+          setDescriptionBlocks(newBlocks);
+          await updateProject({ ...project, descriptionBlocks: newBlocks });
+      } catch (err: any) {
+          setError(err.message);
+      } finally {
+          setUploading(false);
+          e.target.value = '';
+      }
+  };
+
+  const handleUpdateBlock = async (id: string, content: string) => {
+      const newBlocks = descriptionBlocks.map(b => b.id === id ? { ...b, content } : b);
+      setDescriptionBlocks(newBlocks);
+      // Debounce save or save on blur? 
+      // We will save on blur in the UI component
+  };
+
+  const handleSaveBlockContent = async () => {
+      await updateProject({ ...project, descriptionBlocks });
+  };
+
+  const handleDeleteBlock = async (id: string) => {
+      if (!confirm('Delete this block?')) return;
+      const newBlocks = descriptionBlocks.filter(b => b.id !== id);
+      setDescriptionBlocks(newBlocks);
+      await updateProject({ ...project, descriptionBlocks: newBlocks });
+  };
+
+  const handleMoveBlock = async (index: number, direction: 'up' | 'down') => {
+      if (direction === 'up' && index === 0) return;
+      if (direction === 'down' && index === descriptionBlocks.length - 1) return;
+      
+      const newBlocks = [...descriptionBlocks];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      [newBlocks[index], newBlocks[targetIndex]] = [newBlocks[targetIndex], newBlocks[index]];
+      
+      setDescriptionBlocks(newBlocks);
+      await updateProject({ ...project, descriptionBlocks: newBlocks });
+  };
 
   // DND Sensors
   const sensors = useSensors(
@@ -526,6 +604,51 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                  ))}
              </div>
           )}
+        </div>
+
+        {/* Description Blocks Section */}
+        <div style={{ marginTop: '30px', borderTop: '1px solid #ddd', paddingTop: '20px' }}>
+            {descriptionBlocks.map((block, index) => (
+                <div key={block.id} style={{ marginBottom: '20px', position: 'relative' }}>
+                    {block.type === 'text' ? (
+                        isAdmin && adminMode ? (
+                            <textarea
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlock(block.id, e.target.value)}
+                                onBlur={handleSaveBlockContent}
+                                placeholder="Write something..."
+                                style={{ width: '100%', minHeight: '100px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical', fontFamily: 'inherit' }}
+                            />
+                        ) : (
+                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{block.content}</div>
+                        )
+                    ) : (
+                        <div style={{ position: 'relative' }}>
+                             <img src={block.content} alt="Block Image" style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} />
+                        </div>
+                    )}
+                    
+                    {isAdmin && adminMode && (
+                        <div style={{ position: 'absolute', top: '5px', right: '5px', display: 'flex', gap: '5px', background: 'rgba(255,255,255,0.8)', padding: '5px', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                            <button onClick={() => handleMoveBlock(index, 'up')} disabled={index === 0} style={{ cursor: index === 0 ? 'default' : 'pointer', border: 'none', background: 'none', opacity: index === 0 ? 0.3 : 1 }}>↑</button>
+                            <button onClick={() => handleMoveBlock(index, 'down')} disabled={index === descriptionBlocks.length - 1} style={{ cursor: index === descriptionBlocks.length - 1 ? 'default' : 'pointer', border: 'none', background: 'none', opacity: index === descriptionBlocks.length - 1 ? 0.3 : 1 }}>↓</button>
+                            <button onClick={() => handleDeleteBlock(block.id)} style={{ cursor: 'pointer', border: 'none', background: 'none', color: 'red' }}>✕</button>
+                        </div>
+                    )}
+                </div>
+            ))}
+
+            {isAdmin && adminMode && (
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                    <button onClick={handleAddTextBlock} style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px dashed #ccc', cursor: 'pointer', borderRadius: '4px' }}>
+                        + Add Text
+                    </button>
+                    <label style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px dashed #ccc', cursor: 'pointer', borderRadius: '4px', textAlign: 'center' }}>
+                        + Add Image
+                        <input type="file" accept="image/*" onChange={handleBlockImageUpload} style={{ display: 'none' }} />
+                    </label>
+                </div>
+            )}
         </div>
       </div>
 

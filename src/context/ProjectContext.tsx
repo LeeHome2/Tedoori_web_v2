@@ -10,7 +10,7 @@ interface ProjectContextType {
   error: string | null;
   refreshProjects: () => Promise<void>;
   addProject: (project: Project) => Promise<void>;
-  updateProject: (project: Project) => Promise<void>;
+  updateProject: (project: Project, originalId?: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   reorderProjects: (projects: Project[]) => Promise<void>;
   undo: () => void;
@@ -140,17 +140,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateProject = async (project: Project) => {
+  const updateProject = async (project: Project, originalId?: string) => {
+    const targetId = originalId || project.id;
     const previousProjects = [...projects];
-    const newProjects = projects.map(p => p.id === project.id ? project : p);
+    const newProjects = projects.map(p => p.id === targetId ? project : p);
     setProjects(newProjects);
     addToHistory(newProjects);
 
     try {
+        const body = originalId ? { ...project, originalId } : project;
         const res = await fetch('/api/projects', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(project),
+          body: JSON.stringify(body),
         });
         if (!res.ok) throw new Error('Failed to update project');
     } catch (e) {

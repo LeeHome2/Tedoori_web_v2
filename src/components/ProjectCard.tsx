@@ -263,6 +263,10 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const [isEditingMemo, setIsEditingMemo] = useState(false);
   const [memoText, setMemoText] = useState(project.content || '');
 
+  useEffect(() => {
+      setMemoText(project.content || '');
+  }, [project.content]);
+
   const handleMemoClick = (e: React.MouseEvent) => {
       if (isAdmin && adminMode) {
           e.preventDefault();
@@ -291,7 +295,13 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
     <div ref={setRefs} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''} ${isResizing ? styles.resizing : ''} ${isMemo ? styles.memoCard : ''}`} {...attributes}>
       <div className={styles.imageWrapper}>
         {isMemo ? (
-            <div className={styles.memoContent} onClick={handleMemoClick}>
+            <div 
+                className={styles.memoContent} 
+                onClick={handleMemoClick}
+                style={{
+                    backgroundColor: project.memoStyle?.backgroundColor,
+                }}
+            >
                 {isEditingMemo ? (
                     <textarea
                         className={styles.memoTextarea}
@@ -300,11 +310,24 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
                         onBlur={handleMemoBlur}
                         onKeyDown={handleMemoKeyDown}
                         autoFocus
+                        maxLength={2000}
                         onClick={(e) => e.stopPropagation()}
                         onMouseDown={(e) => e.stopPropagation()} // Prevent drag start
+                        style={{
+                            fontFamily: project.memoStyle?.fontFamily,
+                            fontSize: project.memoStyle?.fontSize,
+                            color: project.memoStyle?.color,
+                            textAlign: project.memoStyle?.textAlign,
+                            backgroundColor: 'transparent',
+                        }}
                     />
                 ) : (
-                    <div className={styles.memoText}>{project.content}</div>
+                    <div className={styles.memoText} style={{
+                        fontFamily: project.memoStyle?.fontFamily,
+                        fontSize: project.memoStyle?.fontSize,
+                        color: project.memoStyle?.color,
+                        textAlign: project.memoStyle?.textAlign,
+                    }}>{project.content}</div>
                 )}
             </div>
         ) : isVideo ? (
@@ -414,6 +437,11 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
               <span className={styles.number}>{project.id}</span>
               <span className={styles.title}>{project.title}</span>
             </div>
+          </div>
+      ) : isMemo ? (
+          <div className={styles.overlayInfo}>
+              <span className={styles.number}>{project.id}</span>
+              <span className={styles.title}>{project.title}</span>
           </div>
       ) : (
           <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto' }}>

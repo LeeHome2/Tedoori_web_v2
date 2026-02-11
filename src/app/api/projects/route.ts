@@ -68,6 +68,7 @@ export async function GET() {
     type: row.details?.type || 'project',
     videoId: row.details?.videoId,
     content: row.details?.content,
+    memoStyle: row.details?.memoStyle,
   }));
 
   return NextResponse.json(projects);
@@ -88,7 +89,18 @@ export async function POST(request: Request) {
 
   // Auto-generate slug if not provided
   if (!newProject.slug) {
-    newProject.slug = newProject.title.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+    // Simple slugify: lowercase, replace spaces with hyphens
+    let slug = newProject.title.trim().toLowerCase().replace(/\s+/g, '-');
+    
+    // Remove characters that might cause issues in URLs (slash, question mark, hash, etc)
+    slug = slug.replace(/[#?&/\\%]/g, '');
+
+    // If slug became empty (e.g. title was only symbols), fallback to ID
+    if (!slug) {
+        slug = newProject.id;
+    }
+    
+    newProject.slug = slug;
   }
 
   // Auto-generate link if not provided
@@ -121,6 +133,7 @@ export async function POST(request: Request) {
       type: newProject.type,
       videoId: newProject.videoId,
       content: newProject.content,
+      memoStyle: newProject.memoStyle,
   } as any;
 
   if (!newProject.galleryImages) {
@@ -173,6 +186,7 @@ export async function POST(request: Request) {
     type: data.details?.type || 'project',
     videoId: data.details?.videoId,
     content: data.details?.content,
+    memoStyle: data.details?.memoStyle,
   };
 
   return NextResponse.json(savedProject);
@@ -209,7 +223,9 @@ export async function PUT(request: Request) {
   }
 
   // Single project update
-  const project: Project = body;
+  const { originalId, ...projectData } = body;
+  const project: Project = projectData;
+  const targetId = originalId || project.id;
 
   // Inject layout and content info into details for storage
   // Ensure we preserve existing details if any
@@ -221,11 +237,14 @@ export async function PUT(request: Request) {
       type: project.type,
       videoId: project.videoId,
       content: project.content,
+      memoStyle: project.memoStyle,
+      descriptionBlocks: project.descriptionBlocks,
   };
 
   const { data, error } = await supabase
     .from('projects')
     .update({
+      id: project.id,
       title: project.title,
       slug: project.slug,
       image_url: project.imageUrl,
@@ -234,7 +253,7 @@ export async function PUT(request: Request) {
       gallery_images: project.galleryImages,
       is_visible: project.isVisible,
     })
-    .eq('id', project.id)
+    .eq('id', targetId)
     .select()
     .single();
 
@@ -258,6 +277,7 @@ export async function PUT(request: Request) {
     type: data.details?.type || 'project',
     videoId: data.details?.videoId,
     content: data.details?.content,
+    memoStyle: data.details?.memoStyle,
   };
 
   return NextResponse.json(updatedProject);
