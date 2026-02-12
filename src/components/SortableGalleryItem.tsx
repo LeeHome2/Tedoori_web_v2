@@ -96,10 +96,9 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const handleTextBlur = () => {
       setIsEditingText(false);
-      if (onUpdate && textContent !== item.content) {
+      if (onUpdate && item.type === 'text' && textContent !== item.content) {
           // Preserve all existing properties, only update content
-          // Type casting is safe because we check item.type === 'text' before
-          onUpdate(index, { ...item, content: textContent } as GalleryItem);
+          onUpdate(index, { ...item, content: textContent });
       }
   };
 
