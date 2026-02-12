@@ -33,7 +33,10 @@ export async function POST(request: Request) {
   try {
     const supabase = createAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
-    const filename = `${Date.now()}-${file.name.replace(/\s/g, '-')}`;
+    
+    // Normalize filename to avoid invalid characters (only alphanumeric, dashes, dots)
+    const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '');
+    const filename = `${Date.now()}-${sanitizedFilename}`;
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -45,7 +48,31 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Supabase upload error:', error);
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+      // Try to create bucket if it doesn't exist (only for admin client)
+      if (error.message.includes('Bucket not found')) {
+           const { error: bucketError } = await supabase.storage.createBucket('project-images', {
+               public: true,
+               allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+               fileSizeLimit: 10485760
+           });
+           if (!bucketError) {
+               // Retry upload
+               const { error: retryError } = await supabase.storage
+                   .from('project-images')
+                   .upload(filename, buffer, {
+                       contentType: file.type,
+                       upsert: false
+                   });
+               
+               if (retryError) {
+                   return NextResponse.json({ error: `Upload failed: ${retryError.message}` }, { status: 500 });
+               }
+           } else {
+               return NextResponse.json({ error: 'Storage bucket not found and creation failed' }, { status: 500 });
+           }
+      } else {
+          return NextResponse.json({ error: `Upload failed: ${error.message}` }, { status: 500 });
+      }
     }
 
     // Get public URL
