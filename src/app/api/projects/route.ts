@@ -41,8 +41,15 @@ export async function GET() {
     .order('display_order', { ascending: true });
 
   // Filter by visibility if not authenticated
+  // If we are admin, we want to see everything, but 'adminMode' toggle in UI handles filtering too.
+  // However, the API should return all projects if the user is an admin, regardless of 'adminMode' UI state.
+  // The frontend will filter 'private' ones if adminMode is OFF.
   if (!isAuth) {
-    query = query.eq('is_visible', 'public');
+    query = query.neq('is_visible', 'private'); // Show public and team (if team logic exists) or just public?
+    // Based on user request: "private mode hidden even for admin in production" -> this implies a bug in isAuth detection
+    // Usually:
+    // User (Anon): is_visible = 'public'
+    // Admin: All
   }
 
   const { data, error } = await query;

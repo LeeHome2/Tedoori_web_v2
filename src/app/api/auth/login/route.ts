@@ -11,8 +11,9 @@ export async function POST(request: Request) {
     cookieStore.set('admin_token', 'authenticated', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 30, // 30 minutes
+      maxAge: 60 * 60 * 24, // 1 day
       path: '/',
+      sameSite: 'lax', // Important for cross-site if domains differ slightly, but lax is safe default
     });
   };
 
