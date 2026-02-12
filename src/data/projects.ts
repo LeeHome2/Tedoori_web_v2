@@ -41,6 +41,8 @@ export type GalleryItem =
       id: string;
       src: string; // Thumbnail URL
       videoId: string;
+      width?: number;
+      height?: number;
       alt?: string;
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
