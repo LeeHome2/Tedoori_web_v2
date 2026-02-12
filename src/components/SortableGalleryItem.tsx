@@ -27,16 +27,31 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
       width: item.cardWidth, 
       height: item.cardHeight 
   });
+  
+  // Text Edit State
+  const [isEditingText, setIsEditingText] = useState(false);
+  const [textContent, setTextContent] = useState(item.type === 'text' ? item.content : '');
+
   const itemRef = useRef<HTMLDivElement>(null);
   const resizeStartRef = useRef<{x: number, y: number, w: number, h: number} | null>(null);
 
-  // Sync dimensions
+  // Sync dimensions and content
   useEffect(() => {
       if (!isResizing) {
-          setDimensions({ width: item.cardWidth, height: item.cardHeight });
-          setLockedRatio(!!item.lockedAspectRatio);
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          setDimensions(prev => {
+              if (prev.width !== item.cardWidth || prev.height !== item.cardHeight) {
+                  return { width: item.cardWidth, height: item.cardHeight };
+              }
+              return prev;
+          });
+          setLockedRatio(prev => prev !== !!item.lockedAspectRatio ? !!item.lockedAspectRatio : prev);
       }
-  }, [item, isResizing]);
+      if (item.type === 'text' && !isEditingText) {
+          setTextContent(prev => prev !== item.content ? item.content : prev);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.cardWidth, item.cardHeight, item.lockedAspectRatio, item.content, item.type, isResizing, isEditingText]);
 
   const {
     attributes,
@@ -46,7 +61,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     transform,
     transition,
     isDragging
-  } = useSortable({ id: item.id, disabled: !isAdmin || !adminMode || isResizing });
+  } = useSortable({ id: item.id, disabled: !isAdmin || !adminMode || isResizing || isEditingText });
 
   const hasCustomSize = !!dimensions.width;
 
@@ -60,13 +75,31 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
-    zIndex: isResizing ? 100 : 'auto',
+    zIndex: isResizing || isEditingText ? 100 : 'auto', // Ensure editing text is on top
   };
 
   const handleVisibilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       e.stopPropagation();
       if (onUpdate) {
           onUpdate(index, { ...item, visibility: e.target.value as 'public' | 'team' | 'private' });
+      }
+  };
+
+  const handleTextClick = (e: React.MouseEvent) => {
+      if (isAdmin && adminMode && !isResizing) {
+          e.stopPropagation();
+          setIsEditingText(true);
+      } else if (!isResizing) {
+          onClick(index);
+      }
+  };
+
+  const handleTextBlur = () => {
+      setIsEditingText(false);
+      if (onUpdate && textContent !== item.content) {
+          // Preserve all existing properties, only update content
+          // Type casting is safe because we check item.type === 'text' before
+          onUpdate(index, { ...item, content: textContent } as GalleryItem);
       }
   };
 
@@ -166,19 +199,40 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   return (
     <div ref={setRefs} style={style} className={`${styles.imageWrapper} ${item.type === 'text' ? styles.textWrapper : ''} ${isResizing ? styles.resizing : ''}`} {...attributes}>
-        {item.type === 'image' ? (
-             <div onClick={() => !isResizing && onClick(index)}>
+        {item.type === 'image' || item.type === 'video' ? (
+             <div onClick={() => !isResizing && onClick(index)} style={{ position: 'relative', width: '100%', height: '100%' }}>
                 {item.src ? (
-                    <Image
-                        src={item.src}
-                        alt={item.alt || `Image ${index + 1}`}
-                        width={item.width}
-                        height={item.height}
-                        className={styles.image}
-                        unoptimized
-                        loading="lazy"
-                        style={item.visibility === 'private' ? { opacity: 0.5, filter: 'grayscale(100%)' } : {}}
-                    />
+                    <>
+                        <Image
+                            src={item.src}
+                            alt={item.alt || `Item ${index + 1}`}
+                            width={item.type === 'video' ? 0 : item.width}
+                            height={item.type === 'video' ? 0 : item.height}
+                            fill={item.type === 'video'}
+                            sizes={item.type === 'video' ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" : undefined}
+                            className={styles.image}
+                            unoptimized
+                            loading="lazy"
+                            style={
+                                item.visibility === 'private' 
+                                    ? { opacity: 0.5, filter: 'grayscale(100%)', objectFit: 'cover' } 
+                                    : { objectFit: 'cover' }
+                            }
+                        />
+                        {item.type === 'video' && (
+                            <div style={{
+                                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                                width: '40px', height: '40px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
+                            }}>
+                                <div style={{
+                                    width: 0, height: 0, 
+                                    borderTop: '8px solid transparent', borderBottom: '8px solid transparent',
+                                    borderLeft: '14px solid white', marginLeft: '3px'
+                                }} />
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div style={{ width: '100%', height: '100%', minHeight: '200px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         Image Missing
@@ -186,21 +240,64 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                 )}
              </div>
         ) : (
-            <div 
-                className={styles.textItem}
-                onClick={() => !isResizing && onClick(index)}
-                style={{
-                    ...(item.visibility === 'private' ? { opacity: 0.5, backgroundColor: '#eee' } : {}),
-                    width: '100%',
-                    height: '100%',
-                    minHeight: 'unset'
-                }}
-            >
-                {item.content}
-            </div>
+            isEditingText ? (
+                <textarea
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
+                    onBlur={handleTextBlur}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                            setIsEditingText(false);
+                            setTextContent(item.content); // Revert on Escape
+                        }
+                    }}
+                    autoFocus
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        resize: 'none',
+                        border: 'none',
+                        outline: '2px solid black', // Visual indicator for editing
+                        fontFamily: item.style?.fontFamily,
+                        fontSize: item.style?.fontSize,
+                        backgroundColor: item.style?.backgroundColor || '#ffffff',
+                        color: item.style?.color,
+                        textAlign: item.style?.textAlign as any,
+                        padding: '20px',
+                        boxSizing: 'border-box',
+                        display: 'block',
+                    }}
+                />
+            ) : (
+                <div 
+                    className={styles.textItem}
+                    onClick={handleTextClick}
+                    style={{
+                        ...(item.visibility === 'private' ? { opacity: 0.5 } : {}),
+                        width: '100%',
+                        height: '100%',
+                        minHeight: 'unset',
+                        fontFamily: item.style?.fontFamily,
+                        fontSize: item.style?.fontSize,
+                        backgroundColor: item.style?.backgroundColor || '#ffffff',
+                        color: item.style?.color,
+                        textAlign: item.style?.textAlign as any,
+                        padding: '20px',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: item.style?.textAlign === 'center' ? 'center' : 'flex-start',
+                        justifyContent: item.style?.textAlign === 'center' ? 'center' : (item.style?.textAlign === 'right' ? 'flex-end' : 'flex-start'),
+                        whiteSpace: 'pre-wrap', // Preserve line breaks
+                        cursor: isAdmin && adminMode ? 'text' : 'pointer'
+                    }}
+                >
+                    {item.content}
+                </div>
+            )
         )}
       
-      {isAdmin && adminMode && !isResizing && (
+      {isAdmin && adminMode && !isResizing && !isEditingText && (
           <div className={styles.adminOverlay} 
                onClick={(e) => e.stopPropagation()}
                onPointerDown={(e) => e.stopPropagation()}

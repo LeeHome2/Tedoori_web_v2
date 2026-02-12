@@ -69,6 +69,10 @@ export async function GET() {
     videoId: row.details?.videoId,
     content: row.details?.content,
     memoStyle: row.details?.memoStyle,
+    showId: row.details?.showId,
+    showTitle: row.details?.showTitle,
+    hasDetailLink: row.details?.hasDetailLink,
+    descriptionBlocks: row.details?.descriptionBlocks || [],
   }));
 
   return NextResponse.json(projects);
@@ -134,6 +138,9 @@ export async function POST(request: Request) {
       videoId: newProject.videoId,
       content: newProject.content,
       memoStyle: newProject.memoStyle,
+      showId: newProject.showId,
+      showTitle: newProject.showTitle,
+      hasDetailLink: newProject.hasDetailLink,
   } as any;
 
   if (!newProject.galleryImages) {
@@ -187,6 +194,10 @@ export async function POST(request: Request) {
     videoId: data.details?.videoId,
     content: data.details?.content,
     memoStyle: data.details?.memoStyle,
+    showId: data.details?.showId,
+    showTitle: data.details?.showTitle,
+    hasDetailLink: data.details?.hasDetailLink,
+    descriptionBlocks: data.details?.descriptionBlocks || [],
   };
 
   return NextResponse.json(savedProject);
@@ -239,6 +250,9 @@ export async function PUT(request: Request) {
       content: project.content,
       memoStyle: project.memoStyle,
       descriptionBlocks: project.descriptionBlocks,
+      showId: project.showId,
+      showTitle: project.showTitle,
+      hasDetailLink: project.hasDetailLink,
   };
 
   const { data, error } = await supabase
@@ -278,6 +292,10 @@ export async function PUT(request: Request) {
     videoId: data.details?.videoId,
     content: data.details?.content,
     memoStyle: data.details?.memoStyle,
+    showId: data.details?.showId,
+    showTitle: data.details?.showTitle,
+    hasDetailLink: data.details?.hasDetailLink,
+    descriptionBlocks: data.details?.descriptionBlocks || [],
   };
 
   return NextResponse.json(updatedProject);

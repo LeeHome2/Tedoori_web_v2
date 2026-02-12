@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, useId } from "react";
 import Image from "next/image";
-import { Project, GalleryItem, ContentBlock } from "@/data/projects";
+import { Project, GalleryItem, ContentBlock, MemoStyle } from "@/data/projects";
 import styles from "./ProjectDetail.module.css";
 import { useAdmin } from "@/context/AdminContext";
 import { useProjects } from "@/context/ProjectContext";
@@ -15,97 +15,157 @@ interface ProjectDetailProps {
 }
 
 export default function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
+  // Generate a unique ID for DndContext to avoid hydration mismatches
+  const dndContextId = useId();
+  
   // Use context to get live data if available, otherwise fallback to props
   const { projects, updateProject } = useProjects();
   const project = projects.find(p => p.id === initialProject.id) || initialProject;
 
   const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
-  const [showDetails, setShowDetails] = useState(true);
 
-  // Collapse details by default on mobile
+  // Responsive State for Hydration Fix
+  const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      setShowDetails(false);
-    }
+    const handleResize = () => {
+        setIsDesktop(window.innerWidth >= 768);
+    };
+    
+    // Initial check
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
-  // Edit Details State
-  const [isEditingDetails, setIsEditingDetails] = useState(false);
-  const [editedDetails, setEditedDetails] = useState(project.details || {});
 
-  // Update editedDetails when project changes
+  // Description Blocks State
+  const [descriptionBlocks, setDescriptionBlocks] = useState<ContentBlock[]>(project.descriptionBlocks || []);
+  const lastSelectionRef = useRef<{ blockId: string, cursorIndex: number } | null>(null);
+  
+  // Local Edit Mode for Blog Section
+  const [isBlogEditing, setIsBlogEditing] = useState(false);
+
   useEffect(() => {
-    setEditedDetails(project.details || {});
-  }, [project.details]);
-
-  const handleDetailChange = (key: string, value: string) => {
-    setEditedDetails(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSaveDetails = async () => {
-    await updateProject({ ...project, details: editedDetails as any });
-    setIsEditingDetails(false);
-  };
-
-  const handleCancelDetails = () => {
-    setEditedDetails(project.details || {});
-    setIsEditingDetails(false);
-  };
-
-  const detailFields = [
-    { key: 'year', label: 'Year' },
-    { key: 'location', label: 'Location' },
-    { key: 'client', label: 'Client' },
-    { key: 'mandataire', label: 'Lead Architect' },
-    { key: 'partners', label: 'Partner' },
-    { key: 'team', label: 'With' },
-    { key: 'program', label: 'Program' },
-    { key: 'area', label: 'Area' },
-    { key: 'cost', label: 'Cost' },
-    { key: 'mission', label: 'Mission' },
-    { key: 'status', label: 'Status' },
-    { key: 'photographer', label: 'Photographer' },
-  ];
+    setDescriptionBlocks(project.descriptionBlocks || []);
+  }, [project.descriptionBlocks]);
   
+  // Ensure at least one text block exists if empty
+  useEffect(() => {
+      if (descriptionBlocks.length === 0) {
+          const initialBlock: ContentBlock = {
+              id: `blk-${Date.now()}-init`,
+              type: 'text',
+              content: ''
+          };
+          setDescriptionBlocks([initialBlock]);
+          // Don't auto-save yet to avoid empty saves on load
+      }
+  }, [descriptionBlocks]);
+
+  // Resizable Pane State
+  const [leftPaneWidth, setLeftPaneWidth] = useState(70); // Default Gallery 70%
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isResizing = useRef(false);
+  const resizingBlockRef = useRef<{ id: string, startX: number, startWidth: number, currentWidth?: number } | null>(null);
+  const latestBlocksRef = useRef(descriptionBlocks);
+
+  useEffect(() => { latestBlocksRef.current = descriptionBlocks; }, [descriptionBlocks]);
+
+  // Resize Handlers
+  const startResizing = useCallback(() => {
+    isResizing.current = true;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", stopResizing);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    isResizing.current = false;
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", stopResizing);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing.current || !containerRef.current) return;
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    // Calculate percentage based on Gallery (Left Pane) width
+    let newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+    
+    // Limits (min 10%, max 90%)
+    if (newWidth < 10) newWidth = 10;
+    if (newWidth > 90) newWidth = 90;
+    
+    setLeftPaneWidth(newWidth);
+  }, []);
+
+  const handleBlockMouseMove = useCallback((e: MouseEvent) => {
+    if (!resizingBlockRef.current) return;
+    const { id, startX, startWidth } = resizingBlockRef.current;
+    const deltaX = e.clientX - startX;
+    const newWidth = Math.max(50, startWidth + deltaX); // Min 50px
+    
+    resizingBlockRef.current.currentWidth = newWidth;
+    
+    setDescriptionBlocks(prev => prev.map(b => b.id === id ? { ...b, width: newWidth } : b));
+  }, []);
+
+  const stopBlockResize = useCallback(async () => {
+     if (resizingBlockRef.current) {
+         const { id, currentWidth } = resizingBlockRef.current;
+         if (currentWidth) {
+             const newBlocks = latestBlocksRef.current.map(b => b.id === id ? { ...b, width: currentWidth } : b);
+             await updateProject({ ...project, descriptionBlocks: newBlocks });
+         }
+     }
+     resizingBlockRef.current = null;
+     document.removeEventListener("mousemove", handleBlockMouseMove);
+     document.removeEventListener("mouseup", stopBlockResize);
+     document.body.style.cursor = "";
+     document.body.style.userSelect = "";
+  }, [project, updateProject]);
+
+  const startBlockResize = (e: React.MouseEvent, id: string, currentWidth: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      resizingBlockRef.current = { id, startX: e.clientX, startWidth: currentWidth, currentWidth };
+      document.addEventListener("mousemove", handleBlockMouseMove);
+      document.addEventListener("mouseup", stopBlockResize);
+      document.body.style.cursor = "ew-resize";
+      document.body.style.userSelect = "none";
+  };
+
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState(0); // Index within the full galleryImages array
   const [zoomLevel, setZoomLevel] = useState(1);
   
-  // Upload/Text state
+  // Upload State (Shared)
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   
-  // Text Modal state
-  const [showTextModal, setShowTextModal] = useState(false);
-  const [newTextContent, setNewTextContent] = useState("");
-  const [editingTextId, setEditingTextId] = useState<string | null>(null);
-  const [showAddMenu, setShowAddMenu] = useState(false);
-
-  // Edit Gallery Item State
-  const [editingItemIndex, setEditingTextItemIndex] = useState<number | null>(null);
-  const [showImageEditModal, setShowImageEditModal] = useState(false);
-  const [editImageSrc, setEditImageSrc] = useState("");
-  const [editImageAlt, setEditImageAlt] = useState("");
-
-  // Description Blocks State
-  const [descriptionBlocks, setDescriptionBlocks] = useState<ContentBlock[]>(project.descriptionBlocks || []);
-
-  useEffect(() => {
-    setDescriptionBlocks(project.descriptionBlocks || []);
-  }, [project.descriptionBlocks]);
-
-  const handleAddTextBlock = async () => {
-      const newBlock: ContentBlock = {
-          id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          type: 'text',
-          content: ''
-      };
-      const newBlocks = [...descriptionBlocks, newBlock];
-      setDescriptionBlocks(newBlocks);
-      await updateProject({ ...project, descriptionBlocks: newBlocks });
-  };
+  // Modal State for Add/Edit Item
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
+  const [projectType, setProjectType] = useState<'project' | 'video' | 'memo'>('project'); // 'project' maps to 'image' here
+  
+  // Image/Video Form State
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageAlt, setImageAlt] = useState('');
+  
+  // Video State
+  const [isYoutube, setIsYoutube] = useState(false);
+  const [youtubeId, setYoutubeId] = useState('');
+  const [fetchingVideo, setFetchingVideo] = useState(false);
+  const [videoLink, setVideoLink] = useState('');
+  
+  // Memo State
+  const [memoContent, setMemoContent] = useState('');
+  const [memoStyle, setMemoStyle] = useState<MemoStyle>({});
 
   const handleBlockImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -121,14 +181,63 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
           if (!res.ok) throw new Error('Upload failed');
           const data = await res.json();
           
-          const newBlock: ContentBlock = {
+          const newImageBlock: ContentBlock = {
               id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
               type: 'image',
-              content: data.url
+              content: data.url,
+              width: 800
           };
-          const newBlocks = [...descriptionBlocks, newBlock];
+          
+          const newBlocks = [...descriptionBlocks];
+          
+          // Logic: Insert after the LAST active text selection or at the end
+          // If we have a selection recorded
+          if (lastSelectionRef.current) {
+                const { blockId, cursorIndex } = lastSelectionRef.current;
+                const blockIndex = newBlocks.findIndex(b => b.id === blockId);
+                
+                if (blockIndex !== -1 && newBlocks[blockIndex].type === 'text') {
+                    const textBlock = newBlocks[blockIndex];
+                    const textBefore = textBlock.content.substring(0, cursorIndex);
+                    const textAfter = textBlock.content.substring(cursorIndex);
+
+                    // Update current block
+                    newBlocks[blockIndex] = { ...textBlock, content: textBefore };
+                    
+                    // New text block for after
+                    const afterTextBlock: ContentBlock = {
+                        id: `blk-${Date.now()}-after-${Math.random().toString(36).substr(2, 9)}`,
+                        type: 'text',
+                        content: textAfter
+                    };
+                    
+                    // Insert: [TextBefore] -> [Image] -> [TextAfter]
+                    newBlocks.splice(blockIndex + 1, 0, newImageBlock, afterTextBlock);
+                } else {
+                    newBlocks.push(newImageBlock);
+                    // Add empty text block after image to continue writing
+                    newBlocks.push({
+                        id: `blk-${Date.now()}-next`,
+                        type: 'text',
+                        content: ''
+                    });
+                }
+          } else {
+              // No selection, append to end
+              newBlocks.push(newImageBlock);
+              newBlocks.push({
+                  id: `blk-${Date.now()}-next`,
+                  type: 'text',
+                  content: ''
+              });
+          }
+
           setDescriptionBlocks(newBlocks);
           await updateProject({ ...project, descriptionBlocks: newBlocks });
+          
+          // Clear selection
+          lastSelectionRef.current = null;
+
       } catch (err: any) {
           setError(err.message);
       } finally {
@@ -140,11 +249,10 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const handleUpdateBlock = async (id: string, content: string) => {
       const newBlocks = descriptionBlocks.map(b => b.id === id ? { ...b, content } : b);
       setDescriptionBlocks(newBlocks);
-      // Debounce save or save on blur? 
-      // We will save on blur in the UI component
   };
 
   const handleSaveBlockContent = async () => {
+      // Always update on blur to ensure content is saved
       await updateProject({ ...project, descriptionBlocks });
   };
 
@@ -175,30 +283,77 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     })
   );
 
-  const toggleDetails = () => {
-    setShowDetails(!showDetails);
-  };
-
-  const handleItemClick = (itemIndex: number) => {
+  // Lightbox & Edit Handlers
+  const handleItemClick = async (itemIndex: number) => {
     const item = project.galleryImages?.[itemIndex];
     if (!item) return;
 
-    if (item.type === 'image') {
-        setCurrentItemIndex(itemIndex);
-        setLightboxOpen(true);
-        setZoomLevel(1);
-        document.body.style.overflow = 'hidden';
-    } else if (item.type === 'text') {
+    // Admin Mode: Click inserts image into blog at cursor
+    if (isAdmin && adminMode) {
+        if (item.type === 'text') return; // Don't insert text blocks via click for now
+        
+        const src = item.src;
+        if (!src) return;
+
+        const newBlocks = [...descriptionBlocks];
+        const newImageBlock: ContentBlock = {
+            id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            type: 'image',
+            content: src,
+            width: 800 // Default width
+        };
+
+        if (lastSelectionRef.current) {
+            const { blockId, cursorIndex } = lastSelectionRef.current;
+            const blockIndex = newBlocks.findIndex(b => b.id === blockId);
+            
+            if (blockIndex !== -1 && newBlocks[blockIndex].type === 'text') {
+                const textBlock = newBlocks[blockIndex];
+                const textBefore = textBlock.content.substring(0, cursorIndex);
+                const textAfter = textBlock.content.substring(cursorIndex);
+
+                // Update current block with text before cursor
+                newBlocks[blockIndex] = { ...textBlock, content: textBefore };
+                
+                // Create new text block with text after cursor
+                const afterTextBlock: ContentBlock = {
+                    id: `blk-${Date.now()}-after-${Math.random().toString(36).substr(2, 9)}`,
+                    type: 'text',
+                    content: textAfter
+                };
+                
+                // Insert: [TextBefore] -> [Image] -> [TextAfter]
+                newBlocks.splice(blockIndex + 1, 0, newImageBlock, afterTextBlock);
+            } else {
+                newBlocks.push(newImageBlock);
+            }
+        } else {
+            newBlocks.push(newImageBlock);
+        }
+        
+        setDescriptionBlocks(newBlocks);
+        await updateProject({ ...project, descriptionBlocks: newBlocks });
+        
+        // Reset selection
+        lastSelectionRef.current = null;
+        return;
+    }
+
+    if (item.type === 'text') {
         if (isAdmin && adminMode) {
-             setEditingTextId(item.id);
-             setNewTextContent(item.content);
-             setShowTextModal(true);
+             openEditModal(itemIndex, item);
         } else {
              setCurrentItemIndex(itemIndex);
              setLightboxOpen(true);
              setZoomLevel(1);
              document.body.style.overflow = 'hidden';
         }
+    } else {
+        // Image or Video
+        setCurrentItemIndex(itemIndex);
+        setLightboxOpen(true);
+        setZoomLevel(1);
+        document.body.style.overflow = 'hidden';
     }
   };
 
@@ -264,12 +419,112 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       await updateProject({ ...project, galleryImages: newItems });
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpdateItem = async (index: number, updatedItem: GalleryItem) => {
+      const newGalleryImages = [...(project.galleryImages || [])];
+      newGalleryImages[index] = updatedItem;
+      const updatedProject = { ...project, galleryImages: newGalleryImages };
+      await updateProject(updatedProject);
+  };
+
+  // Modal Functions
+  const openAddModal = () => {
+      setEditingItemIndex(null);
+      setProjectType('project');
+      setImageUrl('');
+      setImageAlt('');
+      setUploadProgress(0);
+      setError(null);
+      setIsYoutube(false);
+      setYoutubeId('');
+      setVideoLink('');
+      setMemoContent('');
+      setMemoStyle({});
+      setIsModalOpen(true);
+  };
+
+  const openEditModal = (index: number, item: GalleryItem) => {
+      setEditingItemIndex(index);
+      setError(null);
+      setUploadProgress(0);
+
+      if (item.type === 'text') {
+          setProjectType('memo');
+          setMemoContent(item.content);
+          setMemoStyle(item.style || {});
+      } else if (item.type === 'video') {
+          setProjectType('video');
+          setIsYoutube(true);
+          setYoutubeId(item.videoId);
+          setImageUrl(item.src);
+          setVideoLink(`https://www.youtube.com/watch?v=${item.videoId}`);
+          setImageAlt(item.alt || '');
+      } else {
+          setProjectType('project'); // Maps to Image
+          setImageUrl(item.src);
+          setImageAlt(item.alt || '');
+          setIsYoutube(false);
+          setYoutubeId('');
+      }
+      setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+      setIsModalOpen(false);
+      setEditingItemIndex(null);
+  };
+
+  const getYoutubeId = (url: string) => {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const handleLinkChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const url = e.target.value;
+      setVideoLink(url);
+      const videoId = getYoutubeId(url);
+      
+      if (videoId) {
+          setIsYoutube(true);
+          setYoutubeId(videoId);
+          setProjectType('video');
+          setFetchingVideo(true);
+          setError(null);
+          
+          try {
+              const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+              if (res.ok) {
+                  const data = await res.json();
+                  setImageUrl(data.thumbnail_url);
+                  if (!imageAlt) setImageAlt(data.title);
+              } else {
+                  setImageUrl(`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`);
+              }
+          } catch (err) {
+              console.error("Error fetching video info:", err);
+              setImageUrl(`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`);
+          } finally {
+              setFetchingVideo(false);
+          }
+      } else {
+          setIsYoutube(false);
+          setYoutubeId('');
+          // if (projectType === 'video') setProjectType('project');
+      }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
 
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+          setError("Invalid file type. Please upload JPG, PNG, GIF, or WebP.");
+          return;
+      }
+
       if (file.size > 10 * 1024 * 1024) {
-          setError("File size exceeds 10MB");
+          setError("File size exceeds 10MB limit.");
           return;
       }
 
@@ -281,7 +536,6 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       formData.append('file', file);
 
       try {
-          // Simulate progress
           const interval = setInterval(() => {
               setUploadProgress(prev => Math.min(prev + 10, 90));
           }, 100);
@@ -300,219 +554,114 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
           }
 
           const data = await res.json();
-          const newImage: GalleryItem = {
-              type: 'image',
-              id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              src: data.url,
-              width: data.width,
-              height: data.height,
-              alt: file.name
-          };
-
-          const newItems = project.galleryImages ? [newImage, ...project.galleryImages] : [newImage];
-          await updateProject({ ...project, galleryImages: newItems });
-          
+          setImageUrl(data.url);
       } catch (err: any) {
           setError(err.message);
       } finally {
           setUploading(false);
-          // Clear input
-          e.target.value = '';
-          setTimeout(() => setUploadProgress(0), 1000);
       }
   };
 
-  const handleAddText = () => {
-      setEditingTextId(null);
-      setNewTextContent("");
-      setShowTextModal(true);
-  };
+  const handleSaveItem = async (e: React.FormEvent) => {
+      e.preventDefault();
 
-  const handleSaveText = async () => {
-      if (!newTextContent.trim()) return;
+      let newItem: GalleryItem;
+      const idPrefix = projectType === 'memo' ? 'txt' : (projectType === 'video' ? 'vid' : 'img');
+      const newId = editingItemIndex !== null && project.galleryImages 
+          ? project.galleryImages[editingItemIndex].id 
+          : `${idPrefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      if (projectType === 'memo') {
+          if (!memoContent.trim()) {
+              setError("Content is required");
+              return;
+          }
+          newItem = {
+              type: 'text',
+              id: newId,
+              content: memoContent,
+              style: memoStyle
+          };
+      } else if (projectType === 'video') {
+          if (!youtubeId) {
+              setError("Valid YouTube URL is required");
+              return;
+          }
+          newItem = {
+              type: 'video',
+              id: newId,
+              src: imageUrl,
+              videoId: youtubeId,
+              alt: imageAlt,
+              width: 1200, // Default width
+              height: 800  // Default height
+          };
+      } else {
+          // Image
+          if (!imageUrl) {
+              setError("Image is required");
+              return;
+          }
+          newItem = {
+              type: 'image',
+              id: newId,
+              src: imageUrl,
+              alt: imageAlt,
+              width: 1200, // Default/Placeholder
+              height: 800
+          };
+          // Preserve existing dimensions if editing
+          if (editingItemIndex !== null && project.galleryImages) {
+              const oldItem = project.galleryImages[editingItemIndex];
+              if (oldItem.type === 'image') {
+                  newItem.width = oldItem.width;
+                  newItem.height = oldItem.height;
+                  // If source changed, ideally we should get new dimensions, but for now we keep simple
+              }
+          }
+      }
+
+      // Preserve common properties (card size, visibility, ratio lock) for ALL types
+      if (editingItemIndex !== null && project.galleryImages) {
+          const oldItem = project.galleryImages[editingItemIndex];
+          newItem.cardWidth = oldItem.cardWidth;
+          newItem.cardHeight = oldItem.cardHeight;
+          newItem.lockedAspectRatio = oldItem.lockedAspectRatio;
+          newItem.visibility = oldItem.visibility;
+      }
 
       let newItems = [...(project.galleryImages || [])];
-
-      if (editingTextId) {
-          // Update existing
-          newItems = newItems.map(item => {
-              if (item.id === editingTextId && item.type === 'text') {
-                  return { ...item, content: newTextContent };
-              }
-              return item;
-          });
+      
+      if (editingItemIndex !== null) {
+          newItems[editingItemIndex] = newItem;
       } else {
-          // Create new
-          const newTextItem: GalleryItem = {
-              type: 'text',
-              id: `txt-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              content: newTextContent,
-              style: {
-                  backgroundColor: '#f5f5f5',
-                  fontSize: '16px'
-              }
-          };
-          newItems = [newTextItem, ...newItems];
+          newItems = [newItem, ...newItems];
       }
 
       await updateProject({ ...project, galleryImages: newItems });
-      
-      setShowTextModal(false);
-      setNewTextContent("");
-      setEditingTextId(null);
-  };
-
-  const currentItem = project.galleryImages?.[currentItemIndex];
-  const details = project.details || {
-      year: "",
-      location: "",
-      client: "",
-      mandataire: "",
-      program: "",
-      area: "",
-      cost: "",
-      mission: "",
-      status: "",
-      photographer: ""
-  };
-
-  const handleUpdateItem = async (index: number, updatedItem: GalleryItem) => {
-      const newGalleryImages = [...(project.galleryImages || [])];
-      newGalleryImages[index] = updatedItem;
-      const updatedProject = { ...project, galleryImages: newGalleryImages };
-      await updateProject(updatedProject);
-  };
-
-  const handleEditItem = (index: number, item: GalleryItem) => {
-      if (item.type === 'text') {
-          setEditingTextId(item.id);
-          setNewTextContent(item.content);
-          setShowTextModal(true);
-      } else {
-          setEditingTextItemIndex(index);
-          setEditImageSrc(item.src);
-          setEditImageAlt(item.alt);
-          setShowImageEditModal(true);
-      }
-  };
-
-  const handleSaveImageEdit = async () => {
-      if (editingItemIndex === null || !project.galleryImages) return;
-      
-      const item = project.galleryImages[editingItemIndex];
-      if (item.type !== 'image') return;
-
-      const updatedItem = {
-          ...item,
-          src: editImageSrc,
-          alt: editImageAlt
-      };
-
-      await handleUpdateItem(editingItemIndex, updatedItem);
-      setShowImageEditModal(false);
-      setEditingTextItemIndex(null);
-  };
-
-  const handleImageFileReplace = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file || editingItemIndex === null) return;
-
-      setUploading(true);
-      setUploadProgress(0);
-      setError(null);
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      try {
-          const res = await fetch('/api/upload', {
-              method: 'POST',
-              body: formData
-          });
-
-          if (!res.ok) throw new Error('Upload failed');
-
-          const data = await res.json();
-          setEditImageSrc(data.url);
-          // Optionally update dimensions if you want to keep original file aspect ratio
-          // But usually we just update the source.
-      } catch (err: any) {
-          setError(err.message);
-      } finally {
-          setUploading(false);
-      }
+      closeModal();
   };
 
   const handleDeleteFromModal = async () => {
-      let indexToDelete = -1;
-      
-      if (editingTextId) {
-          indexToDelete = project.galleryImages?.findIndex(item => item.id === editingTextId) ?? -1;
-      } else if (editingItemIndex !== null) {
-          indexToDelete = editingItemIndex;
-      }
-
-      if (indexToDelete !== -1 && confirm('Are you sure you want to delete this item?')) {
-          await handleDeleteItem(indexToDelete);
-          setShowTextModal(false);
-          setShowImageEditModal(false);
-          setEditingTextId(null);
-          setEditingTextItemIndex(null);
+      if (editingItemIndex !== null && confirm('Are you sure you want to delete this item?')) {
+          await handleDeleteItem(editingItemIndex);
+          closeModal();
       }
   };
 
-  // Close add menu when clicking outside
-  const addMenuRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-        if (addMenuRef.current && !addMenuRef.current.contains(event.target as Node)) {
-            setShowAddMenu(false);
-        }
-    };
-    if (showAddMenu) {
-        document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showAddMenu]);
+  const currentItem = project.galleryImages?.[currentItemIndex];
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={containerRef}>
       {isAdmin && (
           <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
               {adminMode && (
-                  <div style={{ position: 'relative' }} ref={addMenuRef}>
-                      <button 
-                        onClick={() => setShowAddMenu(!showAddMenu)} 
-                        style={{ padding: '10px 20px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
-                      >
-                          + Add
-                      </button>
-                      {showAddMenu && (
-                          <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '5px', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', borderRadius: '4px', overflow: 'hidden', minWidth: '120px', zIndex: 1001 }}>
-                              <label style={{ display: 'block', padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #eee', color: 'black' }}>
-                                  + Image
-                                  <input 
-                                    type="file" 
-                                    style={{ display: 'none' }} 
-                                    accept="image/*" 
-                                    onChange={(e) => {
-                                        handleFileUpload(e);
-                                        setShowAddMenu(false);
-                                    }} 
-                                  />
-                              </label>
-                              <button 
-                                onClick={() => { 
-                                    handleAddText(); 
-                                    setShowAddMenu(false); 
-                                }} 
-                                style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: 'black' }}
-                              >
-                                  + Text
-                              </button>
-                          </div>
-                      )}
-                  </div>
+                  <button 
+                    onClick={openAddModal} 
+                    style={{ padding: '10px 20px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+                  >
+                      + Add
+                  </button>
               )}
               <button 
                 onClick={toggleAdminMode} 
@@ -532,148 +681,31 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
           </div>
       )}
 
-      <div className={styles.infoColumn}>
-        <h1 className={styles.title}>{project.title}</h1>
-        <div className={styles.subtitle}>
-          {details.year}{details.year && details.location ? ", " : ""}{details.location}
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
-          <div className={styles.detailsTrigger} onClick={toggleDetails} style={{ marginBottom: 0 }}>
-            infos
-          </div>
-
-          {isAdmin && adminMode && (
-               <div style={{ display: 'flex' }}>
-                   {!isEditingDetails ? (
-                       <button 
-                          onClick={() => setIsEditingDetails(true)}
-                          style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
-                       >
-                           Edit Infos
-                       </button>
-                   ) : (
-                       <div style={{ display: 'flex', gap: '5px' }}>
-                           <button 
-                              onClick={handleSaveDetails}
-                              style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
-                           >
-                               Save
-                           </button>
-                           <button 
-                              onClick={handleCancelDetails}
-                              style={{ padding: '5px 10px', background: '#eee', border: '1px solid #ccc', cursor: 'pointer', borderRadius: '4px' }}
-                           >
-                               Cancel
-                           </button>
-                       </div>
-                   )}
-               </div>
-          )}
-        </div>
-
-        <div className={`${styles.detailsList} ${showDetails ? styles.open : ""}`}>
-          {!isEditingDetails ? (
-            detailFields.map(field => {
-                // Show item if it has a value OR if we are in admin mode (so we can see empty fields to edit later? No, edit mode handles that)
-                // Actually, in view mode, we usually hide empty fields.
-                // But let's follow existing logic: render conditional for partners/team, others always?
-                // The original code rendered some conditionally (partners, team) and others always.
-                const val = (details as any)[field.key];
-                if (!val && (field.key === 'partners' || field.key === 'team')) return null;
-                
-                return (
-                    <div className={styles.detailItem} key={field.key}>
-                        <span className={styles.detailLabel}>{field.label}</span>
-                        {val}
-                    </div>
-                );
-            })
-          ) : (
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                 {detailFields.map(field => (
-                     <div key={field.key} style={{ display: 'flex', flexDirection: 'column' }}>
-                         <label style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>{field.label}</label>
-                         <input 
-                             type="text" 
-                             value={(editedDetails as any)[field.key] || ''}
-                             onChange={(e) => handleDetailChange(field.key, e.target.value)}
-                             style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '100%' }}
-                         />
-                     </div>
-                 ))}
-             </div>
-          )}
-        </div>
-
-        {/* Description Blocks Section */}
-        <div style={{ marginTop: '30px', borderTop: '1px solid #ddd', paddingTop: '20px' }}>
-            {descriptionBlocks.map((block, index) => (
-                <div key={block.id} style={{ marginBottom: '20px', position: 'relative' }}>
-                    {block.type === 'text' ? (
-                        isAdmin && adminMode ? (
-                            <textarea
-                                value={block.content}
-                                onChange={(e) => handleUpdateBlock(block.id, e.target.value)}
-                                onBlur={handleSaveBlockContent}
-                                placeholder="Write something..."
-                                style={{ width: '100%', minHeight: '100px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical', fontFamily: 'inherit' }}
-                            />
-                        ) : (
-                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{block.content}</div>
-                        )
-                    ) : (
-                        <div style={{ position: 'relative' }}>
-                             <img src={block.content} alt="Block Image" style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} />
-                        </div>
-                    )}
-                    
-                    {isAdmin && adminMode && (
-                        <div style={{ position: 'absolute', top: '5px', right: '5px', display: 'flex', gap: '5px', background: 'rgba(255,255,255,0.8)', padding: '5px', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                            <button onClick={() => handleMoveBlock(index, 'up')} disabled={index === 0} style={{ cursor: index === 0 ? 'default' : 'pointer', border: 'none', background: 'none', opacity: index === 0 ? 0.3 : 1 }}>↑</button>
-                            <button onClick={() => handleMoveBlock(index, 'down')} disabled={index === descriptionBlocks.length - 1} style={{ cursor: index === descriptionBlocks.length - 1 ? 'default' : 'pointer', border: 'none', background: 'none', opacity: index === descriptionBlocks.length - 1 ? 0.3 : 1 }}>↓</button>
-                            <button onClick={() => handleDeleteBlock(block.id)} style={{ cursor: 'pointer', border: 'none', background: 'none', color: 'red' }}>✕</button>
-                        </div>
-                    )}
-                </div>
-            ))}
-
-            {isAdmin && adminMode && (
-                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                    <button onClick={handleAddTextBlock} style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px dashed #ccc', cursor: 'pointer', borderRadius: '4px' }}>
-                        + Add Text
-                    </button>
-                    <label style={{ flex: 1, padding: '10px', background: '#f5f5f5', border: '1px dashed #ccc', cursor: 'pointer', borderRadius: '4px', textAlign: 'center' }}>
-                        + Add Image
-                        <input type="file" accept="image/*" onChange={handleBlockImageUpload} style={{ display: 'none' }} />
-                    </label>
-                </div>
-            )}
-        </div>
-      </div>
-
-      <div className={styles.imageColumn}>
-        {isAdmin && adminMode && uploading && (
+      {/* Left Pane: Gallery Section */}
+      <div 
+        className={styles.imageColumn}
+        style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 1 }}
+      >
+        {isAdmin && adminMode && uploading && !isModalOpen && (
             <div className={styles.progressBar}>
                 <div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div>
             </div>
         )}
-        {isAdmin && adminMode && error && <p style={{ color: 'red', marginTop: '10px', width: '100%' }}>{error}</p>}
+        {isAdmin && adminMode && error && !isModalOpen && <p style={{ color: 'red', marginTop: '10px', width: '100%' }}>{error}</p>}
 
         <DndContext 
+            id={dndContextId}
             sensors={sensors} 
             collisionDetection={closestCenter} 
             onDragEnd={handleDragEnd}
         >
             <SortableContext 
-                items={project.galleryImages?.map(item => item.id) || []} 
+                items={project.galleryImages?.filter(item => (isAdmin && adminMode) || item.visibility !== 'private').map(item => item.id) || []} 
                 strategy={rectSortingStrategy}
             >
                 <div className={styles.grid}>
                 {project.galleryImages?.map((item, index) => {
-                    // Filter logic for non-admins or when admin mode is off
                     if ((!isAdmin || !adminMode) && item.visibility === 'private') return null;
-                    // Note: 'team' visibility logic would go here if we had team users context
                     
                     return (
                         <SortableGalleryItem 
@@ -683,7 +715,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                 onClick={() => handleItemClick(index)}
                                 onDelete={handleDeleteItem}
                                 onUpdate={handleUpdateItem}
-                                onEdit={handleEditItem}
+                                onEdit={(idx, it) => openEditModal(idx, it)}
                             />
                     );
                 })}
@@ -692,10 +724,119 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         </DndContext>
       </div>
 
+      {/* Resizer Handle */}
+      <div
+        className={styles.resizer}
+        onMouseDown={startResizing}
+      >
+        <div className={styles.resizerHandleIcon} />
+      </div>
+
+      {/* Right Pane: Blog Section */}
+      <div 
+        className={styles.infoColumn} 
+        style={{ width: isDesktop ? `${100 - leftPaneWidth}%` : '100%', flexShrink: 0 }}
+      >
+        {isAdmin && adminMode && (
+            <div className={styles.blogHeader}>
+                 <div className={styles.blogControls}>
+                    {isBlogEditing && (
+                        <label className={styles.headerBtn}>
+                            + Add Image
+                            <input type="file" accept="image/*" onChange={handleBlockImageUpload} style={{ display: 'none' }} />
+                        </label>
+                    )}
+                    <button 
+                        className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
+                        onClick={() => setIsBlogEditing(!isBlogEditing)}
+                    >
+                        {isBlogEditing ? 'Done' : 'Edit'}
+                    </button>
+                 </div>
+            </div>
+        )}
+
+        {/* Blog Section: Scrollable */}
+        <div className={styles.blogSection}>
+            {descriptionBlocks.map((block, index) => (
+                <div key={block.id} className={styles.blogBlock}>
+                    {block.type === 'text' ? (
+                        isAdmin && adminMode && isBlogEditing ? (
+                            <textarea
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlock(block.id, e.target.value)}
+                                onSelect={(e) => lastSelectionRef.current = { blockId: block.id, cursorIndex: e.currentTarget.selectionStart }}
+                                onClick={(e) => lastSelectionRef.current = { blockId: block.id, cursorIndex: e.currentTarget.selectionStart }}
+                                onKeyUp={(e) => lastSelectionRef.current = { blockId: block.id, cursorIndex: e.currentTarget.selectionStart }}
+                                onBlur={() => {
+                                    handleSaveBlockContent(); // Save on blur
+                                }}
+                                placeholder="Type here..."
+                                className={styles.blogTextarea}
+                            />
+                        ) : (
+                            <p className={styles.blogText}>{block.content}</p>
+                        )
+                    ) : (
+                        <div 
+                            className={styles.blogImageWrapper}
+                            style={{ width: block.width ? `${block.width}px` : '100%', maxWidth: '100%', position: 'relative' }}
+                        >
+                             <img 
+                                 src={block.content} 
+                                 alt="Block Image" 
+                                 className={styles.blogImage} 
+                                 // @ts-ignore
+                                 fetchPriority="high"
+                             />
+                             {isAdmin && adminMode && isBlogEditing && (
+                                <>
+                                    <div 
+                                        onMouseDown={(e) => {
+                                            const parentWidth = e.currentTarget.parentElement?.offsetWidth || 800;
+                                            startBlockResize(e, block.id, block.width || parentWidth);
+                                        }}
+                                        className={styles.resizeHandleHover}
+                                        style={{
+                                            position: 'absolute',
+                                            right: 0,
+                                            top: 0,
+                                            bottom: 0,
+                                            width: '15px',
+                                            cursor: 'ew-resize',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            zIndex: 10,
+                                        }}
+                                    >
+                                        <div style={{ width: '4px', height: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px' }} />
+                                    </div>
+                                    <button 
+                                        className={styles.deleteBlockBtn}
+                                        onClick={() => handleDeleteBlock(block.id)}
+                                    >
+                                        ✕
+                                    </button>
+                                </>
+                             )}
+                        </div>
+                    )}
+                    
+                    {isAdmin && adminMode && isBlogEditing && (
+                        <div className={styles.blockControls}>
+                            <button className={styles.blockBtn} onClick={() => handleMoveBlock(index, 'up')} disabled={index === 0} style={{ opacity: index === 0 ? 0.3 : 1 }}>↑</button>
+                            <button className={styles.blockBtn} onClick={() => handleMoveBlock(index, 'down')} disabled={index === descriptionBlocks.length - 1} style={{ opacity: index === descriptionBlocks.length - 1 ? 0.3 : 1 }}>↓</button>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+      </div>
+
       {/* Lightbox Overlay */}
       <div className={`${styles.lightbox} ${lightboxOpen ? styles.open : ""}`} onClick={closeLightbox}>
         <div className={styles.closeBtn} onClick={closeLightbox}>
-             {/* Simple Close Icon */}
              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                 <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(45deg)' }}></span>
                 <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(-45deg)' }}></span>
@@ -707,8 +848,8 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         <div 
             className={styles.lightboxImageWrapper} 
             style={{ 
-                transform: currentItem?.type === 'image' ? `scale(${zoomLevel})` : 'none', 
-                cursor: currentItem?.type === 'image' ? (zoomLevel === 1 ? 'zoom-in' : 'zoom-out') : 'default',
+                transform: (currentItem?.type === 'image' || currentItem?.type === 'video') ? `scale(${zoomLevel})` : 'none', 
+                cursor: (currentItem?.type === 'image' || currentItem?.type === 'video') ? (zoomLevel === 1 ? 'zoom-in' : 'zoom-out') : 'default',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -718,33 +859,67 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
             onClick={handleZoom}
         >
             {currentItem && (
-                currentItem.type === 'image' ? (
-                 currentItem.src ? (
-                    <Image
-                        src={currentItem.src}
-                        alt={currentItem.alt || "Lightbox Image"}
-                        width={currentItem.width}
-                        height={currentItem.height}
-                        className={styles.lightboxImage}
-                        unoptimized
-                    />
-                 ) : (
-                    <div style={{ color: 'white' }}>Image Missing</div>
-                 )
-                ) : (
+                currentItem.type === 'text' ? (
                  <div 
                     className={styles.lightboxTextItem}
+                    style={{
+                        fontFamily: currentItem.style?.fontFamily,
+                        fontSize: currentItem.style?.fontSize,
+                        backgroundColor: currentItem.style?.backgroundColor,
+                        color: currentItem.style?.color,
+                        textAlign: currentItem.style?.textAlign as any,
+                        padding: '40px',
+                        maxWidth: '80%',
+                        maxHeight: '80%',
+                        overflow: 'auto',
+                        whiteSpace: 'pre-wrap'
+                    }}
                     onClick={(e) => {
                         e.stopPropagation(); // Prevent zoom
                         if (isAdmin && adminMode) {
-                            setEditingTextId(currentItem.id);
-                            setNewTextContent(currentItem.content);
-                            setShowTextModal(true);
+                            openEditModal(currentItemIndex, currentItem);
+                            setLightboxOpen(false);
                         }
                     }}
                  >
                      {currentItem.content}
                  </div>
+                ) : (
+                    // Image or Video
+                    currentItem.src ? (
+                        <>
+                            <Image
+                                src={currentItem.src}
+                                alt={currentItem.alt || "Lightbox Image"}
+                                width={currentItem.width}
+                                height={currentItem.height}
+                                className={styles.lightboxImage}
+                                unoptimized
+                            />
+                            {currentItem.type === 'video' && (
+                                <a 
+                                    href={`https://www.youtube.com/watch?v=${currentItem.videoId}`} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                                        width: '80px', height: '80px', background: 'rgba(255,0,0,0.8)', borderRadius: '50%',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+                                        textDecoration: 'none'
+                                    }}
+                                >
+                                    <div style={{
+                                        width: 0, height: 0, 
+                                        borderTop: '15px solid transparent', borderBottom: '15px solid transparent',
+                                        borderLeft: '25px solid white', marginLeft: '5px'
+                                    }} />
+                                </a>
+                            )}
+                        </>
+                    ) : (
+                        <div style={{ color: 'white' }}>Image Missing</div>
+                    )
                 )
             )}
         </div>
@@ -761,9 +936,30 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                         setZoomLevel(1);
                     }}
                  >
-                     {item.type === 'image' ? (
+                     {item.type === 'image' || item.type === 'video' ? (
                          item.src ? (
-                            <img src={item.src} alt={`Thumbnail ${index}`} style={{ height: '100%', width: 'auto' }} />
+                            <div style={{ position: 'relative', height: '100%', width: 'auto' }}>
+                                <img 
+                                    src={item.src} 
+                                    alt={`Thumbnail ${index}`} 
+                                    style={{ height: '100%', width: 'auto' }}
+                                    // @ts-ignore
+                                    fetchPriority="low" 
+                                />
+                                {item.type === 'video' && (
+                                    <div style={{
+                                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                                        width: '20px', height: '20px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        <div style={{
+                                            width: 0, height: 0, 
+                                            borderTop: '4px solid transparent', borderBottom: '4px solid transparent',
+                                            borderLeft: '7px solid white', marginLeft: '1px'
+                                        }} />
+                                    </div>
+                                )}
+                            </div>
                          ) : (
                             <div style={{ height: '100%', width: '30px', background: '#ccc' }} />
                          )
@@ -771,13 +967,13 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                          <div style={{ 
                              height: '100%', 
                              width: '50px', 
-                             background: '#ffffff', 
+                             background: item.style?.backgroundColor || '#ffffff', 
                              display: 'flex', 
                              alignItems: 'center', 
                              justifyContent: 'center', 
                              fontSize: '10px',
                              overflow: 'hidden',
-                             color: '#333',
+                             color: item.style?.color || '#333',
                              border: '1px solid #ccc',
                              boxSizing: 'border-box'
                          }}>
@@ -789,69 +985,232 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         </div>
       </div>
 
-      {/* Add Text Modal */}
-      {showTextModal && (
-          <div className={styles.modalOverlay} onClick={() => setShowTextModal(false)}>
-              <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                  <h3 className={styles.modalTitle}>{editingTextId ? 'Edit Text Note' : 'Add Text Note'}</h3>
-                  <textarea 
-                      className={styles.modalTextarea} 
-                      placeholder="Enter text here..."
-                      value={newTextContent}
-                      onChange={e => setNewTextContent(e.target.value)}
-                      autoFocus
-                  />
-                  <div className={styles.modalActions}>
-                      <button className={`${styles.modalBtn} ${styles.cancelBtn}`} onClick={() => setShowTextModal(false)}>Cancel</button>
-                      {editingTextId && (
-                          <button className={`${styles.modalBtn} ${styles.deleteModalBtn}`} onClick={handleDeleteFromModal}>Delete</button>
-                      )}
-                      <button className={`${styles.modalBtn} ${styles.saveBtn}`} onClick={handleSaveText}>Save</button>
-                  </div>
-              </div>
-          </div>
-      )}
-
-      {/* Edit Image Modal */}
-      {showImageEditModal && (
-          <div className={styles.modalOverlay} onClick={() => setShowImageEditModal(false)}>
-              <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                  <h3 className={styles.modalTitle}>Edit Image Item</h3>
+      {/* Unified Add/Edit Modal */}
+      {isModalOpen && (
+          <div style={{
+              position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+              background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+          }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', width: '400px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                  <h2>{editingItemIndex !== null ? 'Edit Item' : 'Add New Item'}</h2>
                   
-                  <div style={{ marginBottom: '15px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '12px', display: 'block', marginBottom: '5px' }}>Replace Image:</span>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleImageFileReplace}
-                        style={{ fontSize: '12px' }}
-                      />
-                      {uploading && <div className={styles.progressBar} style={{ height: '4px' }}><div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div></div>}
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => setProjectType('project')}
+                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                          Image
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setProjectType('video')}
+                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                          Video
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setProjectType('memo')}
+                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                          Memo
+                      </button>
                   </div>
 
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Image URL:</span>
-                      <input 
-                        type="text" 
-                        value={editImageSrc}
-                        onChange={(e) => setEditImageSrc(e.target.value)}
-                        style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                      />
-                  </label>
-                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Alt Text:</span>
-                      <input 
-                        type="text" 
-                        value={editImageAlt}
-                        onChange={(e) => setEditImageAlt(e.target.value)}
-                        style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                      />
-                  </label>
-                  <div className={styles.modalActions}>
-                      <button className={`${styles.modalBtn} ${styles.cancelBtn}`} onClick={() => setShowImageEditModal(false)}>Cancel</button>
-                      <button className={`${styles.modalBtn} ${styles.deleteModalBtn}`} onClick={handleDeleteFromModal}>Delete</button>
-                      <button className={`${styles.modalBtn} ${styles.saveBtn}`} onClick={handleSaveImageEdit}>Save</button>
-                  </div>
+                  <form onSubmit={handleSaveItem} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                      
+                      {projectType !== 'memo' && (
+                          <>
+                            {/* Image Upload Section */}
+                            <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
+                                <span style={{fontWeight: 'bold'}}>Image:</span>
+                                
+                                {imageUrl && imageUrl.trim() !== "" && (
+                                    <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                        <Image 
+                                            src={imageUrl} 
+                                            alt="Preview" 
+                                            fill
+                                            style={{ objectFit: 'cover' }}
+                                            unoptimized
+                                        />
+                                    </div>
+                                )}
+
+                                <input 
+                                    type="file" 
+                                    accept="image/png, image/jpeg, image/gif, image/webp"
+                                    onChange={handleImageUpload}
+                                    disabled={uploading}
+                                    style={{ width: '100%', padding: '5px' }} 
+                                />
+                                
+                                {uploading && (
+                                    <div style={{ width: '100%', height: '5px', background: '#eee', marginTop: '5px', borderRadius: '2px' }}>
+                                        <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'black', transition: 'width 0.3s' }}></div>
+                                    </div>
+                                )}
+                                
+                                {error && <span style={{ color: 'red', fontSize: '12px' }}>{error}</span>}
+                            </div>
+
+                            {projectType === 'video' && (
+                                <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
+                                    <span style={{fontWeight: 'bold'}}>YouTube URL:</span>
+                                    <input 
+                                        name="link" 
+                                        value={videoLink} 
+                                        placeholder="https://www.youtube.com/watch?v=..." 
+                                        onChange={handleLinkChange}
+                                        style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                                    />
+                                    {fetchingVideo && <span style={{fontSize: '12px', color: '#666'}}>Fetching video info...</span>}
+                                    {isYoutube && <span style={{fontSize: '12px', color: 'green'}}>YouTube video detected!</span>}
+                                </label>
+                            )}
+                            
+                            <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
+                                <span style={{fontWeight: 'bold'}}>Alt Text:</span>
+                                <input 
+                                    value={imageAlt}
+                                    onChange={(e) => setImageAlt(e.target.value)}
+                                    placeholder="Image description"
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                                />
+                            </label>
+                          </>
+                      )}
+
+                      {projectType === 'memo' && (
+                          <>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                                  {/* Font Family and Font Size disabled temporarily
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Family:</span>
+                                      <select 
+                                          value={memoStyle.fontFamily || ''} 
+                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontFamily: e.target.value }))}
+                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                                      >
+                                          <option value="">Default</option>
+                                          <option value="Arial, sans-serif">Arial</option>
+                                          <option value="'Courier New', monospace">Courier New</option>
+                                          <option value="'Georgia', serif">Georgia</option>
+                                          <option value="'Times New Roman', serif">Times New Roman</option>
+                                          <option value="'Verdana', sans-serif">Verdana</option>
+                                      </select>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Size:</span>
+                                      <input 
+                                          type="text"
+                                          placeholder="e.g. 16px"
+                                          value={memoStyle.fontSize || ''} 
+                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontSize: e.target.value }))}
+                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                                      />
+                                  </label>
+                                  */}
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Background:</span>
+                                      <div style={{ display: 'flex', gap: '5px' }}>
+                                          <input 
+                                              type="color"
+                                              value={memoStyle.backgroundColor || '#ffffff'} 
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                          />
+                                          <input 
+                                              type="text"
+                                              value={memoStyle.backgroundColor || ''}
+                                              placeholder="#ffffff"
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                          />
+                                      </div>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Text Color:</span>
+                                      <div style={{ display: 'flex', gap: '5px' }}>
+                                          <input 
+                                              type="color"
+                                              value={memoStyle.color || '#000000'} 
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                          />
+                                          <input 
+                                              type="text"
+                                              value={memoStyle.color || ''}
+                                              placeholder="#000000"
+                                              onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
+                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                          />
+                                      </div>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', gridColumn: 'span 2' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Alignment:</span>
+                                      <div style={{ display: 'flex', gap: '15px' }}>
+                                          {['left', 'center', 'right', 'justify'].map(align => (
+                                              <label key={align} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '12px' }}>
+                                                  <input 
+                                                      type="radio" 
+                                                      name="textAlign" 
+                                                      value={align}
+                                                      checked={memoStyle.textAlign === align || (!memoStyle.textAlign && align === 'left')}
+                                                      onChange={(e) => setMemoStyle(prev => ({ ...prev, textAlign: e.target.value as any }))}
+                                                  />
+                                                  {align.charAt(0).toUpperCase() + align.slice(1)}
+                                              </label>
+                                          ))}
+                                      </div>
+                                  </label>
+                              </div>
+                              <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
+                                  <span style={{fontWeight: 'bold'}}>Memo Content:</span>
+                                  <textarea 
+                                    value={memoContent}
+                                    onChange={(e) => setMemoContent(e.target.value)}
+                                    required
+                                    maxLength={2000}
+                                    style={{ 
+                                        width: '100%', 
+                                        height: '300px', 
+                                        padding: '20px', 
+                                        border: '1px solid #ccc', 
+                                        borderRadius: '4px', 
+                                        resize: 'vertical',
+                                        // Preview styles
+                                        fontFamily: memoStyle.fontFamily,
+                                        fontSize: memoStyle.fontSize,
+                                        backgroundColor: memoStyle.backgroundColor,
+                                        color: memoStyle.color,
+                                        textAlign: memoStyle.textAlign
+                                    }}
+                                  />
+                                  <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
+                                      {memoContent.length} / 2000
+                                  </div>
+                              </label>
+                          </>
+                      )}
+                      
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                          <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+                          {editingItemIndex !== null && (
+                              <button 
+                                type="button" 
+                                onClick={handleDeleteFromModal}
+                                style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '4px', cursor: 'pointer' }}
+                              >
+                                  Delete
+                              </button>
+                          )}
+                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
+                              {editingItemIndex !== null ? 'Update' : 'Add'}
+                          </button>
+                      </div>
+                  </form>
               </div>
           </div>
       )}

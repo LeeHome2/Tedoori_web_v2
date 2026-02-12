@@ -30,12 +30,23 @@ export type GalleryItem =
       type: 'text'; 
       id: string; 
       content: string; 
-      style?: { fontSize?: string; textAlign?: string; backgroundColor?: string; color?: string }; 
+      style?: MemoStyle; 
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
       lockedAspectRatio?: boolean;
-    };
+    }
+  | {
+      type: 'video';
+      id: string;
+      src: string; // Thumbnail URL
+      videoId: string;
+      alt?: string;
+      visibility?: 'public' | 'team' | 'private';
+      cardWidth?: number;
+      cardHeight?: number;
+      lockedAspectRatio?: boolean;
+  };
 
 export interface MemoStyle {
   fontFamily?: string;
@@ -49,6 +60,7 @@ export interface ContentBlock {
   id: string;
   type: 'text' | 'image';
   content: string;
+  width?: number;
 }
 
 export interface Project {
@@ -57,6 +69,9 @@ export interface Project {
   slug: string;
   imageUrl: string;
   link: string;
+  showId?: boolean;
+  showTitle?: boolean;
+  hasDetailLink?: boolean;
   type?: 'project' | 'video' | 'memo';
   videoId?: string;
   content?: string;

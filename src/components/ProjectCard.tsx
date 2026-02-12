@@ -15,6 +15,20 @@ interface ProjectCardProps {
   onEdit: (project: Project) => void;
 }
 
+// Helper function to get visibility label
+function getVisibilityLabel(visibility: string): string {
+  switch (visibility) {
+    case 'public':
+      return 'Public';
+    case 'team':
+      return 'Team Only';
+    case 'private':
+      return 'Private';
+    default:
+      return 'Public';
+  }
+}
+
 export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const { isAdmin, adminMode } = useAdmin();
   const { updateProject } = useProjects();
@@ -32,10 +46,15 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   // Sync dimensions when project updates or resize mode ends
   useEffect(() => {
       if (!isResizing) {
-          setDimensions({ width: project.cardWidth, height: project.cardHeight });
-          setLockedRatio(!!project.lockedAspectRatio);
+          setDimensions(prev => {
+            if (prev.width !== project.cardWidth || prev.height !== project.cardHeight) {
+                return { width: project.cardWidth, height: project.cardHeight };
+            }
+            return prev;
+          });
+          setLockedRatio(prev => prev !== !!project.lockedAspectRatio ? !!project.lockedAspectRatio : prev);
       }
-  }, [project, isResizing]);
+  }, [project.cardWidth, project.cardHeight, project.lockedAspectRatio, isResizing]);
   
   const {
     attributes,
@@ -244,28 +263,27 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
   // Parent Grid might render it because API returns it for admins.
   // So we hide it here.
   
-  if (isAdmin && !adminMode && currentVisibility === 'private') {
-      return null;
-  }
-
-  const getVisibilityLabel = (vis: string) => {
-      switch(vis) {
-          case 'public': return 'Public';
-          case 'team': return 'Team Only';
-          case 'private': return 'Private';
-          default: return 'Public';
-      }
-  };
-
   const isVideo = project.type === 'video';
   const isMemo = project.type === 'memo';
+
+  const showId = project.showId !== undefined ? project.showId : true;
+  const showTitle = project.showTitle !== undefined ? project.showTitle : true;
+  const hasDetailLink = project.hasDetailLink !== undefined ? project.hasDetailLink : true;
 
   const [isEditingMemo, setIsEditingMemo] = useState(false);
   const [memoText, setMemoText] = useState(project.content || '');
 
   useEffect(() => {
-      setMemoText(project.content || '');
+      setMemoText(prev => {
+          const newContent = project.content || '';
+          return prev !== newContent ? newContent : prev;
+      });
   }, [project.content]);
+
+  // If not admin mode and project is private, don't render
+  if (isAdmin && !adminMode && currentVisibility === 'private') {
+      return null;
+  }
 
   const handleMemoClick = (e: React.MouseEvent) => {
       if (isAdmin && adminMode) {
@@ -289,6 +307,28 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
       }
       // Allow Enter for new lines in textarea
   };
+
+  const renderCardContent = () => (
+      <>
+          {project.imageUrl ? (
+              <Image
+                  src={project.imageUrl}
+                  alt={project.title}
+                  width={600}
+                  height={400}
+                  className={styles.image}
+                  unoptimized
+              />
+          ) : (
+              <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
+          )}
+          
+          <div className={styles.overlayInfo}>
+              {showId && <span className={styles.number}>{project.id}</span>}
+              {showTitle && <span className={styles.title}>{project.title}</span>}
+          </div>
+      </>
+  );
 
   return (
     // Only attach attributes to the root for accessibility. Listeners are moved to the handle.
@@ -332,18 +372,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
             </div>
         ) : isVideo ? (
             <div onClick={() => setShowVideo(true)} style={{ cursor: 'pointer', display: 'block', position: 'relative' }}>
-                {project.imageUrl ? (
-                    <Image
-                        src={project.imageUrl}
-                        alt={project.title}
-                        width={600}
-                        height={400}
-                        className={styles.image}
-                        unoptimized
-                    />
-                ) : (
-                    <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
-                )}
+                {renderCardContent()}
                 <div className={styles.playButton}>
                     <svg viewBox="0 0 24 24" width="48" height="48">
                         <path fill="white" d="M8 5v14l11-7z" />
@@ -351,20 +380,23 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
                 </div>
             </div>
         ) : (
-            <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto', display: 'block' }}>
-                {project.imageUrl ? (
-                    <Image
-                        src={project.imageUrl}
-                        alt={project.title}
-                        width={600}
-                        height={400}
-                        className={styles.image}
-                        unoptimized
-                    />
-                ) : (
-                    <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
-                )}
-            </Link>
+            hasDetailLink ? (
+                <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto', display: 'block' }}>
+                    {renderCardContent()}
+                </Link>
+            ) : (
+                <div style={{ display: 'block' }}>
+                    {renderCardContent()}
+                </div>
+            )
+        )}
+
+        {/* Overlay Info for Memo Type - Moved outside to ensure consistent positioning */}
+        {isMemo && (
+            <div className={styles.overlayInfo}>
+                {showId && <span className={styles.number}>{project.id}</span>}
+                {showTitle && <span className={styles.title}>{project.title}</span>}
+            </div>
         )}
         
         {isAdmin && adminMode && !isResizing && (
@@ -431,26 +463,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
         )}
       </div>
 
-      {isVideo ? (
-          <div onClick={() => setShowVideo(true)} style={{ cursor: 'pointer' }}>
-            <div className={styles.overlayInfo}>
-              <span className={styles.number}>{project.id}</span>
-              <span className={styles.title}>{project.title}</span>
-            </div>
-          </div>
-      ) : isMemo ? (
-          <div className={styles.overlayInfo}>
-              <span className={styles.number}>{project.id}</span>
-              <span className={styles.title}>{project.title}</span>
-          </div>
-      ) : (
-          <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto' }}>
-            <div className={styles.overlayInfo}>
-              <span className={styles.number}>{project.id}</span>
-              <span className={styles.title}>{project.title}</span>
-            </div>
-          </Link>
-      )}
+      {/* Overlay Info removed from here as it is now inside CardContent/MemoContent */}
       
       {isResizing && (
         <>

@@ -35,6 +35,9 @@ export default function ProjectGrid() {
   // Form State
   const [formId, setFormId] = useState('');
   const [formTitle, setFormTitle] = useState('');
+  const [showId, setShowId] = useState(true);
+  const [showTitle, setShowTitle] = useState(true);
+  const [hasDetailLink, setHasDetailLink] = useState(true);
 
   // DND Sensors
   const sensors = useSensors(
@@ -67,6 +70,9 @@ export default function ProjectGrid() {
       setMemoStyle({});
       setFormId('');
       setFormTitle('');
+      setShowId(true);
+      setShowTitle(true);
+      setHasDetailLink(true);
       setIsModalOpen(true);
   };
 
@@ -82,6 +88,9 @@ export default function ProjectGrid() {
       setMemoStyle(project.memoStyle || {});
       setFormId(project.id);
       setFormTitle(project.title);
+      setShowId(project.showId !== undefined ? project.showId : true);
+      setShowTitle(project.showTitle !== undefined ? project.showTitle : true);
+      setHasDetailLink(project.hasDetailLink !== undefined ? project.hasDetailLink : true);
       setIsModalOpen(true);
   };
 
@@ -97,6 +106,9 @@ export default function ProjectGrid() {
       setMemoStyle({});
       setFormId('');
       setFormTitle('');
+      setShowId(true);
+      setShowTitle(true);
+      setHasDetailLink(true);
   };
 
   const getYoutubeId = (url: string) => {
@@ -228,6 +240,9 @@ export default function ProjectGrid() {
           videoId: projectType === 'video' ? youtubeId : undefined,
           content: projectType === 'memo' ? memoContent : undefined,
           memoStyle: projectType === 'memo' ? memoStyle : undefined,
+          showId,
+          showTitle,
+          hasDetailLink,
       };
 
       if (editingProject) {
@@ -237,10 +252,13 @@ export default function ProjectGrid() {
           const originalId = editingProject.id;
           const newId = projectData.id;
 
+          // Ensure projectData has all required fields for update
+          const updatedProject = { ...editingProject, ...projectData };
+          
           if (originalId !== newId) {
-              await updateProject({ ...editingProject, ...projectData }, originalId);
+              await updateProject(updatedProject, originalId);
           } else {
-              await updateProject({ ...editingProject, ...projectData });
+              await updateProject(updatedProject);
           }
       } else {
           await addProject(projectData);
@@ -357,6 +375,35 @@ export default function ProjectGrid() {
                             style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
                           />
                       </label>
+
+                      <div style={{ display: 'flex', gap: '20px', fontSize: '12px' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                              <input 
+                                  type="checkbox" 
+                                  checked={showId} 
+                                  onChange={(e) => setShowId(e.target.checked)} 
+                              />
+                              <span>Show ID</span>
+                          </label>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                              <input 
+                                  type="checkbox" 
+                                  checked={showTitle} 
+                                  onChange={(e) => setShowTitle(e.target.checked)} 
+                              />
+                              <span>Show Title</span>
+                          </label>
+                          {projectType !== 'memo' && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={hasDetailLink} 
+                                    onChange={(e) => setHasDetailLink(e.target.checked)} 
+                                />
+                                <span>Detail Link</span>
+                            </label>
+                          )}
+                      </div>
                       
                       {projectType !== 'memo' && (
                           <>
@@ -412,6 +459,7 @@ export default function ProjectGrid() {
                       {projectType === 'memo' && (
                           <>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
+                                  {/* Font Family and Font Size disabled temporarily
                                   <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                       <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Family:</span>
                                       <select 
@@ -437,6 +485,7 @@ export default function ProjectGrid() {
                                           style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
                                       />
                                   </label>
+                                  */}
                                   <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                       <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Background:</span>
                                       <div style={{ display: 'flex', gap: '5px' }}>
