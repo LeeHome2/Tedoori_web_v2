@@ -51,7 +51,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
           setTextContent(prev => prev !== item.content ? item.content : prev);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.cardWidth, item.cardHeight, item.lockedAspectRatio, item.content, item.type, isResizing, isEditingText]);
+  }, [item.cardWidth, item.cardHeight, item.lockedAspectRatio, 'content' in item ? item.content : undefined, item.type, isResizing, isEditingText]);
 
   const {
     attributes,
