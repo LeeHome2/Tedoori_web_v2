@@ -10,8 +10,8 @@ import LoginModal from "./LoginModal";
 
 interface ProjectDetailHeaderProps {
   currentProject: Project;
-  prevProject: Project;
-  nextProject: Project;
+  prevProject: Project | null;
+  nextProject: Project | null;
 }
 
 export default function ProjectDetailHeader({
@@ -31,6 +31,10 @@ export default function ProjectDetailHeader({
       e.preventDefault();
       setIsLoginModalOpen(true);
       setIsOpen(false); // Close menu when opening modal
+  };
+
+  const getProjectHref = (project: Project) => {
+    return project.link || `/projet/${project.id}`;
   };
 
   return (
@@ -64,15 +68,23 @@ export default function ProjectDetailHeader({
                 </Link>
                 
                 <div className={styles.projectNav}>
-                    <Link href={prevProject.link || `/projet/${prevProject.slug}`} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
-                        <span>&lt;</span>
-                    </Link>
+                    {prevProject ? (
+                        <Link href={getProjectHref(prevProject)} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
+                            <span>&lt;</span>
+                        </Link>
+                    ) : (
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>&lt;</span>
+                    )}
                     
                     <span className={styles.projectId}>{currentProject.id}</span>
                     
-                    <Link href={nextProject.link || `/projet/${nextProject.slug}`} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
-                        <span>&gt;</span>
-                    </Link>
+                    {nextProject ? (
+                        <Link href={getProjectHref(nextProject)} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
+                            <span>&gt;</span>
+                        </Link>
+                    ) : (
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>&gt;</span>
+                    )}
                 </div>
             </div>
 

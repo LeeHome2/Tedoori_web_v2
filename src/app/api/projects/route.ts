@@ -64,7 +64,7 @@ export async function GET() {
     title: row.title,
     slug: row.slug,
     imageUrl: row.image_url,
-    link: row.link,
+    link: `/projet/${row.id}`,
     details: row.details || {},
     galleryImages: row.gallery_images || [],
     isVisible: row.is_visible,
@@ -114,10 +114,8 @@ export async function POST(request: Request) {
     newProject.slug = slug;
   }
 
-  // Auto-generate link if not provided
-  if (!newProject.link || newProject.link === '#') {
-    newProject.link = `/projet/${newProject.slug}`;
-  }
+  // Always generate link from id (id-based routing)
+  newProject.link = `/projet/${newProject.id}`;
 
   // Initialize empty details and galleryImages
   if (!newProject.details) {
@@ -269,7 +267,7 @@ export async function PUT(request: Request) {
       title: project.title,
       slug: project.slug,
       image_url: project.imageUrl,
-      link: project.link,
+      link: `/projet/${project.id}`,
       details: detailsToSave,
       gallery_images: project.galleryImages,
       is_visible: project.isVisible,

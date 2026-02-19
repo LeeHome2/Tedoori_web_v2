@@ -9,6 +9,7 @@ import { useProjects } from "@/context/ProjectContext";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableGalleryItem } from "./SortableGalleryItem";
+import BlogEditor from "./BlogEditor";
 
 interface ProjectDetailProps {
   project: Project;
@@ -38,29 +39,32 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Description Blocks State
+  // Description Blocks State (Deprecated for BlogEditor but kept for migration if needed)
   const [descriptionBlocks, setDescriptionBlocks] = useState<ContentBlock[]>(project.descriptionBlocks || []);
   const lastSelectionRef = useRef<{ blockId: string, cursorIndex: number } | null>(null);
-  
+  // HTML Content State for BlogEditor
+  // @ts-ignore
+  const [blogHtml, setBlogHtml] = useState(project.content || project.details?.content_html || '');
+
   // Local Edit Mode for Blog Section
   const [isBlogEditing, setIsBlogEditing] = useState(false);
 
   useEffect(() => {
-    setDescriptionBlocks(project.descriptionBlocks || []);
-  }, [project.descriptionBlocks]);
+    // @ts-ignore
+    setBlogHtml(project.content || project.details?.content_html || '');
+  }, [project.content, project.details]);
   
-  // Ensure at least one text block exists if empty
-  useEffect(() => {
-      if (descriptionBlocks.length === 0) {
-          const initialBlock: ContentBlock = {
-              id: `blk-${Date.now()}-init`,
-              type: 'text',
-              content: ''
-          };
-          setDescriptionBlocks([initialBlock]);
-          // Don't auto-save yet to avoid empty saves on load
-      }
-  }, [descriptionBlocks]);
+  const handleBlogChange = async (html: string) => {
+      setBlogHtml(html);
+      // We don't auto-save to DB on every keystroke to avoid API spam, 
+      // rely on 'Done' button or manual save if implemented, or debounce.
+      // For now, BlogEditor handles local storage auto-save.
+      // But we should update the context/DB when 'Done' is clicked or periodically.
+  };
+
+  const saveBlogContent = async () => {
+      await updateProject({ ...project, content: blogHtml });
+  };
 
   // Resizable Pane State
   const [leftPaneWidth, setLeftPaneWidth] = useState(70); // Default Gallery 70%
@@ -102,41 +106,9 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     setLeftPaneWidth(newWidth);
   }, []);
 
-  const handleBlockMouseMove = useCallback((e: MouseEvent) => {
-    if (!resizingBlockRef.current) return;
-    const { id, startX, startWidth } = resizingBlockRef.current;
-    const deltaX = e.clientX - startX;
-    const newWidth = Math.max(50, startWidth + deltaX); // Min 50px
-    
-    resizingBlockRef.current.currentWidth = newWidth;
-    
-    setDescriptionBlocks(prev => prev.map(b => b.id === id ? { ...b, width: newWidth } : b));
-  }, []);
+  // Removed Block Resize Logic since BlogEditor handles images differently
+  // If we need resizing in BlogEditor, it's done via Tiptap extensions or NodeView
 
-  const stopBlockResize = useCallback(async () => {
-     if (resizingBlockRef.current) {
-         const { id, currentWidth } = resizingBlockRef.current;
-         if (currentWidth) {
-             const newBlocks = latestBlocksRef.current.map(b => b.id === id ? { ...b, width: currentWidth } : b);
-             await updateProject({ ...project, descriptionBlocks: newBlocks });
-         }
-     }
-     resizingBlockRef.current = null;
-     document.removeEventListener("mousemove", handleBlockMouseMove);
-     document.removeEventListener("mouseup", stopBlockResize);
-     document.body.style.cursor = "";
-     document.body.style.userSelect = "";
-  }, [project, updateProject]);
-
-  const startBlockResize = (e: React.MouseEvent, id: string, currentWidth: number) => {
-      e.preventDefault();
-      e.stopPropagation();
-      resizingBlockRef.current = { id, startX: e.clientX, startWidth: currentWidth, currentWidth };
-      document.addEventListener("mousemove", handleBlockMouseMove);
-      document.addEventListener("mouseup", stopBlockResize);
-      document.body.style.cursor = "ew-resize";
-      document.body.style.userSelect = "none";
-  };
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -292,50 +264,20 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     if (isAdmin && adminMode) {
         if (item.type === 'text') return; // Don't insert text blocks via click for now
         
-        const src = item.src;
-        if (!src) return;
-
-        const newBlocks = [...descriptionBlocks];
-        const newImageBlock: ContentBlock = {
-            id: `blk-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            type: 'image',
-            content: src,
-            width: 800 // Default width
-        };
-
-        if (lastSelectionRef.current) {
-            const { blockId, cursorIndex } = lastSelectionRef.current;
-            const blockIndex = newBlocks.findIndex(b => b.id === blockId);
-            
-            if (blockIndex !== -1 && newBlocks[blockIndex].type === 'text') {
-                const textBlock = newBlocks[blockIndex];
-                const textBefore = textBlock.content.substring(0, cursorIndex);
-                const textAfter = textBlock.content.substring(cursorIndex);
-
-                // Update current block with text before cursor
-                newBlocks[blockIndex] = { ...textBlock, content: textBefore };
-                
-                // Create new text block with text after cursor
-                const afterTextBlock: ContentBlock = {
-                    id: `blk-${Date.now()}-after-${Math.random().toString(36).substr(2, 9)}`,
-                    type: 'text',
-                    content: textAfter
-                };
-                
-                // Insert: [TextBefore] -> [Image] -> [TextAfter]
-                newBlocks.splice(blockIndex + 1, 0, newImageBlock, afterTextBlock);
-            } else {
-                newBlocks.push(newImageBlock);
-            }
-        } else {
-            newBlocks.push(newImageBlock);
-        }
+        // For BlogEditor, we might want to insert image into Tiptap
+        // But since Tiptap state is inside BlogEditor, we can't easily reach it from here 
+        // without lifting state or using a ref.
+        // Current requirement #2 is "Add image button in editor", not "Click gallery to insert".
+        // Requirement #3 is "Drag and drop inserted images".
+        // The user didn't explicitly ask to keep the "Click gallery to insert" feature for the new editor.
+        // However, it's a nice feature.
+        // For now, let's disable the "Click to insert" logic for the NEW editor to avoid confusion,
+        // or we need to pass a ref to BlogEditor to execute `editor.chain().setImage(...)`.
+        // Let's stick to the "Add Image" button inside the editor as requested.
+        // So we do NOTHING here for now if it's the new editor mode.
+        // Or we just open edit modal for the item itself.
         
-        setDescriptionBlocks(newBlocks);
-        await updateProject({ ...project, descriptionBlocks: newBlocks });
-        
-        // Reset selection
-        lastSelectionRef.current = null;
+        openEditModal(itemIndex, item);
         return;
     }
 
@@ -740,15 +682,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         {isAdmin && adminMode && (
             <div className={styles.blogHeader}>
                  <div className={styles.blogControls}>
-                    {isBlogEditing && (
-                        <label className={styles.headerBtn}>
-                            + Add Image
-                            <input type="file" accept="image/*" onChange={handleBlockImageUpload} style={{ display: 'none' }} />
-                        </label>
-                    )}
                     <button 
                         className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
-                        onClick={() => setIsBlogEditing(!isBlogEditing)}
+                        onClick={() => {
+                            if (isBlogEditing) {
+                                saveBlogContent();
+                            }
+                            setIsBlogEditing(!isBlogEditing);
+                        }}
                     >
                         {isBlogEditing ? 'Done' : 'Edit'}
                     </button>
@@ -758,79 +699,19 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
 
         {/* Blog Section: Scrollable */}
         <div className={styles.blogSection}>
-            {descriptionBlocks.map((block, index) => (
-                <div key={block.id} className={styles.blogBlock}>
-                    {block.type === 'text' ? (
-                        isAdmin && adminMode && isBlogEditing ? (
-                            <textarea
-                                value={block.content}
-                                onChange={(e) => handleUpdateBlock(block.id, e.target.value)}
-                                onSelect={(e) => lastSelectionRef.current = { blockId: block.id, cursorIndex: e.currentTarget.selectionStart }}
-                                onClick={(e) => lastSelectionRef.current = { blockId: block.id, cursorIndex: e.currentTarget.selectionStart }}
-                                onKeyUp={(e) => lastSelectionRef.current = { blockId: block.id, cursorIndex: e.currentTarget.selectionStart }}
-                                onBlur={() => {
-                                    handleSaveBlockContent(); // Save on blur
-                                }}
-                                placeholder="Type here..."
-                                className={styles.blogTextarea}
-                            />
-                        ) : (
-                            <p className={styles.blogText}>{block.content}</p>
-                        )
-                    ) : (
-                        <div 
-                            className={styles.blogImageWrapper}
-                            style={{ width: block.width ? `${block.width}px` : '100%', maxWidth: '100%', position: 'relative' }}
-                        >
-                             <img 
-                                 src={block.content} 
-                                 alt="Block Image" 
-                                 className={styles.blogImage} 
-                                 // @ts-ignore
-                                 fetchPriority="high"
-                             />
-                             {isAdmin && adminMode && isBlogEditing && (
-                                <>
-                                    <div 
-                                        onMouseDown={(e) => {
-                                            const parentWidth = e.currentTarget.parentElement?.offsetWidth || 800;
-                                            startBlockResize(e, block.id, block.width || parentWidth);
-                                        }}
-                                        className={styles.resizeHandleHover}
-                                        style={{
-                                            position: 'absolute',
-                                            right: 0,
-                                            top: 0,
-                                            bottom: 0,
-                                            width: '15px',
-                                            cursor: 'ew-resize',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            zIndex: 10,
-                                        }}
-                                    >
-                                        <div style={{ width: '4px', height: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '2px' }} />
-                                    </div>
-                                    <button 
-                                        className={styles.deleteBlockBtn}
-                                        onClick={() => handleDeleteBlock(block.id)}
-                                    >
-                                        ✕
-                                    </button>
-                                </>
-                             )}
-                        </div>
-                    )}
-                    
-                    {isAdmin && adminMode && isBlogEditing && (
-                        <div className={styles.blockControls}>
-                            <button className={styles.blockBtn} onClick={() => handleMoveBlock(index, 'up')} disabled={index === 0} style={{ opacity: index === 0 ? 0.3 : 1 }}>↑</button>
-                            <button className={styles.blockBtn} onClick={() => handleMoveBlock(index, 'down')} disabled={index === descriptionBlocks.length - 1} style={{ opacity: index === descriptionBlocks.length - 1 ? 0.3 : 1 }}>↓</button>
-                        </div>
-                    )}
-                </div>
-            ))}
+            {isAdmin && adminMode && isBlogEditing ? (
+                <BlogEditor 
+                    content={blogHtml} 
+                    editable={true} 
+                    onChange={handleBlogChange} 
+                    projectId={project.id}
+                />
+            ) : (
+                <div 
+                    className={styles.blogContent}
+                    dangerouslySetInnerHTML={{ __html: blogHtml || '<p>No content yet.</p>' }} 
+                />
+            )}
         </div>
       </div>
 

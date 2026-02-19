@@ -381,7 +381,7 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
             </div>
         ) : (
             hasDetailLink ? (
-                <Link href={project.link || `/projet/${project.slug}`} style={{ pointerEvents: isResizing ? 'none' : 'auto', display: 'block' }}>
+                <Link href={project.link || `/projet/${project.id}`} style={{ pointerEvents: isResizing ? 'none' : 'auto', display: 'block' }}>
                     {renderCardContent()}
                 </Link>
             ) : (

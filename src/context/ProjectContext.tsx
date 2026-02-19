@@ -155,6 +155,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify(body),
         });
         if (!res.ok) throw new Error('Failed to update project');
+        const updatedProject = await res.json();
+        // Replace local optimistic state with actual server response (e.g. synced slug/link)
+        setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
     } catch (e) {
         setProjects(previousProjects);
         setError('Failed to update project');

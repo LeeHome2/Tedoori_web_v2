@@ -76,16 +76,23 @@
   gap: 10px; /* Reduced gap */
 }
 
-.blogTextarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    border: 1px solid #eee; /* Softer border */
-    border-radius: 4px;
-    resize: vertical;
-    font-family: inherit;
+.blogContent {
     font-size: 16px;
     line-height: 1.8;
+    color: #333;
+}
+
+.blogContent p {
+    margin-bottom: 1em;
+    min-height: 1em; /* Ensure empty lines take up space */
+}
+
+.blogContent img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+    margin: 1em auto;
 }
 
 .blogTextarea:focus {

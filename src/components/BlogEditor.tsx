@@ -1,0 +1,288 @@
+
+"use client";
+
+import { useEditor, EditorContent, BubbleMenu, FloatingMenu } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import Highlight from '@tiptap/extension-highlight';
+import Dropcursor from '@tiptap/extension-dropcursor';
+import FontFamily from '@tiptap/extension-font-family';
+import { Extension } from '@tiptap/core';
+import { useEffect, useState, useRef } from 'react';
+import styles from './BlogEditor.module.css';
+import { Bold, Italic, Underline as UnderlineIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify, Image as ImageIcon, Type, Save } from 'lucide-react';
+import DOMPurify from 'dompurify';
+import imageCompression from 'browser-image-compression';
+
+import { HardBreak } from '@tiptap/extension-hard-break';
+
+// Custom extension for Font Size since Tiptap doesn't have a default one in basic setup
+// Using TextStyle to store the attribute
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['textStyle'],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize.replace('px', ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {};
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}px`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize: fontSize => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize })
+          .run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize: null })
+          .removeEmptyTextStyle()
+          .run();
+      },
+    };
+  },
+});
+
+interface BlogEditorProps {
+  content: string; // HTML string
+  editable: boolean;
+  onChange?: (html: string) => void;
+  projectId: string;
+}
+
+export default function BlogEditor({ content, editable, onChange, projectId }: BlogEditorProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // Disable default HardBreak if we want to customize it, but usually default is fine (Shift+Enter)
+        // However, user said "Enter" key issue. StarterKit includes Paragraph and HardBreak.
+        // Paragraph: Enter creates new paragraph.
+        // HardBreak: Shift+Enter creates <br>.
+        // Let's ensure proper configuration.
+      }),
+      Image.configure({
+        inline: false, 
+        allowBase64: true,
+      }),
+      // ... (other extensions)
+      TextAlign.configure({
+        types: ['heading', 'paragraph', 'image'],
+      }),
+      TextStyle,
+      Color,
+      FontFamily,
+      FontSize,
+      Highlight,
+      Dropcursor.configure({
+        color: '#000000',
+        width: 2,
+      }),
+      // HardBreak (Shift+Enter) is included in StarterKit
+      // Paragraph (Enter) is included in StarterKit
+    ],
+    editorProps: {
+        attributes: {
+            class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
+        },
+    },
+    content: content, 
+    editable: editable,
+    immediatelyRender: false, 
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      setSaveStatus('unsaved');
+      localStorage.setItem(`blog-draft-${projectId}`, html);
+      if (onChange) {
+        onChange(html);
+      }
+    },
+  });
+
+  // Load draft from local storage on mount if available and editing
+  // useEffect(() => {
+  //   if (editable && editor) {
+  //     const draft = localStorage.getItem(`blog-draft-${projectId}`);
+  //     // ...
+  //   }
+  // }, [editable, projectId, editor, content]);
+  
+  // Actually, the issue is that when we exit edit mode, the parent component re-renders with 'content' prop.
+  // But 'content' prop in parent (ProjectDetail) is updated via 'handleBlogChange'.
+  // 'handleBlogChange' sets 'blogHtml' state.
+  // So it SHOULD work.
+  
+  // However, Tiptap's 'content' option is only for INITIAL content.
+  // If 'content' prop changes (e.g. from parent state update), Tiptap doesn't automatically update unless we tell it to.
+  // But wait, onUpdate calls onChange, which updates parent state, which updates 'content' prop.
+  // If we setContent on every prop change, cursor jumps.
+  // So we usually DON'T update editor content from props unless it's completely different (e.g. project switch).
+  
+  // The user says: "enter로 줄바꿈 입력한 것이 done으로 수정모드를 나갔을 때 반영되지 않는 현상"
+  // This implies that the 'html' generated by Tiptap might not include the line breaks properly,
+  // OR the display mode (dangerouslySetInnerHTML) CSS is not handling <p> tags with margins properly.
+  
+  // Tiptap uses <p> for paragraphs.
+  // If CSS resets margins to 0, paragraphs might look like they are on the same line or close together.
+  // Let's check BlogEditor.module.css again.
+
+
+  // Handle Save Status visual
+  useEffect(() => {
+      if (saveStatus === 'unsaved') {
+          const timer = setTimeout(() => {
+              setSaveStatus('saved');
+          }, 1000);
+          return () => clearTimeout(timer);
+      }
+  }, [saveStatus]);
+
+  // Image Upload Handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    // 1. Compress
+    const options = {
+      maxSizeMB: 1, // Compress to ~1MB or less
+      maxWidthOrHeight: 800, // Resize to max 800px width/height
+      useWebWorker: true,
+      fileType: 'image/webp' // Convert to WebP
+    };
+
+    try {
+      setIsSaving(true);
+      const compressedFile = await imageCompression(file, options);
+      
+      // 2. Upload
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+
+      // 3. Insert into Editor
+      editor.chain().focus().setImage({ src: data.url }).run();
+      
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('Image upload failed');
+    } finally {
+      setIsSaving(false);
+      // Reset input
+      e.target.value = '';
+    }
+  };
+
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className={styles.editorContainer}>
+      {editable && (
+        <div className={styles.toolbar}>
+          {/* Font Family */}
+          <select 
+            className={styles.select}
+            onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
+            value={editor.getAttributes('textStyle').fontFamily || ''}
+          >
+            <option value="">Font Family</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="'Courier New', monospace">Courier New</option>
+            <option value="'Georgia', serif">Georgia</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="'Verdana', sans-serif">Verdana</option>
+            <option value="'Nanum Gothic', sans-serif">Nanum Gothic</option>
+            <option value="'Malgun Gothic', sans-serif">Malgun Gothic</option>
+          </select>
+
+          {/* Font Size */}
+          <select 
+            className={styles.select}
+            onChange={(e) => editor.chain().focus().setFontSize(e.target.value).run()}
+            value={editor.getAttributes('textStyle').fontSize || ''}
+          >
+            <option value="">Size</option>
+            {[8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72].map(size => (
+              <option key={size} value={size}>{size}px</option>
+            ))}
+          </select>
+
+          <div className={styles.divider} />
+
+          {/* Basic Formatting */}
+          <button 
+            onClick={() => editor.chain().focus().toggleBold().run()} 
+            className={`${styles.toolBtn} ${editor.isActive('bold') ? styles.active : ''}`}
+            title="Bold"
+          >
+            <Bold size={16} />
+          </button>
+          <button 
+            onClick={() => editor.chain().focus().toggleItalic().run()} 
+            className={`${styles.toolBtn} ${editor.isActive('italic') ? styles.active : ''}`}
+            title="Italic"
+          >
+            <Italic size={16} />
+          </button>
+          
+          <div className={styles.divider} />
+
+          {/* Alignment */}
+          <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={`${styles.toolBtn} ${editor.isActive({ textAlign: 'left' }) ? styles.active : ''}`}><AlignLeft size={16} /></button>
+          <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={`${styles.toolBtn} ${editor.isActive({ textAlign: 'center' }) ? styles.active : ''}`}><AlignCenter size={16} /></button>
+          <button onClick={() => editor.chain().focus().setTextAlign('right').run()} className={`${styles.toolBtn} ${editor.isActive({ textAlign: 'right' }) ? styles.active : ''}`}><AlignRight size={16} /></button>
+          <button onClick={() => editor.chain().focus().setTextAlign('justify').run()} className={`${styles.toolBtn} ${editor.isActive({ textAlign: 'justify' }) ? styles.active : ''}`}><AlignJustify size={16} /></button>
+
+          <div className={styles.divider} />
+
+          {/* Image Upload */}
+          <label className={styles.toolBtn} title="Add Image">
+            <ImageIcon size={16} />
+            <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+          </label>
+
+          <div className={styles.spacer} />
+          
+          <span className={styles.status}>
+             {isSaving ? 'Uploading...' : (saveStatus === 'saved' ? 'Saved locally' : 'Unsaved')}
+          </span>
+        </div>
+      )}
+
+      <EditorContent editor={editor} className={styles.editorContent} />
+    </div>
+  );
+}
