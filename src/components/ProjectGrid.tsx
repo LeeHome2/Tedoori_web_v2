@@ -282,26 +282,34 @@ export default function ProjectGrid() {
       )}
 
       {isAdmin && (
-          <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+          <div style={{ position: 'fixed', top: '25px', right: '40px', zIndex: 1000, display: 'flex', gap: '20px', alignItems: 'center' }}>
               {adminMode && (
-                  <button onClick={openAddModal} style={{ padding: '10px 20px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>
-                      + Add New Project
+                  <button onClick={openAddModal} style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', fontSize: '12px', fontFamily: 'Consolas, monospace' }}>
+                      + Add
                   </button>
               )}
               <button 
                 onClick={toggleAdminMode} 
                 style={{ 
-                    padding: '10px 20px', 
-                    background: adminMode ? 'black' : '#eee', 
-                    color: adminMode ? 'white' : 'black', 
-                    border: '1px solid #ccc', 
+                    background: 'none', 
+                    border: 'none', 
+                    padding: 0, 
                     cursor: 'pointer',
-                    borderRadius: '4px',
-                    transition: 'all 0.3s ease'
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    fontSize: '14px',
+                    color: 'black',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    height: '20px',
+                    lineHeight: '1',
+                    fontFamily: 'Consolas, monospace',
+                    width: '140px'
                 }}
                 aria-label={adminMode ? "Switch to User View" : "Switch to Admin Mode"}
               >
-                  {adminMode ? 'Admin Mode: ON' : 'Admin Mode: OFF'}
+                  {adminMode ? 'ADMIN MODE: ON' : 'ADMIN MODE: OFF'}
               </button>
           </div>
       )}

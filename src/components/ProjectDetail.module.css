@@ -16,11 +16,23 @@
   .container {
     flex-direction: row; /* Desktop: Row layout (Split Pane) */
     align-items: stretch;
+    margin-left: 180px; /* Logo width 120px + gap 50px */
+    padding-top: 150px;
+    padding-right: 200px;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    margin-left: 0;
+    padding-top: 100px;
   }
 }
 
 .infoColumn {
-  padding: 20px;
+  padding: 0;
+  padding-left: 20px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -274,10 +286,16 @@
 }
 
 .imageColumn {
-  padding: 20px;
+  padding: 0;
   height: 100%;
   overflow-y: auto; /* Enable vertical scroll */
   background: white;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.imageColumn::-webkit-scrollbar {
+  display: none;
 }
 
 /* Flex Layout matching Main Page style */

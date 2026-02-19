@@ -65,6 +65,7 @@ export const getProjects = async (): Promise<Project[]> => {
     cardWidth: row.details?.cardWidth,
     cardHeight: row.details?.cardHeight,
     lockedAspectRatio: row.details?.lockedAspectRatio,
+    hasDetailLink: row.details?.hasDetailLink,
   }));
 };
 
@@ -98,6 +99,7 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
     cardWidth: data.details?.cardWidth,
     cardHeight: data.details?.cardHeight,
     lockedAspectRatio: data.details?.lockedAspectRatio,
+    hasDetailLink: data.details?.hasDetailLink,
   };
 };
 

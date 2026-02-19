@@ -1,11 +1,11 @@
 .header {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 20px;
+  left: 20px;
   width: 100%;
   z-index: 100;
   background-color: transparent;
-  padding: 20px;
+  padding: 30px;
   font-size: 18px;
   pointer-events: none;
 }
@@ -13,11 +13,12 @@
 .inner {
   display: flex;
   align-items: flex-start;
+  justify-content: space-between;
   pointer-events: auto;
   position: relative;
 }
 
-/* Container for Logo and Menu Trigger */
+/* Container for Logo */
 .leftGroup {
   display: flex;
   align-items: center;
@@ -26,39 +27,71 @@
   z-index: 102; /* Above menu */
 }
 
+.rightGroup {
+  position: relative;
+  z-index: 102;
+  display: flex;
+  align-items: center;
+}
+
+.menuWrapper {
+  position: relative;
+}
+
+.aboutLink {
+  text-decoration: none;
+  color: black;
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin-top: 10px;
+  margin-right: 50px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.aboutLink:hover {
+  text-decoration: underline;
+}
+
 .brand {
   font-weight: bold;
   text-transform: uppercase;
   display: block;
   line-height: 0;
-  order: 1;
 }
 
 .logoImage {
-  width: 40px; /* Mobile default */
+  width: 80px; /* Mobile default */
   height: auto;
   display: block;
 }
 
 @media (min-width: 768px) {
   .logoImage {
-    width: 60px; /* Desktop */
+    width: 120px; /* Desktop */
   }
 }
 
 .menuNav {
   position: absolute;
   top: 100%; /* Below header */
-  left: 3px; /* Align with left padding */
+  left: 50%; /* Center align */
+  right: auto;
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translate(-50%, -10px);
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
   pointer-events: none;
+  background: white;
+  padding: 10px;
+  min-width: 150px;
+  text-align: center; /* Center text */
 }
 
 .menuNav.open {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
   pointer-events: auto;
 }
 
@@ -66,47 +99,35 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  height: 20px;
+  margin-right: 50px; /* Added margin from right */
+  margin-top: 10px; /* Added margin from top */
   transition: opacity 0.2s ease;
-  /* Match SVG intrinsic size */
-  width: 12px; 
-  height: 8px;
-  order: 2; /* Move Menu Icon to the right (second) */
+  line-height: 1;
+}
+
+.menuText {
+    font-weight: bold;
+    text-transform: uppercase;
+    
+    font-size: 14px;
+    font-family: Consolas, monospace;
 }
 
 .menuTrigger:hover {
   opacity: 1;
-}
-
-.menuTrigger:hover .menuIcon path {
-    stroke: #666; /* Hover color change */
-}
-
-/* Default state: Pointing Right (>) */
-.menuIcon {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: rotate(-90deg); /* Initial state: > */
-  transition: transform 0.3s ease-in-out;
-  opacity: 0.8;
-}
-
-.menuIcon svg {
-    width: 100%;
-    height: 100%;
-}
-
-/* Active state: Pointing Down (v) */
-.menuTrigger.active .menuIcon {
-  transform: rotate(0deg); /* Expanded state: v */
+  text-decoration: underline;
 }
 
 .menuList {
   list-style: none;
-  margin-top: 10px; /* Slight spacing from trigger */
+  margin: 0;
+  padding: 0;
+  margin-right: 50px; /* Added margin from right */
+
+  font-family: Consolas, monospace;
+  font-size: 14px;
 }
 
 .menuList li {
@@ -115,6 +136,7 @@
 
 .menuList a {
   text-decoration: none;
+  color: black;
 }
 
 .menuList a:hover {

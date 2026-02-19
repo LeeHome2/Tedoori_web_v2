@@ -1,9 +1,17 @@
 .grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 80px 10px 20px 10px; /* Top padding for fixed header, reduced side padding */
-  max-width: none; /* Remove max-width constraint */
-  margin: 0; /* Remove auto margin */
+  gap: 100px;
+  padding: 150px 200px 20px 100px;
+  max-width: none;
+  margin: 0;
   justify-content: flex-start;
+  margin-left: 180px; /* Logo width 120px + gap 50px */
+}
+
+@media (max-width: 768px) {
+  .grid {
+    margin-left: 0;
+    padding-top: 100px; /* Increase top padding for mobile to clear header */
+  }
 }

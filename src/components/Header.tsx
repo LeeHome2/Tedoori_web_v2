@@ -27,63 +27,61 @@ export default function Header() {
       <header className={styles.header}>
         <div className={styles.inner}>
           <div className={styles.leftGroup}>
-            <div 
-              className={`${styles.menuTrigger} ${isOpen ? styles.active : ''}`} 
-              onClick={toggleMenu}
-              aria-expanded={isOpen}
-              role="button"
-              tabIndex={0}
-            >
-              <div className={styles.menuIcon}>
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1L6 6L11 1" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
-
             <Link href="/" className={styles.brand}>
               <Image 
                 src="/logo.png" 
                 alt="NP2F Logo" 
-                width={60} 
-                height={20} 
+                width={120} 
+                height={40} 
                 className={styles.logoImage}
                 priority
               />
             </Link>
           </div>
 
-          <nav className={`${styles.menuNav} ${isOpen ? styles.open : ""}`}>
-            <ul className={styles.menuList}>
-              <li>
-                <Link href="#">architectes</Link>
-              </li>
-              <li>
-                <Link href="#">index</Link>
-              </li>
-              <li>
-                <Link href="#">news</Link>
-              </li>
-              <li>
-                <Link href="#">à propos</Link>
-              </li>
-              <li>
-                <Link href="#">contact</Link>
-              </li>
-              {isAdmin ? (
+          <div className={styles.rightGroup}>
+              <Link href="/about" className={styles.aboutLink}>
+                <span className={styles.menuText}>about</span>
+              </Link>
+
+              <div 
+                  className={styles.menuWrapper}
+                  onMouseEnter={() => setIsOpen(true)}
+                  onMouseLeave={() => setIsOpen(false)}
+              >
+                  <div 
+                    className={styles.menuTrigger} 
+                    aria-expanded={isOpen}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span className={styles.menuText}>works</span>
+                  </div>
+
+                  <nav className={`${styles.menuNav} ${isOpen ? styles.open : ""}`}>
+                <ul className={styles.menuList}>
                   <li>
-                      <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>Logout</button>
+                    <Link href="#">projects</Link>
                   </li>
-              ) : (
                   <li>
-                      <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>Admin Login</button>
+                    <Link href="#">essays</Link>
                   </li>
-              )}
-              <li className={styles.unlink}>
-                Unlink
-              </li>
-            </ul>
-          </nav>
+                  <li>
+                    <Link href="#">new</Link>
+                  </li>
+                  {isAdmin ? (
+                      <li>
+                          <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>logout</button>
+                      </li>
+                  ) : (
+                      <li>
+                          <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>login</button>
+                      </li>
+                  )}
+                </ul>
+              </nav>
+              </div>
+          </div>
         </div>
       </header>
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
