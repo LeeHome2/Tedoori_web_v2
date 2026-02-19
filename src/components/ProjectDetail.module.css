@@ -48,6 +48,8 @@
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
+    z-index: 200; /* Ensure button is clickable above other elements */
+    position: relative; /* Establish stacking context */
 }
 
 .blogControls {
@@ -253,6 +255,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-left: 80px; /* Added left margin */
 }
 
 .resizer::after {
@@ -302,7 +305,7 @@
 .grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 40px; /* Increased gap from 20px to 30px */
 }
 
 .imageWrapper {

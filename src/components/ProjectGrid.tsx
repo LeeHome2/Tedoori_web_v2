@@ -296,7 +296,7 @@ export default function ProjectGrid() {
                     padding: 0, 
                     cursor: 'pointer',
                     fontWeight: 'bold',
-                    textTransform: 'uppercase',
+                    textTransform: 'lowercase',
                     fontSize: '14px',
                     color: 'black',
                     display: 'flex',
@@ -309,7 +309,7 @@ export default function ProjectGrid() {
                 }}
                 aria-label={adminMode ? "Switch to User View" : "Switch to Admin Mode"}
               >
-                  {adminMode ? 'ADMIN MODE: ON' : 'ADMIN MODE: OFF'}
+                  {adminMode ? 'admin mode: on' : 'admin mode: off'}
               </button>
           </div>
       )}

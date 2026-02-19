@@ -1,7 +1,8 @@
 .grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 100px;
+  column-gap: 100px; /* Horizontal gap */
+  row-gap: 60px; /* Vertical gap reduced by 10px */
   padding: 150px 200px 20px 100px;
   max-width: none;
   margin: 0;

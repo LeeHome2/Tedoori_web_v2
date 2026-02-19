@@ -67,7 +67,7 @@ export default function Header() {
                     <Link href="#">essays</Link>
                   </li>
                   <li>
-                    <Link href="#">new</Link>
+                    <Link href="#">news</Link>
                   </li>
                   {isAdmin ? (
                       <li>

@@ -613,7 +613,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                     padding: 0, 
                     cursor: 'pointer',
                     fontWeight: 'bold',
-                    textTransform: 'uppercase',
+                    textTransform: 'lowercase',
                     fontSize: '14px',
                     color: 'black',
                     display: 'flex',
@@ -626,7 +626,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                 }}
                 aria-label={adminMode ? "Switch to User View" : "Switch to Admin Mode"}
               >
-                  {adminMode ? 'ADMIN MODE: ON' : 'ADMIN MODE: OFF'}
+                  {adminMode ? 'admin mode: on' : 'admin mode: off'}
               </button>
           </div>
       )}

@@ -140,7 +140,7 @@
 
 .menuText {
     font-weight: bold;
-    text-transform: uppercase;
+    text-transform: lowercase;
     font-size: 14px; /* Adjust as needed */
     font-family: Consolas, monospace;
 }
