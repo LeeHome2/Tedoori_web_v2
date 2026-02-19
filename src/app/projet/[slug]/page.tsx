@@ -13,8 +13,9 @@ interface PageProps {
 
 export default async function ProjectPage({ params }: PageProps) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const projects = await getProjects();
-  const projectIndex = projects.findIndex((p) => p.slug === slug);
+  const projectIndex = projects.findIndex((p) => p.slug === decodedSlug);
   const project = projects[projectIndex];
 
   if (!project || project.type === 'memo') {

@@ -1,8 +1,21 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { Project } from '@/data/projects';
+import { cookies } from 'next/headers';
+
+const getSupabaseClient = async () => {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('admin_token');
+  const isAdmin = token?.value === 'authenticated';
+
+  if (isAdmin) {
+    return createAdminClient();
+  }
+  return createClient();
+};
 
 export const getProjects = async (): Promise<Project[]> => {
-  const supabase = await createClient();
+  const supabase = await getSupabaseClient();
+
   const { data, error } = await supabase
     .from('projects')
     .select('*')
@@ -34,7 +47,7 @@ export const getProjects = async (): Promise<Project[]> => {
 };
 
 export const getProjectBySlug = async (slug: string): Promise<Project | null> => {
-  const supabase = await createClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from('projects')
     .select('*')
