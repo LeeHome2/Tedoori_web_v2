@@ -125,7 +125,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify(project),
         });
         
-        if (!res.ok) throw new Error('Failed to create project');
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Failed to create project');
+        }
         
         const savedProject = await res.json();
         
@@ -134,9 +137,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         setProjects(finalProjects);
         addToHistory(finalProjects);
         
-    } catch (e) {
+    } catch (e: any) {
         setProjects(previousProjects);
-        setError('Failed to create project');
+        setError(e.message || 'Failed to create project');
     }
   };
 

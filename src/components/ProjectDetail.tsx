@@ -86,7 +86,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     isResizing.current = true;
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "col-resize";
+    document.body.style.cursor = "default";
     document.body.style.userSelect = "none";
   }, []);
 
@@ -103,7 +103,11 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     
     const containerRect = containerRef.current.getBoundingClientRect();
     // Calculate percentage based on Gallery (Left Pane) width
-    let newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+    // Adjust for padding-right (200px) and resizer margin-left (80px) to prevent jumping
+    const contentWidth = containerRect.width - 200; 
+    const resizerOffset = 80;
+    
+    let newWidth = ((e.clientX - containerRect.left - resizerOffset) / contentWidth) * 100;
     
     // Limits (min 10%, max 90%)
     if (newWidth < 10) newWidth = 10;

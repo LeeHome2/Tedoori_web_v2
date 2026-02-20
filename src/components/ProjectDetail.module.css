@@ -273,7 +273,7 @@
 .resizer {
   width: 1px; /* Visual width */
   background-color: #e0e0e0;
-  cursor: col-resize;
+  cursor: default; /* Changed from col-resize to default */
   position: relative;
   z-index: 10;
   display: none; /* Hidden on mobile */
@@ -290,7 +290,7 @@
   right: -4px;
   top: 0;
   bottom: 0;
-  cursor: col-resize;
+  cursor: default; /* Changed from col-resize to default */
 }
 
 .resizerHandleIcon {

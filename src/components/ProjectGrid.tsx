@@ -252,6 +252,12 @@ export default function ProjectGrid() {
           const originalId = editingProject.id;
           const newId = projectData.id;
 
+          // Check for duplicate ID if ID changed
+          if (originalId !== newId && projects.some(p => p.id === newId)) {
+              setUploadError("Project ID already exists. Please choose a unique ID.");
+              return;
+          }
+
           // Ensure projectData has all required fields for update
           const updatedProject = { ...editingProject, ...projectData };
           
@@ -261,6 +267,11 @@ export default function ProjectGrid() {
               await updateProject(updatedProject);
           }
       } else {
+          // Check for duplicate ID
+          if (projects.some(p => p.id === projectData.id)) {
+              setUploadError("Project ID already exists. Please choose a unique ID.");
+              return;
+          }
           await addProject(projectData);
       }
       closeModal();
