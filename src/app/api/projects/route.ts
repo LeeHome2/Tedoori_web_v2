@@ -141,7 +141,8 @@ export async function POST(request: Request) {
       lockedAspectRatio: newProject.lockedAspectRatio,
       type: newProject.type,
       videoId: newProject.videoId,
-      content: newProject.content,
+      // Only set content if it's provided (not undefined)
+      ...(newProject.content !== undefined && { content: newProject.content }),
       memoStyle: newProject.memoStyle,
       showId: newProject.showId,
       showTitle: newProject.showTitle,
@@ -252,7 +253,8 @@ export async function PUT(request: Request) {
       lockedAspectRatio: project.lockedAspectRatio,
       type: project.type,
       videoId: project.videoId,
-      content: project.content,
+      // Only update content if it's provided (not undefined)
+      ...(project.content !== undefined && { content: project.content }),
       memoStyle: project.memoStyle,
       descriptionBlocks: project.descriptionBlocks,
       showId: project.showId,
