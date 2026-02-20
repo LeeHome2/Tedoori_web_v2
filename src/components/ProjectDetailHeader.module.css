@@ -1,11 +1,12 @@
 .header {
   position: fixed;
-  top: 20px;
+  top: 10px;
   left: 20px;
   width: 100%;
-  z-index: 2000; /* Increased z-index to be above blogHeader (200) and other elements */
+  z-index: 2000;
   background-color: transparent;
   padding: 30px;
+  padding-right: 50px; /* Consistent padding */
   font-size: 18px;
   pointer-events: none;
 }
@@ -20,33 +21,50 @@
 
 .leftGroup {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-end; /* Changed from flex-start to flex-end */
     gap: 20px;
     position: relative;
     z-index: 102;
+}
+
+.logoWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px; /* Space between logo and nav */
+}
+
+.projectNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0px; /* Adjust bottom margin for better alignment */
+    margin-left: 20px; /* Space from logo */
 }
 
 .rightGroup {
     position: relative;
     z-index: 102;
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* Align items to the bottom */
 }
 
 .menuWrapper {
     position: relative;
+    padding-bottom: 0px; /* Fine-tune bottom alignment */
 }
 
 .aboutLink {
     text-decoration: none;
-    color: black;
-    margin-right: 50px;
+    color: var(--color-black);
+    margin-right: 50px; /* Changed back to 50px to match menuTrigger */
     display: flex;
     align-items: center;
     height: 20px;
-    margin-top: 10px;
+    margin-top: 33px;
     line-height: 1;
     cursor: pointer;
+    padding-bottom: 3px; /* Fine-tune bottom alignment */
 }
 
 .aboutLink:hover {
@@ -74,12 +92,17 @@
 }
 
 @media (max-width: 768px) {
+  .leftGroup {
+      flex-direction: column; /* Stack logo and nav vertically */
+      align-items: flex-start; /* Align to the left */
+      gap: 10px; /* Space between logo and nav */
+  }
+
   .projectNav {
-    position: fixed;
-    top: 6%; /* Aligned with top padding */
-    left: 9%; /* Moved to right */
+    position: static; /* Reset fixed position */
     margin: 0;
-    z-index: 1000;
+    margin-top: 5px;
+    margin-left: 0;
   }
   
   .menuWrapper {
@@ -87,23 +110,8 @@
   }
 
   .logoWrapper {
-    padding-bottom: 20px; /* Add bottom padding to logo wrapper in mobile */
+    padding-bottom: 0;
   }
-}
-
-.logoWrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px; /* Space between logo and nav */
-}
-
-.projectNav {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-left: 15px; /* Reset margin */
-    margin-top: 45px;
 }
 
 .navArrow {
@@ -150,10 +158,10 @@
   align-items: center;
   justify-content: flex-end;
   height: 20px; /* Align with other elements */
-  margin-right: 50px; /* Added margin from right */
-  margin-top: 10px;
+  margin-top: 33px;
   transition: opacity 0.2s ease;
   line-height: 1;
+  margin-right: 50px;
 }
 
 .menuText {
@@ -183,7 +191,7 @@
 
 .menuList a {
   text-decoration: none;
-  color: black;
+  color: var(--color-black);
 }
 
 .menuList a:hover {

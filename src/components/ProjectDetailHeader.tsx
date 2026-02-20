@@ -53,26 +53,26 @@ export default function ProjectDetailHeader({
                           priority
                         />
                     </Link>
+                </div>
+                
+                <div className={styles.projectNav}>
+                    {prevProject ? (
+                        <Link href={getProjectHref(prevProject)} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
+                            <span>&lt;</span>
+                        </Link>
+                    ) : (
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>&lt;</span>
+                    )}
                     
-                    <div className={styles.projectNav}>
-                        {prevProject ? (
-                            <Link href={getProjectHref(prevProject)} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
-                                <span>&lt;</span>
-                            </Link>
-                        ) : (
-                            <span className={`${styles.navArrow} ${styles.disabled}`}>&lt;</span>
-                        )}
-                        
-                        <span className={styles.projectId}>{currentProject.id}</span>
-                        
-                        {nextProject ? (
-                            <Link href={getProjectHref(nextProject)} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
-                                <span>&gt;</span>
-                            </Link>
-                        ) : (
-                            <span className={`${styles.navArrow} ${styles.disabled}`}>&gt;</span>
-                        )}
-                    </div>
+                    <span className={styles.projectId}>{currentProject.id}</span>
+                    
+                    {nextProject ? (
+                        <Link href={getProjectHref(nextProject)} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
+                            <span>&gt;</span>
+                        </Link>
+                    ) : (
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>&gt;</span>
+                    )}
                 </div>
             </div>
 
@@ -118,10 +118,11 @@ export default function ProjectDetailHeader({
                                         font: 'inherit', 
                                         cursor: 'pointer', 
                                         textDecoration: 'underline',
-                                        fontWeight: 'bold' 
+                                        fontWeight: 'bold',
+                                        whiteSpace: 'nowrap'
                                     }}
                                 >
-                                    {adminMode ? 'admin mode: on' : 'admin mode: off'}
+                                    {adminMode ? 'admin: on' : 'admin: off'}
                                 </button>
                             </li>
                             <li>

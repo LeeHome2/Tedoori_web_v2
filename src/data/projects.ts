@@ -86,6 +86,7 @@ export interface Project {
   cardWidth?: number;
   cardHeight?: number;
   lockedAspectRatio?: boolean;
+  galleryWidthRatio?: number; // Added to store gallery width ratio (0-100)
 }
 
 export const projects: Project[] = [

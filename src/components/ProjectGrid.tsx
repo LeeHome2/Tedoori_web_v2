@@ -293,10 +293,25 @@ export default function ProjectGrid() {
       )}
 
       {isAdmin && (
-          <div style={{ position: 'fixed', top: '25px', right: '40px', zIndex: 1000, display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ position: 'fixed', top: '145px', left: '100px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
               {adminMode && (
-                  <button onClick={openAddModal} style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', fontSize: '12px', fontFamily: 'Consolas, monospace' }}>
-                      + Add
+                  <button onClick={openAddModal} 
+                    style={{ 
+                        padding: '0', 
+                        background: 'transparent', 
+                        color: 'black', 
+                        border: 'none', 
+                        cursor: 'pointer', 
+                        fontSize: '40px', 
+                        fontWeight: 'lighter',
+                        fontFamily: 'Consolas, monospace',
+                        textDecoration: 'none',
+                        textTransform: 'lowercase'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                  >
+                      +
                   </button>
               )}
           </div>
@@ -313,8 +328,13 @@ export default function ProjectGrid() {
           disabled={!adminMode} // Disable sorting if not in admin mode
         >
           <div className={styles.grid}>
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} onEdit={openEditModal} />
+            {projects.map((project, index) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onEdit={openEditModal}
+                priority={index < 4} // First 4 cards are above-the-fold
+              />
             ))}
           </div>
         </SortableContext>
@@ -326,49 +346,49 @@ export default function ProjectGrid() {
               position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
               background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
           }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', width: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
-                  <h2>{editingProject ? 'Edit Item' : 'Add New Item'}</h2>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
+                  <h2>{editingProject ? 'Edit' : 'Add'}</h2>
                   
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <button 
                         onClick={() => setProjectType('project')}
-                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
                       >
                           Project
                       </button>
                       <button 
                         onClick={() => setProjectType('video')}
-                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
                       >
                           Video
                       </button>
                       <button 
                         onClick={() => setProjectType('memo')}
-                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
                       >
                           Memo
                       </button>
                   </div>
 
                   <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                      <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-                          <span style={{fontWeight: 'bold'}}>ID:</span>
+                      <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                          <span style={{fontWeight: 'bold', minWidth: '80px'}}>ID:</span>
                           <input 
                             name="id" 
                             value={formId} 
                             onChange={(e) => setFormId(e.target.value)}
                             required 
-                            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                            style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0' }} 
                           />
                       </label>
-                      <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-                          <span style={{fontWeight: 'bold'}}>Title:</span>
+                      <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                          <span style={{fontWeight: 'bold', minWidth: '80px'}}>Title:</span>
                           <input 
                             name="title" 
                             value={formTitle} 
                             onChange={(e) => setFormTitle(e.target.value)}
                             required 
-                            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                            style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0' }} 
                           />
                       </label>
 
@@ -408,7 +428,7 @@ export default function ProjectGrid() {
                                 <span style={{fontWeight: 'bold'}}>Project Image:</span>
                                 
                                 {imageUrl && imageUrl.trim() !== "" && (
-                                    <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                    <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '0', overflow: 'hidden' }}>
                                         <Image 
                                             src={imageUrl} 
                                             alt="Preview" 
@@ -429,7 +449,7 @@ export default function ProjectGrid() {
                                 <input type="hidden" name="imageUrl" value={imageUrl} />
                                 
                                 {uploading && (
-                                    <div style={{ width: '100%', height: '5px', background: '#eee', marginTop: '5px', borderRadius: '2px' }}>
+                                    <div style={{ width: '100%', height: '5px', background: '#eee', marginTop: '5px', borderRadius: '0' }}>
                                         <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'black', transition: 'width 0.3s' }}></div>
                                     </div>
                                 )}
@@ -444,7 +464,7 @@ export default function ProjectGrid() {
                                     defaultValue={editingProject?.link} 
                                     placeholder={projectType === 'video' ? "https://www.youtube.com/watch?v=..." : "Project link"} 
                                     onChange={projectType === 'video' ? handleLinkChange : undefined}
-                                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '0' }} 
                                 />
                                 {fetchingVideo && <span style={{fontSize: '12px', color: '#666'}}>Fetching video info...</span>}
                                 {isYoutube && <span style={{fontSize: '12px', color: 'green'}}>YouTube video detected!</span>}
@@ -454,34 +474,7 @@ export default function ProjectGrid() {
 
                       {projectType === 'memo' && (
                           <>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
-                                  {/* Font Family and Font Size disabled temporarily
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Family:</span>
-                                      <select 
-                                          value={memoStyle.fontFamily || ''} 
-                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontFamily: e.target.value }))}
-                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                                      >
-                                          <option value="">Default</option>
-                                          <option value="Arial, sans-serif">Arial</option>
-                                          <option value="'Courier New', monospace">Courier New</option>
-                                          <option value="'Georgia', serif">Georgia</option>
-                                          <option value="'Times New Roman', serif">Times New Roman</option>
-                                          <option value="'Verdana', sans-serif">Verdana</option>
-                                      </select>
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Size:</span>
-                                      <input 
-                                          type="text"
-                                          placeholder="e.g. 16px"
-                                          value={memoStyle.fontSize || ''} 
-                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontSize: e.target.value }))}
-                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                                      />
-                                  </label>
-                                  */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '0' }}>
                                   <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                       <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Background:</span>
                                       <div style={{ display: 'flex', gap: '5px' }}>
@@ -489,14 +482,14 @@ export default function ProjectGrid() {
                                               type="color"
                                               value={memoStyle.backgroundColor || '#ffffff'} 
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer', flexShrink: 0 }}
                                           />
                                           <input 
                                               type="text"
                                               value={memoStyle.backgroundColor || ''}
                                               placeholder="#ffffff"
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                              style={{ width: '0', flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0', fontSize: '12px' }}
                                           />
                                       </div>
                                   </label>
@@ -507,14 +500,14 @@ export default function ProjectGrid() {
                                               type="color"
                                               value={memoStyle.color || '#000000'} 
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
-                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer', flexShrink: 0 }}
                                           />
                                           <input 
                                               type="text"
                                               value={memoStyle.color || ''}
                                               placeholder="#000000"
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
-                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                              style={{ width: '0', flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0', fontSize: '12px' }}
                                           />
                                       </div>
                                   </label>
@@ -548,7 +541,7 @@ export default function ProjectGrid() {
                                         height: '300px', 
                                         padding: '20px', 
                                         border: '1px solid #ccc', 
-                                        borderRadius: '4px', 
+                                        borderRadius: '0', 
                                         resize: 'vertical',
                                         // Preview styles
                                         fontFamily: memoStyle.fontFamily,
@@ -566,7 +559,7 @@ export default function ProjectGrid() {
                       )}
                       
                       <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                          <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+                          <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '0', cursor: 'pointer' }}>Cancel</button>
                           {editingProject && (
                               <button 
                                 type="button" 
@@ -576,12 +569,12 @@ export default function ProjectGrid() {
                                         closeModal();
                                     }
                                 }}
-                                style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '4px', cursor: 'pointer' }}
+                                style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '0', cursor: 'pointer' }}
                               >
                                   Delete
                               </button>
                           )}
-                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
+                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '0', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
                               {editingProject ? 'Update' : 'Create'}
                           </button>
                       </div>

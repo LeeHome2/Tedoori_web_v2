@@ -36,13 +36,7 @@ export default function BackToTop() {
       onClick={scrollToTop}
       aria-label="Back to top"
     >
-      <svg
-        className={styles.icon}
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M12 4l-8 8h6v8h4v-8h6z" />
-      </svg>
+      ↑
     </button>
   );
 }

@@ -13,6 +13,7 @@ import { Project } from '../data/projects';
 interface ProjectCardProps {
   project: Project;
   onEdit: (project: Project) => void;
+  priority?: boolean; // For above-the-fold optimization
 }
 
 // Helper function to get visibility label
@@ -29,7 +30,7 @@ function getVisibilityLabel(visibility: string): string {
   }
 }
 
-export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
+export default function ProjectCard({ project, onEdit, priority = false }: ProjectCardProps) {
   const { isAdmin, adminMode } = useAdmin();
   const { updateProject } = useProjects();
   
@@ -317,12 +318,14 @@ export default function ProjectCard({ project, onEdit }: ProjectCardProps) {
                   width={600}
                   height={400}
                   className={styles.image}
+                  loading={priority ? undefined : "lazy"}
+                  priority={priority}
                   unoptimized
               />
           ) : (
               <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
           )}
-          
+
           <div className={styles.overlayInfo}>
               {showId && <span className={styles.number}>{project.id}</span>}
               {showTitle && <span className={styles.title}>{project.title}</span>}

@@ -1,6 +1,6 @@
 :root {
-  --font-main: Arial, Helvetica, sans-serif;
-  --color-black: #000;
+  --font-main: "Avenir", "Avenir Next", "Segoe UI", Arial, Helvetica, sans-serif;
+  --color-black: #161616;
   --color-white: #fff;
   --spacing-unit: 20px;
 }
@@ -11,7 +11,13 @@
   padding: 0;
 }
 
-html,
+html {
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: scroll; /* Always show scrollbar gutter to prevent layout shift */
+  scrollbar-gutter: stable; /* Reserve space for scrollbar */
+}
+
 body {
   max-width: 100vw;
   overflow-x: hidden;

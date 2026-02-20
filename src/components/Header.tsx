@@ -81,10 +81,11 @@ export default function Header() {
                                     font: 'inherit', 
                                     cursor: 'pointer', 
                                     textDecoration: 'underline',
-                                    fontWeight: 'bold' 
+                                    fontWeight: 'bold',
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
-                                {adminMode ? 'admin mode: on' : 'admin mode: off'}
+                                {adminMode ? 'admin: on' : 'admin: off'}
                             </button>
                         </li>
                         <li>

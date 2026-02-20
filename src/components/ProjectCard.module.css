@@ -65,7 +65,7 @@
     flex-wrap: wrap;
     background: rgba(255, 255, 255, 0.8);
     padding: 6px;
-    border-radius: 4px 0 0 0;
+    border-radius: 0;
     backdrop-filter: blur(4px);
 }
 
@@ -74,7 +74,7 @@
     background: #f0f0f0;
     color: #333;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 0;
     cursor: pointer;
     font-size: 12px;
     transition: all 0.2s ease;
@@ -102,7 +102,7 @@
     color: #666;
     cursor: grab;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -141,7 +141,7 @@
 
 .private {
     background-color: #9E9E9E;
-    border-radius: 4px;
+    border-radius: 0;
 }
 
 .private:hover {
@@ -156,7 +156,7 @@
 
 .visibilitySelectTrigger {
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 0;
     border: 1px solid #ddd;
     background: #f0f0f0;
     font-size: 12px;
@@ -178,7 +178,7 @@
     left: 0;
     margin-top: 5px;
     background: white;
-    border-radius: 4px;
+    border-radius: 0;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 20;
     min-width: 120px;
@@ -241,7 +241,7 @@
     transform: translateX(-50%);
     background: white;
     padding: 10px;
-    border-radius: 4px;
+    border-radius: 0;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     z-index: 100;
     display: flex;
@@ -267,7 +267,7 @@
     width: 50px;
     padding: 4px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 0;
     font-size: 12px;
 }
 
@@ -282,7 +282,7 @@
     background: black;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 0;
     cursor: pointer;
     font-size: 12px;
     flex: 1;

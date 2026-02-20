@@ -1,11 +1,12 @@
 .header {
   position: fixed;
-  top: 20px;
+  top: 10px; /* Matched with ProjectDetailHeader */
   left: 20px;
   width: 100%;
   z-index: 2000;
   background-color: transparent;
   padding: 30px;
+  padding-right: 50px; /* Consistent padding */
   font-size: 18px;
   pointer-events: none;
 }
@@ -21,7 +22,7 @@
 /* Container for Logo */
 .leftGroup {
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* Changed from center to flex-end */
   gap: 20px;
   position: relative;
   z-index: 102; /* Above menu */
@@ -31,7 +32,7 @@
   position: relative;
   z-index: 102;
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* Align items to the bottom */
 }
 
 .menuWrapper {
@@ -45,10 +46,11 @@
   display: flex;
   align-items: center;
   height: 20px;
-  margin-top: 10px;
+  margin-top: 33px; /* Matched with ProjectDetailHeader */
   margin-right: 50px;
   line-height: 1;
   cursor: pointer;
+  padding-bottom: 3px; /* Fine-tune bottom alignment */
 }
 
 .aboutLink:hover {
@@ -102,7 +104,7 @@
   justify-content: flex-end;
   height: 20px;
   margin-right: 50px; /* Added margin from right */
-  margin-top: 10px; /* Added margin from top */
+  margin-top: 33px; /* Matched with ProjectDetailHeader */
   transition: opacity 0.2s ease;
   line-height: 1;
 }

@@ -85,30 +85,16 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   };
 
   // Resizable Pane State
-  const [leftPaneWidth, setLeftPaneWidth] = useState(70); // Default Gallery 70%
+  const [leftPaneWidth, setLeftPaneWidth] = useState(project.galleryWidthRatio || 70); // Default Gallery 70% or saved value
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
-  const resizingBlockRef = useRef<{ id: string, startX: number, startWidth: number, currentWidth?: number } | null>(null);
-  const latestBlocksRef = useRef(descriptionBlocks);
-
-  useEffect(() => { latestBlocksRef.current = descriptionBlocks; }, [descriptionBlocks]);
-
-  // Resize Handlers
-  const startResizing = useCallback(() => {
-    isResizing.current = true;
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "default";
-    document.body.style.userSelect = "none";
-  }, []);
-
-  const stopResizing = useCallback(() => {
-    isResizing.current = false;
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", stopResizing);
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-  }, []);
+  
+  // Update leftPaneWidth if project data changes (e.g. initial load or external update)
+  useEffect(() => {
+    if (project.galleryWidthRatio) {
+        setLeftPaneWidth(project.galleryWidthRatio);
+    }
+  }, [project.galleryWidthRatio]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
@@ -127,6 +113,33 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     
     setLeftPaneWidth(newWidth);
   }, []);
+
+
+  
+  const currentWidthRef = useRef(leftPaneWidth);
+  useEffect(() => { currentWidthRef.current = leftPaneWidth; }, [leftPaneWidth]);
+
+  // Enhanced stopResizing to save data
+  const stopResizingAndSave = useCallback(async () => {
+      isResizing.current = false;
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", stopResizingAndSave); // Remove self
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      // Save to DB
+      if (project.id) {
+          await updateProject({ ...project, galleryWidthRatio: currentWidthRef.current });
+      }
+  }, [project, updateProject, handleMouseMove]); // Dependencies needed for updateProject and project.id
+
+  const startResizingEnhanced = useCallback(() => {
+    isResizing.current = true;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", stopResizingAndSave); // Use the saver version
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+  }, [stopResizingAndSave, handleMouseMove]);
 
   // Removed Block Resize Logic since BlogEditor handles images differently
   // If we need resizing in BlogEditor, it's done via Tiptap extensions or NodeView
@@ -617,16 +630,27 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
 
   return (
     <div className={styles.container} ref={containerRef}>
-      {isAdmin && (
-          <div style={{ position: 'fixed', top: '25px', right: '40px', zIndex: 1000, display: 'flex', gap: '20px', alignItems: 'center' }}>
-              {adminMode && (
-                  <button 
-                    onClick={openAddModal} 
-                    style={{ padding: '5px 10px', background: 'black', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', fontSize: '12px', fontFamily: 'Consolas, monospace' }}
-                  >
-                      + Add
-                  </button>
-              )}
+      {isAdmin && adminMode && (
+          <div style={{ position: 'fixed', top: '145px', left: '100px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
+                <button 
+                onClick={openAddModal} 
+                style={{ 
+                    padding: '0', 
+                    background: 'transparent', 
+                    color: 'black', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    fontSize: '40px', 
+                    fontWeight: 'lighter',
+                    fontFamily: 'Consolas, monospace',
+                    textDecoration: 'none',
+                    textTransform: 'lowercase'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                >
+                    + 
+                </button>
           </div>
       )}
 
@@ -676,9 +700,16 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       {/* Resizer Handle */}
       <div
         className={styles.resizer}
-        onMouseDown={startResizing}
+        style={{ cursor: (isAdmin && adminMode && isBlogEditing) ? 'ew-resize' : 'default' }}
+        onMouseDown={(e) => {
+            if (isAdmin && adminMode && isBlogEditing) {
+                startResizingEnhanced(); // Use the enhanced version that saves
+            } else {
+                e.preventDefault();
+            }
+        }}
       >
-        <div className={styles.resizerHandleIcon} />
+        <div className={styles.resizerHandleIcon} style={{ opacity: (isAdmin && adminMode && isBlogEditing) ? 1 : 0 }} />
       </div>
 
       {/* Right Pane: Blog Section */}
@@ -879,28 +910,28 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
               position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
               background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
           }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '8px', width: '400px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-                  <h2>{editingItemIndex !== null ? 'Edit Item' : 'Add New Item'}</h2>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                  <h2>{editingItemIndex !== null ? 'Edit' : 'Add'}</h2>
                   
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <button 
                         type="button"
                         onClick={() => setProjectType('project')}
-                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
                       >
                           Image
                       </button>
                       <button 
                         type="button"
                         onClick={() => setProjectType('video')}
-                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
                       >
                           Video
                       </button>
                       <button 
                         type="button"
                         onClick={() => setProjectType('memo')}
-                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
                       >
                           Memo
                       </button>
@@ -915,7 +946,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                 <span style={{fontWeight: 'bold'}}>Image:</span>
                                 
                                 {imageUrl && imageUrl.trim() !== "" && (
-                                    <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                    <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '0', overflow: 'hidden' }}>
                                         <Image 
                                             src={imageUrl} 
                                             alt="Preview" 
@@ -935,7 +966,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                 />
                                 
                                 {uploading && (
-                                    <div style={{ width: '100%', height: '5px', background: '#eee', marginTop: '5px', borderRadius: '2px' }}>
+                                    <div style={{ width: '100%', height: '5px', background: '#eee', marginTop: '5px', borderRadius: '0' }}>
                                         <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'black', transition: 'width 0.3s' }}></div>
                                     </div>
                                 )}
@@ -951,7 +982,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                         value={videoLink} 
                                         placeholder="https://www.youtube.com/watch?v=..." 
                                         onChange={handleLinkChange}
-                                        style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                                        style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '0' }} 
                                     />
                                     {fetchingVideo && <span style={{fontSize: '12px', color: '#666'}}>Fetching video info...</span>}
                                     {isYoutube && <span style={{fontSize: '12px', color: 'green'}}>YouTube video detected!</span>}
@@ -964,7 +995,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                     value={imageAlt}
                                     onChange={(e) => setImageAlt(e.target.value)}
                                     placeholder="Image description"
-                                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '0' }} 
                                 />
                             </label>
                           </>
@@ -972,34 +1003,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
 
                       {projectType === 'memo' && (
                           <>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '4px' }}>
-                                  {/* Font Family and Font Size disabled temporarily
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Family:</span>
-                                      <select 
-                                          value={memoStyle.fontFamily || ''} 
-                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontFamily: e.target.value }))}
-                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                                      >
-                                          <option value="">Default</option>
-                                          <option value="Arial, sans-serif">Arial</option>
-                                          <option value="'Courier New', monospace">Courier New</option>
-                                          <option value="'Georgia', serif">Georgia</option>
-                                          <option value="'Times New Roman', serif">Times New Roman</option>
-                                          <option value="'Verdana', sans-serif">Verdana</option>
-                                      </select>
-                                  </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font Size:</span>
-                                      <input 
-                                          type="text"
-                                          placeholder="e.g. 16px"
-                                          value={memoStyle.fontSize || ''} 
-                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontSize: e.target.value }))}
-                                          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
-                                      />
-                                  </label>
-                                  */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px', padding: '10px', background: '#f9f9f9', borderRadius: '0' }}>
                                   <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                       <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Background:</span>
                                       <div style={{ display: 'flex', gap: '5px' }}>
@@ -1007,14 +1011,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                               type="color"
                                               value={memoStyle.backgroundColor || '#ffffff'} 
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer', flexShrink: 0 }}
                                           />
                                           <input 
                                               type="text"
                                               value={memoStyle.backgroundColor || ''}
                                               placeholder="#ffffff"
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, backgroundColor: e.target.value }))}
-                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                              style={{ width: '0', flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0', fontSize: '12px' }}
                                           />
                                       </div>
                                   </label>
@@ -1025,14 +1029,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                               type="color"
                                               value={memoStyle.color || '#000000'} 
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
-                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer' }}
+                                              style={{ height: '35px', width: '35px', padding: '0', border: 'none', cursor: 'pointer', flexShrink: 0 }}
                                           />
                                           <input 
                                               type="text"
                                               value={memoStyle.color || ''}
                                               placeholder="#000000"
                                               onChange={(e) => setMemoStyle(prev => ({ ...prev, color: e.target.value }))}
-                                              style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '12px' }}
+                                              style={{ width: '0', flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0', fontSize: '12px' }}
                                           />
                                       </div>
                                   </label>
@@ -1055,49 +1059,49 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                                   </label>
                               </div>
                               <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-                                  <span style={{fontWeight: 'bold'}}>Memo Content:</span>
-                                  <textarea 
-                                    value={memoContent}
-                                    onChange={(e) => setMemoContent(e.target.value)}
-                                    required
-                                    maxLength={2000}
-                                    style={{ 
-                                        width: '100%', 
-                                        height: '300px', 
-                                        padding: '20px', 
-                                        border: '1px solid #ccc', 
-                                        borderRadius: '4px', 
-                                        resize: 'vertical',
-                                        // Preview styles
-                                        fontFamily: memoStyle.fontFamily,
-                                        fontSize: memoStyle.fontSize,
-                                        backgroundColor: memoStyle.backgroundColor,
-                                        color: memoStyle.color,
-                                        textAlign: memoStyle.textAlign
-                                    }}
-                                  />
-                                  <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
-                                      {memoContent.length} / 2000
-                                  </div>
-                              </label>
-                          </>
-                      )}
-                      
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                          <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                          {editingItemIndex !== null && (
-                              <button 
-                                type="button" 
-                                onClick={handleDeleteFromModal}
-                                style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '4px', cursor: 'pointer' }}
-                              >
-                                  Delete
-                              </button>
+                                      <span style={{fontWeight: 'bold'}}>Memo Content:</span>
+                                      <textarea 
+                                        value={memoContent}
+                                        onChange={(e) => setMemoContent(e.target.value)}
+                                        required
+                                        maxLength={2000}
+                                        style={{ 
+                                            width: '100%', 
+                                            height: '300px', 
+                                            padding: '20px', 
+                                            border: '1px solid #ccc', 
+                                            borderRadius: '0', 
+                                            resize: 'vertical',
+                                            // Preview styles
+                                            fontFamily: memoStyle.fontFamily,
+                                            fontSize: memoStyle.fontSize,
+                                            backgroundColor: memoStyle.backgroundColor,
+                                            color: memoStyle.color,
+                                            textAlign: memoStyle.textAlign
+                                        }}
+                                      />
+                                      <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
+                                          {memoContent.length} / 2000
+                                      </div>
+                                  </label>
+                              </>
                           )}
-                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
-                              {editingItemIndex !== null ? 'Update' : 'Add'}
-                          </button>
-                      </div>
+                          
+                          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                              <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '0', cursor: 'pointer' }}>Cancel</button>
+                              {editingItemIndex !== null && (
+                                  <button 
+                                    type="button" 
+                                    onClick={handleDeleteFromModal}
+                                    style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '0', cursor: 'pointer' }}
+                                  >
+                                      Delete
+                                  </button>
+                              )}
+                              <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '0', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
+                                  {editingItemIndex !== null ? 'Update' : 'Add'}
+                              </button>
+                          </div>
                   </form>
               </div>
           </div>
