@@ -83,8 +83,9 @@ export default function ProjectDetailHeader({
 
                 <div 
                     className={styles.menuWrapper}
-                    onMouseEnter={() => setIsOpen(true)}
-                    onMouseLeave={() => setIsOpen(false)}
+                    onMouseEnter={() => window.innerWidth >= 768 && setIsOpen(true)}
+                    onMouseLeave={() => window.innerWidth >= 768 && setIsOpen(false)}
+                    onClick={() => window.innerWidth < 768 && toggleMenu()}
                 >
                     <div 
                       className={styles.menuTrigger} 
@@ -106,13 +107,29 @@ export default function ProjectDetailHeader({
                     <li>
                     <Link href="#">news</Link>
                     </li>
-                    {isAdmin ? (
+                    {isAdmin && (
                         <>
+                            <li>
+                                <button 
+                                    onClick={toggleAdminMode} 
+                                    style={{ 
+                                        background: 'none', 
+                                        border: 'none', 
+                                        font: 'inherit', 
+                                        cursor: 'pointer', 
+                                        textDecoration: 'underline',
+                                        fontWeight: 'bold' 
+                                    }}
+                                >
+                                    {adminMode ? 'admin mode: on' : 'admin mode: off'}
+                                </button>
+                            </li>
                             <li>
                                 <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>logout</button>
                             </li>
                         </>
-                    ) : (
+                    )}
+                    {!isAdmin && (
                         <li>
                             <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>login</button>
                         </li>

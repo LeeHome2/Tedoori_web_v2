@@ -605,29 +605,6 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                       + Add
                   </button>
               )}
-              <button 
-                onClick={toggleAdminMode} 
-                style={{ 
-                    background: 'none', 
-                    border: 'none', 
-                    padding: 0, 
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    textTransform: 'lowercase',
-                    fontSize: '14px',
-                    color: 'black',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    height: '20px',
-                    lineHeight: '1',
-                    fontFamily: 'Consolas, monospace',
-                    width: '140px'
-                }}
-                aria-label={adminMode ? "Switch to User View" : "Switch to Admin Mode"}
-              >
-                  {adminMode ? 'admin mode: on' : 'admin mode: off'}
-              </button>
           </div>
       )}
 

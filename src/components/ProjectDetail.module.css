@@ -26,7 +26,32 @@
 @media (max-width: 768px) {
   .container {
     margin-left: 0;
-    padding-top: 100px;
+    padding-top: 150px;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    overflow: visible; /* Allow scrolling */
+    height: auto; /* Let content dictate height */
+  }
+
+  .imageColumn {
+    flex-grow: 1; 
+    height: auto; 
+    min-height: 300px;
+    overflow: visible; /* Show full gallery */
+  }
+
+  .infoColumn {
+    height: auto;
+    flex-shrink: 0;
+    padding-bottom: 20px;
+    padding-top: 20px; /* Add top padding to infoColumn in mobile */
+    overflow: visible;
+    border-bottom: 1px solid #eee; /* Added separator line */
+    margin-bottom: 20px; /* Spacing after line */
+  }
+  
+  .blogSection {
+      overflow: visible; /* Show full blog content */
   }
 }
 
@@ -48,7 +73,7 @@
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
-    z-index: 200; /* Ensure button is clickable above other elements */
+    z-index: 100; /* Lower z-index than header */
     position: relative; /* Establish stacking context */
 }
 
@@ -305,7 +330,8 @@
 .grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 40px; /* Increased gap from 20px to 30px */
+  gap: 80px; /* Increased gap from 20px to 30px */
+  padding-left: 50px;
 }
 
 .imageWrapper {

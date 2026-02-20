@@ -3,7 +3,7 @@
   top: 20px;
   left: 20px;
   width: 100%;
-  z-index: 100;
+  z-index: 2000; /* Increased z-index to be above blogHeader (200) and other elements */
   background-color: transparent;
   padding: 30px;
   font-size: 18px;
@@ -70,6 +70,24 @@
 @media (min-width: 768px) {
   .logoImage {
     width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .projectNav {
+    position: fixed;
+    top: 6%; /* Aligned with top padding */
+    left: 9%; /* Moved to right */
+    margin: 0;
+    z-index: 1000;
+  }
+  
+  .menuWrapper {
+    z-index: 1001; /* Ensure menu is above project nav */
+  }
+
+  .logoWrapper {
+    padding-bottom: 20px; /* Add bottom padding to logo wrapper in mobile */
   }
 }
 

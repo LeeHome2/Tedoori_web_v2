@@ -13,6 +13,8 @@
 @media (max-width: 768px) {
   .grid {
     margin-left: 0;
-    padding-top: 100px; /* Increase top padding for mobile to clear header */
+    padding: 100px 20px 20px 20px; /* Reduce padding for mobile */
+    column-gap: 20px; /* Reduce gap for mobile */
+    row-gap: 20px;
   }
 }

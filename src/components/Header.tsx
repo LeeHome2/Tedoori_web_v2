@@ -10,7 +10,7 @@ import LoginModal from "./LoginModal";
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const { isAdmin, logout } = useAdmin();
+  const { isAdmin, logout, adminMode, toggleAdminMode } = useAdmin();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -46,8 +46,9 @@ export default function Header() {
 
               <div 
                   className={styles.menuWrapper}
-                  onMouseEnter={() => setIsOpen(true)}
-                  onMouseLeave={() => setIsOpen(false)}
+                  onMouseEnter={() => window.innerWidth >= 768 && setIsOpen(true)}
+                  onMouseLeave={() => window.innerWidth >= 768 && setIsOpen(false)}
+                  onClick={() => window.innerWidth < 768 && toggleMenu()}
               >
                   <div 
                     className={styles.menuTrigger} 
@@ -69,11 +70,29 @@ export default function Header() {
                   <li>
                     <Link href="#">news</Link>
                   </li>
-                  {isAdmin ? (
-                      <li>
-                          <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>logout</button>
-                      </li>
-                  ) : (
+                  {isAdmin && (
+                      <>
+                        <li>
+                            <button 
+                                onClick={toggleAdminMode} 
+                                style={{ 
+                                    background: 'none', 
+                                    border: 'none', 
+                                    font: 'inherit', 
+                                    cursor: 'pointer', 
+                                    textDecoration: 'underline',
+                                    fontWeight: 'bold' 
+                                }}
+                            >
+                                {adminMode ? 'admin mode: on' : 'admin mode: off'}
+                            </button>
+                        </li>
+                        <li>
+                            <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>logout</button>
+                        </li>
+                      </>
+                  )}
+                  {!isAdmin && (
                       <li>
                           <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>login</button>
                       </li>
