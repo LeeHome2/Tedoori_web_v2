@@ -11,6 +11,7 @@ export interface ProjectDetail {
   mission: string;
   status: string;
   photographer: string;
+  content?: string;
 }
 
 export type GalleryItem = 
