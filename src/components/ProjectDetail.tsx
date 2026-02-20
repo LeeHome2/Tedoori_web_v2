@@ -44,14 +44,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const lastSelectionRef = useRef<{ blockId: string, cursorIndex: number } | null>(null);
   // HTML Content State for BlogEditor
   // @ts-ignore
-  const [blogHtml, setBlogHtml] = useState(project.content || project.details?.content_html || '');
+  const [blogHtml, setBlogHtml] = useState(project.content || project.details?.content || '');
 
   // Local Edit Mode for Blog Section
   const [isBlogEditing, setIsBlogEditing] = useState(false);
 
   useEffect(() => {
     // @ts-ignore
-    setBlogHtml(project.content || project.details?.content_html || '');
+    setBlogHtml(project.content || project.details?.content || '');
   }, [project.content, project.details]);
   
   const handleBlogChange = async (html: string) => {
@@ -63,7 +63,13 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   };
 
   const saveBlogContent = async () => {
-      await updateProject({ ...project, content: blogHtml });
+      await updateProject({
+        ...project,
+        details: {
+          ...project.details,
+          content: blogHtml
+        }
+      });
   };
 
   // Resizable Pane State
