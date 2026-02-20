@@ -66,6 +66,18 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       await updateProject({
         ...project,
         details: {
+          year: project.details?.year || '',
+          location: project.details?.location || '',
+          client: project.details?.client || '',
+          mandataire: project.details?.mandataire || '',
+          partners: project.details?.partners,
+          team: project.details?.team,
+          program: project.details?.program || '',
+          area: project.details?.area || '',
+          cost: project.details?.cost || '',
+          mission: project.details?.mission || '',
+          status: project.details?.status || '',
+          photographer: project.details?.photographer || '',
           ...project.details,
           content: blogHtml
         }
