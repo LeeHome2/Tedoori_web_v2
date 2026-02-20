@@ -81,7 +81,7 @@
   right: auto;
   opacity: 0;
   transform: translate(-50%, -10px);
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  /* transition removed for instant toggle */
   pointer-events: none;
   background: white;
   padding: 10px;

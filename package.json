@@ -16,7 +16,10 @@
     "tedoori:upload:sftp": "node scripts/tedoori/upload-sftp.mjs",
     "tedoori:upload:supabase": "node scripts/tedoori/upload-supabase.mjs",
     "tedoori:upsert": "node scripts/tedoori/upsert.mjs",
-    "validate:assets": "node scripts/validate-assets.mjs"
+    "validate:assets": "node scripts/validate-assets.mjs",
+    "backup:storage": "node backup-storage.js",
+    "backup:db": "supabase db dump -f backup_$(date +%Y%m%d)/database.sql",
+    "backup:full": "backup-full.bat"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
