@@ -26,6 +26,7 @@
   gap: 20px;
   position: relative;
   z-index: 102; /* Above menu */
+  margin-left: 110px; /* Align with add button (130px left - 20px padding) */
 }
 
 .rightGroup {
@@ -33,6 +34,7 @@
   z-index: 102;
   display: flex;
   align-items: flex-end; /* Align items to the bottom */
+  margin-right: 170px; /* Align with blog section right edge (ProjectDetailHeader matches this) */
 }
 
 .menuWrapper {
@@ -79,21 +81,22 @@
 .menuNav {
   position: absolute;
   top: 100%; /* Below header */
-  left: 50%; /* Center align */
-  right: auto;
+  right: -10px; /* Align right edge with trigger - adjusted for padding */
+  left: auto; /* Reset left */
   opacity: 0;
-  transform: translate(-50%, -10px);
+  transform: translate(0, -10px); /* Adjust transform */
   /* transition removed for instant toggle */
   pointer-events: none;
-  background: white;
+  background: transparent; /* Changed from white to transparent */
   padding: 10px;
   min-width: 150px;
-  text-align: center; /* Center text */
+  text-align: right; /* Right align text */
+  z-index: 9999; /* Maximize z-index to ensure it's on top of everything */
 }
 
 .menuNav.open {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translate(0, 0); /* Reset transform */
   pointer-events: auto;
 }
 
@@ -103,17 +106,17 @@
   align-items: center;
   justify-content: flex-end;
   height: 20px;
-  margin-right: 50px; /* Added margin from right */
+  margin-right: 0; /* Remove margin to align perfectly with right edge */
   margin-top: 33px; /* Matched with ProjectDetailHeader */
   transition: opacity 0.2s ease;
   line-height: 1;
 }
 
 .menuText {
-    font-weight: bold;
+    font-weight: 300; /* Light weight */
     text-transform: lowercase;
     
-    font-size: 14px;
+    font-size: 15pt; /* Changed from 18pt to 15pt */
     font-family: Consolas, monospace;
 }
 
@@ -126,10 +129,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  margin-right: 50px; /* Added margin from right */
+  margin-right: 0; /* Reset margin since container is aligned */
 
   font-family: Consolas, monospace;
-  font-size: 14px;
+  font-size: 15pt; /* Match menuText */
+  font-weight: 300; /* Match menuText */
 }
 
 .menuList li {

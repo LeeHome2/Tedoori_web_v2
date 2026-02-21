@@ -159,6 +159,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItemIndex, setEditingItemIndex] = useState<number | null>(null);
   const [projectType, setProjectType] = useState<'project' | 'video' | 'memo'>('project'); // 'project' maps to 'image' here
+  const [visibility, setVisibility] = useState<'public' | 'team' | 'private'>('public');
   
   // Image/Video Form State
   const [imageUrl, setImageUrl] = useState('');
@@ -416,6 +417,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       setVideoLink('');
       setMemoContent('');
       setMemoStyle({});
+      setVisibility('public');
       setIsModalOpen(true);
   };
 
@@ -442,12 +444,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
           setIsYoutube(false);
           setYoutubeId('');
       }
+      setVisibility(item.visibility || 'public');
       setIsModalOpen(true);
   };
 
   const closeModal = () => {
       setIsModalOpen(false);
       setEditingItemIndex(null);
+      setVisibility('public');
   };
 
   const getYoutubeId = (url: string) => {
@@ -631,25 +635,12 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   return (
     <div className={styles.container} ref={containerRef}>
       {isAdmin && adminMode && (
-          <div style={{ position: 'fixed', top: '145px', left: '100px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <button 
                 onClick={openAddModal} 
-                style={{ 
-                    padding: '0', 
-                    background: 'transparent', 
-                    color: 'black', 
-                    border: 'none', 
-                    cursor: 'pointer', 
-                    fontSize: '40px', 
-                    fontWeight: 'lighter',
-                    fontFamily: 'Consolas, monospace',
-                    textDecoration: 'none',
-                    textTransform: 'lowercase'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                className={styles.addBtn}
+                aria-label="십자 버튼"
                 >
-                    + 
                 </button>
           </div>
       )}
@@ -717,9 +708,10 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         className={styles.infoColumn} 
         style={{ width: isDesktop ? `${100 - leftPaneWidth}%` : '100%', flexShrink: 0 }}
       >
-        {isAdmin && adminMode && (
-            <div className={styles.blogHeader}>
-                 <div className={styles.blogControls}>
+        {/* Blog Section: Scrollable */}
+        <div className={styles.blogSection}>
+            {isAdmin && adminMode && (
+                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
                     <button 
                         className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
                         onClick={() => {
@@ -732,11 +724,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                         {isBlogEditing ? 'Done' : 'Edit'}
                     </button>
                  </div>
-            </div>
-        )}
-
-        {/* Blog Section: Scrollable */}
-        <div className={styles.blogSection}>
+            )}
             {isAdmin && adminMode && isBlogEditing ? (
                 <BlogEditor 
                     content={blogHtml} 
@@ -910,8 +898,19 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
               position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
               background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
           }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-                  <h2>{editingItemIndex !== null ? 'Edit' : 'Add'}</h2>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <h2 style={{ margin: '0', fontSize: '18px' }}>{editingItemIndex !== null ? 'Edit' : 'Add'}</h2>
+                      <select
+                          value={visibility}
+                          onChange={(e) => setVisibility(e.target.value as 'public' | 'team' | 'private')}
+                          style={{ padding: '5px', border: '1px solid #ccc', borderRadius: '0', fontSize: '12px', background: 'white' }}
+                      >
+                          <option value="public">Public</option>
+                          <option value="team">Team Only</option>
+                          <option value="private">Private</option>
+                      </select>
+                  </div>
                   
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <button 

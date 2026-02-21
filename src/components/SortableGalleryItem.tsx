@@ -303,17 +303,6 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                onMouseDown={(e) => e.stopPropagation()}
           >
               <div className={styles.controlsRow}>
-                  <select 
-                    value={item.visibility || 'public'} 
-                    onChange={handleVisibilityChange}
-                    className={styles.visibilitySelect}
-                    title="Visibility"
-                  >
-                      <option value="public">Public</option>
-                      <option value="team">Team Only</option>
-                      <option value="private">Private</option>
-                  </select>
-                  
                   <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
                   <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
               </div>

@@ -28,7 +28,7 @@
 }
 
 .card:hover .image {
-  opacity: 0.8;
+  opacity: 1; /* Changed from 0.8 to 1 */
 }
 
 .overlayInfo {

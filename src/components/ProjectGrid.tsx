@@ -38,6 +38,7 @@ export default function ProjectGrid() {
   const [showId, setShowId] = useState(true);
   const [showTitle, setShowTitle] = useState(true);
   const [hasDetailLink, setHasDetailLink] = useState(true);
+  const [visibility, setVisibility] = useState<'public' | 'team' | 'private'>('public');
 
   // DND Sensors
   const sensors = useSensors(
@@ -73,6 +74,7 @@ export default function ProjectGrid() {
       setShowId(true);
       setShowTitle(true);
       setHasDetailLink(true);
+      setVisibility('public');
       setIsModalOpen(true);
   };
 
@@ -91,6 +93,7 @@ export default function ProjectGrid() {
       setShowId(project.showId !== undefined ? project.showId : true);
       setShowTitle(project.showTitle !== undefined ? project.showTitle : true);
       setHasDetailLink(project.hasDetailLink !== undefined ? project.hasDetailLink : true);
+      setVisibility(project.isVisible === undefined || project.isVisible === true ? 'public' : (project.isVisible === false ? 'private' : project.isVisible as 'public' | 'team' | 'private'));
       setIsModalOpen(true);
   };
 
@@ -109,6 +112,7 @@ export default function ProjectGrid() {
       setShowId(true);
       setShowTitle(true);
       setHasDetailLink(true);
+      setVisibility('public');
   };
 
   const getYoutubeId = (url: string) => {
@@ -243,6 +247,7 @@ export default function ProjectGrid() {
           showId,
           showTitle,
           hasDetailLink,
+          isVisible: visibility,
       };
 
       if (editingProject) {
@@ -293,25 +298,24 @@ export default function ProjectGrid() {
       )}
 
       {isAdmin && (
-          <div style={{ position: 'fixed', top: '145px', left: '100px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
               {adminMode && (
                   <button onClick={openAddModal} 
                     style={{ 
                         padding: '0', 
                         background: 'transparent', 
-                        color: 'black', 
                         border: 'none', 
                         cursor: 'pointer', 
-                        fontSize: '40px', 
-                        fontWeight: 'lighter',
-                        fontFamily: 'Consolas, monospace',
-                        textDecoration: 'none',
-                        textTransform: 'lowercase'
+                        width: '37px', // Changed from 40px to 37px
+                        height: '37px', // Changed from 40px to 37px
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                   >
-                      +
+                      <div style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: 'black' }} />
+                      <div style={{ position: 'absolute', width: '2px', height: '100%', backgroundColor: 'black' }} />
                   </button>
               )}
           </div>
@@ -346,8 +350,19 @@ export default function ProjectGrid() {
               position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
               background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
           }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
-                  <h2>{editingProject ? 'Edit' : 'Add'}</h2>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                      <h2 style={{ margin: '0', fontSize: '18px' }}>{editingProject ? 'Edit' : 'Add'}</h2>
+                      <select
+                          value={visibility}
+                          onChange={(e) => setVisibility(e.target.value as 'public' | 'team' | 'private')}
+                          style={{ padding: '5px', border: '1px solid #ccc', borderRadius: '0', fontSize: '12px', background: 'white' }}
+                      >
+                          <option value="public">Public</option>
+                          <option value="team">Team Only</option>
+                          <option value="private">Private</option>
+                      </select>
+                  </div>
                   
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                       <button 

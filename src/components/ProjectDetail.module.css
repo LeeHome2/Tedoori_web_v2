@@ -73,7 +73,7 @@
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
-    z-index: 2001; /* Higher z-index than header (2000) to be clickable */
+    z-index: 100; /* Lower z-index than header (2000) */
     position: relative; /* Establish stacking context */
 }
 
@@ -243,13 +243,41 @@
   background: #fff0f0;
 }
 
-/* Add Buttons Area */
-.addButtons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px dashed #eee;
+/* Add Button (Floating) */
+.addBtn {
+    padding: 0;
+    background: transparent;
+    color: black;
+    border: none;
+    cursor: pointer;
+    width: 37px; /* Changed from 40px to 37px */
+    height: 37px; /* Changed from 40px to 37px */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.addBtn::before,
+.addBtn::after {
+    content: '';
+    position: absolute;
+    background-color: black;
+}
+
+.addBtn::before {
+    width: 100%;
+    height: 2px;
+}
+
+.addBtn::after {
+    width: 2px;
+    height: 100%;
+}
+
+.addBtn:hover::before,
+.addBtn:hover::after {
+    background-color: #333; /* Slight hover effect */
 }
 
 .addButton {
@@ -337,7 +365,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 80px; /* Increased gap from 20px to 30px */
-  padding-left: 50px;
+  padding-left: 40px;
 }
 
 .imageWrapper {

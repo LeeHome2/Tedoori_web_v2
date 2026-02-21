@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   column-gap: 100px; /* Horizontal gap */
   row-gap: 60px; /* Vertical gap reduced by 10px */
-  padding: 150px 200px 20px 100px;
+  padding: 150px 240px 20px 40px;
   max-width: none;
   margin: 0;
   justify-content: flex-start;

@@ -408,49 +408,6 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                  onMouseDown={(e) => e.stopPropagation()}
                  onClick={(e) => e.stopPropagation()}
             >
-                <div 
-                  className={styles.visibilitySelectContainer}
-                  ref={visibilityRef}
-                >
-                    <button 
-                      className={styles.visibilitySelectTrigger}
-                      onClick={toggleVisibilityOptions}
-                      aria-haspopup="listbox"
-                      aria-expanded={showVisibilityOptions}
-                      title="Change Visibility"
-                    >
-                        <span>{getVisibilityLabel(currentVisibility as string)}</span>
-                        <span style={{ fontSize: '10px', marginLeft: '5px' }}>▼</span>
-                    </button>
-                    
-                    <div className={`${styles.visibilityOptions} ${showVisibilityOptions ? styles.open : ''}`} role="listbox">
-                        <div 
-                          className={`${styles.visibilityOption} ${currentVisibility === 'public' ? styles.selected : ''}`}
-                          onClick={(e) => { e.stopPropagation(); handleVisibilityChange('public'); }}
-                          role="option"
-                          aria-selected={currentVisibility === 'public'}
-                        >
-                            <span>Public</span>
-                        </div>
-                        <div 
-                          className={`${styles.visibilityOption} ${currentVisibility === 'team' ? styles.selected : ''}`}
-                          onClick={(e) => { e.stopPropagation(); handleVisibilityChange('team'); }}
-                          role="option"
-                          aria-selected={currentVisibility === 'team'}
-                        >
-                            <span>Team Only</span>
-                        </div>
-                        <div 
-                          className={`${styles.visibilityOption} ${currentVisibility === 'private' ? styles.selected : ''}`}
-                          onClick={(e) => { e.stopPropagation(); handleVisibilityChange('private'); }}
-                          role="option"
-                          aria-selected={currentVisibility === 'private'}
-                        >
-                            <span>Private</span>
-                        </div>
-                    </div>
-                </div>
-
                 <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
                 <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
                 
