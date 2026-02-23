@@ -324,21 +324,34 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
              setCurrentItemIndex(itemIndex);
              setLightboxOpen(true);
              setZoomLevel(1);
-             document.body.style.overflow = 'hidden';
         }
     } else {
         // Image or Video
         setCurrentItemIndex(itemIndex);
         setLightboxOpen(true);
         setZoomLevel(1);
-        document.body.style.overflow = 'hidden';
     }
   };
 
   const closeLightbox = () => {
     setLightboxOpen(false);
-    document.body.style.overflow = 'auto';
   };
+
+  // Manage lightbox body class for styling and accessibility
+  // Toggles 'lightbox-active' class on body to control global styles (e.g., hiding header)
+  useEffect(() => {
+    if (lightboxOpen) {
+      document.body.classList.add('lightbox-active');
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.classList.remove('lightbox-active');
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.classList.remove('lightbox-active');
+      document.body.style.overflow = 'auto';
+    };
+  }, [lightboxOpen]);
 
   const nextItem = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -742,8 +755,14 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       </div>
 
       {/* Lightbox Overlay */}
-      <div className={`${styles.lightbox} ${lightboxOpen ? styles.open : ""}`} onClick={closeLightbox}>
-        <div className={styles.closeBtn} onClick={closeLightbox}>
+      <div 
+        className={`${styles.lightbox} ${lightboxOpen ? styles.open : ""}`} 
+        onClick={closeLightbox}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image Gallery"
+      >
+        <div className={styles.closeBtn} onClick={closeLightbox} role="button" aria-label="Close gallery">
              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                 <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(45deg)' }}></span>
                 <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(-45deg)' }}></span>

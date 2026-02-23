@@ -213,3 +213,10 @@
   font-size: 0.8em;
   color: #666;
 }
+
+/* Hide header when lightbox is active 
+   This relies on 'lightbox-active' class being added to body by ProjectDetail component
+*/
+:global(body.lightbox-active) .header {
+  display: none;
+}
