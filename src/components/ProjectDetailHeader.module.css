@@ -205,7 +205,12 @@
 }
 
 .menuList a:hover {
-  text-decoration: underline;
+  text-decoration: none; /* Remove underline on hover */
+}
+
+.active {
+  text-decoration: none !important;
+  font-weight: normal; /* Remove bold */
 }
 
 .unlink {

@@ -541,7 +541,8 @@
 .adminOverlay {
     position: absolute;
     bottom: 0;
-    right: 0;
+    left: 0; /* Changed from right: 0 to left: 0 */
+    right: auto; /* Ensure right is reset */
     display: flex;
     gap: 8px;
     z-index: 10;
@@ -684,10 +685,25 @@
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  padding: 20px;
+  width: 50px;
+  height: 50px;
   z-index: 1001;
-  font-size: 24px;
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: opacity 0.2s ease;
+}
+
+.prevBtn:hover,
+.nextBtn:hover {
+  opacity: 0.6;
+}
+
+.prevBtn:active,
+.nextBtn:active {
+    transform: translateY(-50%) scale(0.95); /* Active effect */
 }
 
 .prevBtn {
@@ -696,6 +712,26 @@
 
 .nextBtn {
   right: 20px;
+}
+
+/* Arrow Graphics */
+.arrowLeft,
+.arrowRight {
+    display: block;
+    width: 30px; /* Match closeBtn inner span width proportion */
+    height: 30px;
+    border-top: 2px solid black;
+    border-left: 2px solid black;
+}
+
+.arrowLeft {
+    transform: rotate(-45deg);
+    margin-left: 10px; /* Visual center adjustment */
+}
+
+.arrowRight {
+    transform: rotate(135deg);
+    margin-right: 10px; /* Visual center adjustment */
 }
 
 /* Thumbnail strip in lightbox (Optional but requested) */

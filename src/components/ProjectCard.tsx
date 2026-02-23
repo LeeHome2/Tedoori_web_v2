@@ -320,13 +320,12 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                   className={styles.image}
                   loading={priority ? undefined : "lazy"}
                   priority={priority}
-                  unoptimized
               />
           ) : (
               <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
           )}
 
-          <div className={styles.overlayInfo}>
+          <div className={styles.overlayInfo} aria-hidden="true">
               {showId && <span className={styles.number}>{project.id}</span>}
               {showTitle && <span className={styles.title}>{project.title}</span>}
           </div>
@@ -408,9 +407,6 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                  onMouseDown={(e) => e.stopPropagation()}
                  onClick={(e) => e.stopPropagation()}
             >
-                <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
-                <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
-                
                 {/* Drag Handle */}
                 <div className={styles.dragHandle} 
                      ref={setActivatorNodeRef}
@@ -419,6 +415,9 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                 >
                   :::
                 </div>
+
+                <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
             </div>
         )}
       </div>

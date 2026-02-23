@@ -302,17 +302,22 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                onPointerDown={(e) => e.stopPropagation()}
                onMouseDown={(e) => e.stopPropagation()}
           >
-              <div className={styles.controlsRow}>
-                  <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
-                  <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
-              </div>
-              
               <div className={styles.dragHandle} 
                    ref={setActivatorNodeRef}
                    {...listeners}
                    style={{ cursor: 'grab', touchAction: 'none' }}
               >
                 :::
+              </div>
+              
+              <div className={styles.controlsRow}>
+                   <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                   <button 
+                      onClick={handleEditClick}
+                      className={styles.editBtn}
+                  >
+                      Edit
+                  </button>
               </div>
           </div>
       )}

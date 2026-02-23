@@ -1,5 +1,5 @@
 .card {
-  margin-bottom: 0; /* Handled by gap */
+  margin-bottom: 20px; /* Add bottom margin to prevent overlap with next row */
   display: block;
   position: relative; /* Added for absolute positioning of admin overlay */
   animation: fadeIn 0.5s ease-in-out;
@@ -7,6 +7,7 @@
   min-width: 220px;
   max-width: 100%;
   transition: width 0.3s ease, height 0.3s ease, flex-grow 0.3s ease; /* Smooth resize transition */
+  padding-bottom: 30px; /* Reserve space for overlayInfo if needed, or rely on margin */
 }
 
 @keyframes fadeIn {
@@ -32,17 +33,16 @@
 }
 
 .overlayInfo {
-  /* Position removed to place below image */
-  /* position: absolute; */
-  /* bottom: 5px; */
-  /* left: 10px; */
-  color: black; /* Changed to black */
-  /* z-index: 5; */
-  /* text-shadow: 0 1px 3px rgba(0,0,0,0.5); */
-  /* pointer-events: none; */
+  /* Ensure visibility below image */
+  color: black; 
   font-size: 13px;
   line-height: 1.2;
-  margin-top: 8px; /* Add some spacing */
+  margin-top: 8px; /* Spacing from image */
+  position: relative; 
+  z-index: 1; /* Basic stacking */
+  display: block; /* Ensure it takes up space */
+  width: 100%; /* Full width */
+  overflow-wrap: break-word; /* Prevent overflow */
 }
 
 .number {
@@ -56,8 +56,8 @@
 
 .adminOverlay {
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom: 23px; /* Keep at bottom of image wrapper */
+    left: 0;
     display: flex;
     gap: 8px;
     z-index: 10;
@@ -67,6 +67,7 @@
     padding: 6px;
     border-radius: 0;
     backdrop-filter: blur(4px);
+    right: auto;
 }
 
 .editBtn, .deleteBtn, .resizeToggleBtn {

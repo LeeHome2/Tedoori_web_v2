@@ -769,7 +769,9 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
              </div>
         </div>
         
-        <div className={styles.prevBtn} onClick={prevItem}>&lt;</div>
+        <div className={styles.prevBtn} onClick={prevItem} role="button" aria-label="Previous image">
+            <span className={styles.arrowLeft}></span>
+        </div>
         
         <div 
             className={styles.lightboxImageWrapper} 
@@ -850,7 +852,9 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
             )}
         </div>
 
-        <div className={styles.nextBtn} onClick={nextItem}>&gt;</div>
+        <div className={styles.nextBtn} onClick={nextItem} role="button" aria-label="Next image">
+            <span className={styles.arrowRight}></span>
+        </div>
 
         <div className={styles.thumbnailStrip} onClick={(e) => e.stopPropagation()}>
              {project.galleryImages?.map((item, index) => (

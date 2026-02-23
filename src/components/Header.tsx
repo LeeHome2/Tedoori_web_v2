@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import styles from "./Header.module.css";
 import { useAdmin } from "@/context/AdminContext";
 import LoginModal from "./LoginModal";
@@ -11,6 +12,7 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { isAdmin, logout, adminMode, toggleAdminMode } = useAdmin();
+  const pathname = usePathname();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -62,13 +64,13 @@ export default function Header() {
                   <nav className={`${styles.menuNav} ${isOpen ? styles.open : ""}`}>
                 <ul className={styles.menuList}>
                   <li>
-                    <Link href="#">projects</Link>
+                    <Link href="/" className={pathname === '/' ? styles.active : ''}>projects</Link>
                   </li>
                   <li>
-                    <Link href="#">essays</Link>
+                    <Link href="/essays" className={pathname === '/essays' ? styles.active : ''}>essays</Link>
                   </li>
                   <li>
-                    <Link href="#">news</Link>
+                    <Link href="/news" className={pathname === '/news' ? styles.active : ''}>news</Link>
                   </li>
                   {isAdmin && (
                       <>
@@ -80,8 +82,8 @@ export default function Header() {
                                     border: 'none', 
                                     font: 'inherit', 
                                     cursor: 'pointer', 
-                                    textDecoration: 'underline',
-                                    fontWeight: 'bold',
+                                    textDecoration: 'none',
+                                    fontWeight: 'normal',
                                     whiteSpace: 'nowrap'
                                 }}
                             >
@@ -89,13 +91,13 @@ export default function Header() {
                             </button>
                         </li>
                         <li>
-                            <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>logout</button>
+                            <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>logout</button>
                         </li>
                       </>
                   )}
                   {!isAdmin && (
                       <li>
-                          <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>login</button>
+                          <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>login</button>
                       </li>
                   )}
                 </ul>
