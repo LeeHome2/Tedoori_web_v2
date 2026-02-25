@@ -10,11 +10,11 @@ const containerStyle = {
   borderRadius: '4px'
 };
 
-// Sejong-daero, Jongno-gu, Seoul coordinates (approximate based on address)
-// 123, Sejong-daero corresponds to Seoul City Hall area roughly
+// Yangjaedong, Seocho-gu, Seoul coordinates
+// 328-11, Yangjaedong, Seocho-gu, Seoul
 const center = {
-  lat: 37.5665,
-  lng: 126.9780
+  lat: 37.468426,
+  lng: 127.041135
 };
 
 const mapOptions: google.maps.MapOptions = {
@@ -124,7 +124,7 @@ export default function OfficeMap({ apiKey }: OfficeMapProps) {
                         minWidth: '200px'
                     }}>
                         <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold' }}>Tedoori Office</h3>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>123, Sejong-daero, Jongno-gu, Seoul</p>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>328-11, Yangjaedong, Seocho-gu, Seoul</p>
                         <p style={{ margin: '0 0 4px 0', fontSize: '12px' }}>Tel: +82 2 1234 5678</p>
                         <div style={{ borderTop: '1px solid #eee', marginTop: '5px', paddingTop: '5px' }}>
                              <p style={{ margin: '0', fontSize: '11px', color: '#666' }}>Open: Mon-Fri 09:00 - 18:00</p>
