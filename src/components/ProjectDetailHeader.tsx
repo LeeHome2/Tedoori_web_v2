@@ -60,20 +60,24 @@ export default function ProjectDetailHeader({
                 <div className={styles.projectNav}>
                     {prevProject ? (
                         <Link href={getProjectHref(prevProject)} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
-                            <span>&lt;</span>
+                            <span className={styles.arrowLeftSmall}></span>
                         </Link>
                     ) : (
-                        <span className={`${styles.navArrow} ${styles.disabled}`}>&lt;</span>
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>
+                            <span className={styles.arrowLeftSmall}></span>
+                        </span>
                     )}
                     
                     <span className={styles.projectId}>{currentProject.id}</span>
                     
                     {nextProject ? (
                         <Link href={getProjectHref(nextProject)} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
-                            <span>&gt;</span>
+                            <span className={styles.arrowRightSmall}></span>
                         </Link>
                     ) : (
-                        <span className={`${styles.navArrow} ${styles.disabled}`}>&gt;</span>
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>
+                            <span className={styles.arrowRightSmall}></span>
+                        </span>
                     )}
                 </div>
             </div>

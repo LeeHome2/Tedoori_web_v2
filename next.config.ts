@@ -27,6 +27,14 @@ const nextConfig: NextConfig = {
         protocol: "https" as const,
         hostname: "placehold.co",
       },
+      {
+        protocol: "https" as const,
+        hostname: "i.ytimg.com",
+      },
+      {
+        protocol: "https" as const,
+        hostname: "img.youtube.com",
+      },
       ...(supabaseHostname
         ? [
             {

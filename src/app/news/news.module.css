@@ -1,0 +1,59 @@
+.addBtn {
+  padding: 0;
+  background: transparent;
+  color: black;
+  border: none;
+  cursor: pointer;
+  width: 37px;
+  height: 37px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addBtn::before,
+.addBtn::after {
+  content: '';
+  position: absolute;
+  background-color: black;
+}
+
+.addBtn::before {
+  width: 100%;
+  height: 2px;
+}
+
+.addBtn::after {
+  width: 2px;
+  height: 100%;
+}
+
+.addBtn:hover::before,
+.addBtn:hover::after {
+  background-color: #333;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.modal {
+  background: white;
+  padding: 30px;
+  border-radius: 0;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  font-family: 'Consolas', monospace;
+}

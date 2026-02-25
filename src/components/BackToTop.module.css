@@ -17,9 +17,6 @@
   transition: opacity 0.3s ease, visibility 0.3s ease; /* Removed transform from transition */
   z-index: 1000;
   box-shadow: none;
-  font-size: 24px;
-  font-family: Consolas, monospace;
-  font-weight: lighter; /* Added lighter font weight */
   padding-bottom: 0;
 }
 
@@ -30,18 +27,18 @@
 
 .backToTop:hover {
   background-color: transparent;
-  /* transform removed */
+  opacity: 0.6;
 }
 
 .backToTop:active {
   background-color: transparent;
-  /* transform removed */
+  transform: scale(0.95);
 }
 
-.icon {
-  width: 24px;
-  height: 24px;
-  fill: currentColor;
+.arrowIcon {
+  display: block;
+  width: 25px; /* Match ProjectDetail arrow size */
+  height: 25px;
 }
 
 @media (max-width: 768px) {

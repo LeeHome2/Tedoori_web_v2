@@ -611,7 +611,7 @@
   height: 100vh;
   /* Lightbox background: opaque white per user request */
   background-color: white; 
-  z-index: 1000;
+  z-index: 3000;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -674,7 +674,7 @@
   top: 20px;
   right: 20px;
   cursor: pointer;
-  z-index: 1001;
+  z-index: 3001;
   width: 30px;
   height: 30px;
 }
@@ -687,7 +687,7 @@
   cursor: pointer;
   width: 50px;
   height: 50px;
-  z-index: 1001;
+  z-index: 3001;
   user-select: none;
   display: flex;
   align-items: center;
@@ -707,19 +707,19 @@
 }
 
 .prevBtn {
-  left: 20px;
+  left: 10px;
 }
 
 .nextBtn {
-  right: 20px;
+  right: 10px;
 }
 
 /* Arrow Graphics */
 .arrowLeft,
 .arrowRight {
     display: block;
-    width: 30px; /* Match closeBtn inner span width proportion */
-    height: 30px;
+    width: 25px; /* Match closeBtn inner span width proportion */
+    height: 25px;
     border-top: 2px solid black;
     border-left: 2px solid black;
 }

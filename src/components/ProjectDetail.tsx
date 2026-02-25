@@ -48,6 +48,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
 
   // Local Edit Mode for Blog Section
   const [isBlogEditing, setIsBlogEditing] = useState(false);
+  const [isSavingBlog, setIsSavingBlog] = useState(false);
 
   useEffect(() => {
     // @ts-ignore
@@ -63,25 +64,36 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   };
 
   const saveBlogContent = async () => {
-      await updateProject({
-        ...project,
-        details: {
-          year: project.details?.year || '',
-          location: project.details?.location || '',
-          client: project.details?.client || '',
-          mandataire: project.details?.mandataire || '',
-          partners: project.details?.partners,
-          team: project.details?.team,
-          program: project.details?.program || '',
-          area: project.details?.area || '',
-          cost: project.details?.cost || '',
-          mission: project.details?.mission || '',
-          status: project.details?.status || '',
-          photographer: project.details?.photographer || '',
-          ...project.details,
-          content: blogHtml
-        }
-      });
+      setIsSavingBlog(true);
+      try {
+        await updateProject({
+          ...project,
+          content: blogHtml, // Save to project.content as well
+          details: {
+            year: project.details?.year || '',
+            location: project.details?.location || '',
+            client: project.details?.client || '',
+            mandataire: project.details?.mandataire || '',
+            partners: project.details?.partners,
+            team: project.details?.team,
+            program: project.details?.program || '',
+            area: project.details?.area || '',
+            cost: project.details?.cost || '',
+            mission: project.details?.mission || '',
+            status: project.details?.status || '',
+            photographer: project.details?.photographer || '',
+            ...project.details,
+            content: blogHtml // Save to project.details.content as well
+          }
+        });
+        console.log('Blog content saved successfully');
+      } catch (error) {
+        console.error('Failed to save blog content:', error);
+        alert('Failed to save blog content. Please try again.');
+        throw error; // Re-throw to prevent closing edit mode on error
+      } finally {
+        setIsSavingBlog(false);
+      }
   };
 
   // Resizable Pane State
@@ -149,6 +161,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState(0); // Index within the full galleryImages array
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [lightboxVideoPlaying, setLightboxVideoPlaying] = useState(false);
   
   // Upload State (Shared)
   const [uploading, setUploading] = useState(false);
@@ -296,45 +309,17 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
     const item = project.galleryImages?.[itemIndex];
     if (!item) return;
 
-    // Admin Mode: Click inserts image into blog at cursor
-    if (isAdmin && adminMode) {
-        if (item.type === 'text') return; // Don't insert text blocks via click for now
-        
-        // For BlogEditor, we might want to insert image into Tiptap
-        // But since Tiptap state is inside BlogEditor, we can't easily reach it from here 
-        // without lifting state or using a ref.
-        // Current requirement #2 is "Add image button in editor", not "Click gallery to insert".
-        // Requirement #3 is "Drag and drop inserted images".
-        // The user didn't explicitly ask to keep the "Click gallery to insert" feature for the new editor.
-        // However, it's a nice feature.
-        // For now, let's disable the "Click to insert" logic for the NEW editor to avoid confusion,
-        // or we need to pass a ref to BlogEditor to execute `editor.chain().setImage(...)`.
-        // Let's stick to the "Add Image" button inside the editor as requested.
-        // So we do NOTHING here for now if it's the new editor mode.
-        // Or we just open edit modal for the item itself.
-        
-        openEditModal(itemIndex, item);
-        return;
-    }
-
-    if (item.type === 'text') {
-        if (isAdmin && adminMode) {
-             openEditModal(itemIndex, item);
-        } else {
-             setCurrentItemIndex(itemIndex);
-             setLightboxOpen(true);
-             setZoomLevel(1);
-        }
-    } else {
-        // Image or Video
-        setCurrentItemIndex(itemIndex);
-        setLightboxOpen(true);
-        setZoomLevel(1);
-    }
+    // Open lightbox for both admin and normal mode
+    // Admin can use the "Edit" button in the overlay to edit items
+    setCurrentItemIndex(itemIndex);
+    setLightboxOpen(true);
+    setZoomLevel(1);
+    setLightboxVideoPlaying(false);
   };
 
   const closeLightbox = () => {
     setLightboxOpen(false);
+    setLightboxVideoPlaying(false);
   };
 
   // Manage lightbox body class for styling and accessibility
@@ -355,25 +340,28 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
 
   const nextItem = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrentItemIndex((prev) => 
+    setCurrentItemIndex((prev) =>
       prev === (project.galleryImages?.length || 0) - 1 ? 0 : prev + 1
     );
     setZoomLevel(1);
+    setLightboxVideoPlaying(false);
   }, [project.galleryImages]);
 
   const prevItem = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setCurrentItemIndex((prev) => 
+    setCurrentItemIndex((prev) =>
       prev === 0 ? (project.galleryImages?.length || 0) - 1 : prev - 1
     );
     setZoomLevel(1);
+    setLightboxVideoPlaying(false);
   }, [project.galleryImages]);
 
   const handleZoom = (e: React.MouseEvent) => {
     e.stopPropagation();
     const currentItem = project.galleryImages?.[currentItemIndex];
-    if (currentItem?.type === 'image') {
-        setZoomLevel(prev => prev === 1 ? 2 : 1); 
+    // Only allow zoom for images, not for videos or when video is playing
+    if (currentItem?.type === 'image' && !lightboxVideoPlaying) {
+        setZoomLevel(prev => prev === 1 ? 2 : 1);
     }
   };
 
@@ -648,7 +636,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   return (
     <div className={styles.container} ref={containerRef}>
       {isAdmin && adminMode && (
-          <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ position: 'fixed', top: '145px', left: '133px', zIndex: lightboxOpen ? 0 : 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button 
                 onClick={openAddModal} 
                 className={styles.addBtn}
@@ -725,16 +713,24 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
         <div className={styles.blogSection}>
             {isAdmin && adminMode && (
                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-                    <button 
+                    <button
                         className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
-                        onClick={() => {
+                        onClick={async () => {
                             if (isBlogEditing) {
-                                saveBlogContent();
+                                try {
+                                    await saveBlogContent();
+                                    setIsBlogEditing(false);
+                                } catch (error) {
+                                    // Keep edit mode open on error
+                                    return;
+                                }
+                            } else {
+                                setIsBlogEditing(true);
                             }
-                            setIsBlogEditing(!isBlogEditing);
                         }}
+                        disabled={isSavingBlog}
                     >
-                        {isBlogEditing ? 'Done' : 'Edit'}
+                        {isSavingBlog ? 'Saving...' : (isBlogEditing ? 'Done' : 'Edit')}
                     </button>
                  </div>
             )}
@@ -769,23 +765,26 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
              </div>
         </div>
         
-        <div className={styles.prevBtn} onClick={prevItem} role="button" aria-label="Previous image">
-            <span className={styles.arrowLeft}></span>
-        </div>
-        
-        <div 
-            className={styles.lightboxImageWrapper} 
-            style={{ 
-                transform: (currentItem?.type === 'image' || currentItem?.type === 'video') ? `scale(${zoomLevel})` : 'none', 
-                cursor: (currentItem?.type === 'image' || currentItem?.type === 'video') ? (zoomLevel === 1 ? 'zoom-in' : 'zoom-out') : 'default',
+        <div
+            className={styles.lightboxImageWrapper}
+            style={{
+                transform: (currentItem?.type === 'image' && !lightboxVideoPlaying) ? `scale(${zoomLevel})` : 'none',
+                cursor: (currentItem?.type === 'image' && !lightboxVideoPlaying) ? (zoomLevel === 1 ? 'zoom-in' : 'zoom-out') : 'default',
                 display: 'flex',
                 justifyContent: 'center',
-                alignItems: 'center',
-                width: '100%',
-                height: '100%'
+                alignItems: 'center'
             }}
             onClick={handleZoom}
         >
+            <div 
+                className={styles.prevBtn} 
+                onClick={prevItem} 
+                role="button" 
+                aria-label="Previous image"
+                style={{ transform: `translateY(-50%) scale(${1/zoomLevel})` }}
+            >
+                <span className={styles.arrowLeft}></span>
+            </div>
             {currentItem && (
                 currentItem.type === 'text' ? (
                  <div 
@@ -816,33 +815,82 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                     // Image or Video
                     currentItem.src ? (
                         <>
-                            <Image
-                                src={currentItem.src}
-                                alt={currentItem.alt || "Lightbox Image"}
-                                width={currentItem.width}
-                                height={currentItem.height}
-                                className={styles.lightboxImage}
-                                unoptimized
-                            />
-                            {currentItem.type === 'video' && (
-                                <a 
-                                    href={`https://www.youtube.com/watch?v=${currentItem.videoId}`} 
-                                    target="_blank" 
-                                    rel="noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{
-                                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                                        width: '80px', height: '80px', background: 'rgba(255,0,0,0.8)', borderRadius: '50%',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
-                                        textDecoration: 'none'
-                                    }}
-                                >
-                                    <div style={{
-                                        width: 0, height: 0, 
-                                        borderTop: '15px solid transparent', borderBottom: '15px solid transparent',
-                                        borderLeft: '25px solid white', marginLeft: '5px'
-                                    }} />
-                                </a>
+                            {currentItem.type === 'video' && lightboxVideoPlaying ? (
+                                // Show YouTube iframe when playing
+                                <>
+                                    <iframe
+                                        src={`https://www.youtube.com/embed/${currentItem.videoId}?autoplay=1`}
+                                        style={{
+                                            width: '90vw',
+                                            height: '90vh',
+                                            maxWidth: '1600px',
+                                            maxHeight: '900px',
+                                            border: 'none'
+                                        }}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                    {/* Close button to stop video */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setLightboxVideoPlaying(false);
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '20px',
+                                            right: '20px',
+                                            width: '40px',
+                                            height: '40px',
+                                            background: 'rgba(0, 0, 0, 0.7)',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '24px',
+                                            zIndex: 20
+                                        }}
+                                        title="Stop video"
+                                    >
+                                        ×
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Image
+                                        src={currentItem.src}
+                                        alt={currentItem.alt || "Lightbox Image"}
+                                        width={currentItem.width}
+                                        height={currentItem.height}
+                                        className={styles.lightboxImage}
+                                        unoptimized
+                                    />
+                                    {currentItem.type === 'video' && !lightboxVideoPlaying && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setLightboxVideoPlaying(true);
+                                            }}
+                                            style={{
+                                                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                                                width: '80px', height: '80px', background: 'rgba(255,0,0,0.8)', borderRadius: '50%',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+                                                border: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                            title="Play video"
+                                        >
+                                            <div style={{
+                                                width: 0, height: 0,
+                                                borderTop: '15px solid transparent', borderBottom: '15px solid transparent',
+                                                borderLeft: '25px solid white', marginLeft: '5px'
+                                            }} />
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </>
                     ) : (
@@ -850,10 +898,15 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
                     )
                 )
             )}
-        </div>
-
-        <div className={styles.nextBtn} onClick={nextItem} role="button" aria-label="Next image">
-            <span className={styles.arrowRight}></span>
+            <div 
+                className={styles.nextBtn} 
+                onClick={nextItem} 
+                role="button" 
+                aria-label="Next image"
+                style={{ transform: `translateY(-50%) scale(${1/zoomLevel})` }}
+            >
+                <span className={styles.arrowRight}></span>
+            </div>
         </div>
 
         <div className={styles.thumbnailStrip} onClick={(e) => e.stopPropagation()}>
