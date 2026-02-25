@@ -22,15 +22,20 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ProjectProviderProps {
+  children: ReactNode;
+  initialProjects?: Project[];
+}
+
+export function ProjectProvider({ children, initialProjects = [] }: ProjectProviderProps) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [loading, setLoading] = useState(false); // Start with false if we have initial data
   const [error, setError] = useState<string | null>(null);
   const { isAdmin } = useAdmin();
-  
+
   // Undo/Redo history
-  const [history, setHistory] = useState<Project[][]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [history, setHistory] = useState<Project[][]>([initialProjects]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
   const clearError = () => setError(null);
 
@@ -54,7 +59,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchProjects();
+    // Only fetch if we don't have initial data
+    if (initialProjects.length === 0) {
+      fetchProjects();
+    }
   }, []);
 
   const addToHistory = (newProjects: Project[]) => {

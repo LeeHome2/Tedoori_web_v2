@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { AdminProvider } from "@/context/AdminContext";
-import { ProjectProvider } from "@/context/ProjectContext";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"], // 300 is Light
+  weight: ["400", "700"], // Reduced font weights for faster loading
   variable: "--font-noto-sans-kr",
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -24,9 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={notoSansKr.className}>
         <AdminProvider>
-          <ProjectProvider>
-            {children}
-          </ProjectProvider>
+          {children}
         </AdminProvider>
       </body>
     </html>

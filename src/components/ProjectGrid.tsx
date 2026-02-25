@@ -224,7 +224,7 @@ export default function ProjectGrid() {
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const formData = new FormData(e.currentTarget);
-      
+
       // Use state imageUrl instead of formData if available
       const currentImageUrl = imageUrl || formData.get('imageUrl')?.toString() || '';
 
@@ -265,7 +265,7 @@ export default function ProjectGrid() {
 
           // Ensure projectData has all required fields for update
           const updatedProject = { ...editingProject, ...projectData };
-          
+
           if (originalId !== newId) {
               await updateProject(updatedProject, originalId);
           } else {
@@ -282,7 +282,8 @@ export default function ProjectGrid() {
       closeModal();
   };
 
-  if (loading) return <div>Loading...</div>;
+  // Only show loading if we have no projects and loading is true
+  if (loading && projects.length === 0) return <div style={{ padding: '100px 20px', textAlign: 'center', color: '#999' }}>Loading...</div>;
 
   return (
     <>

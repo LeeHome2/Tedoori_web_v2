@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { getProjectById, getProjects } from "@/lib/db";
-import ProjectDetailHeader from "@/components/ProjectDetailHeader";
-import ProjectDetail from "@/components/ProjectDetail";
+import ProjetClient from "@/components/ProjetClient";
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 interface PageProps {
   params: Promise<{
@@ -79,13 +78,11 @@ export default async function ProjectPage({ params }: PageProps) {
   const nextProject = projectIndex !== -1 ? getNextProject(projectIndex, projects) : null;
 
   return (
-    <main>
-      <ProjectDetailHeader
-        currentProject={project}
-        prevProject={prevProject}
-        nextProject={nextProject}
-      />
-      <ProjectDetail project={project} />
-    </main>
+    <ProjetClient
+      initialProjects={projects}
+      currentProject={project}
+      prevProject={prevProject}
+      nextProject={nextProject}
+    />
   );
 }
