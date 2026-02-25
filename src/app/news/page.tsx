@@ -167,7 +167,7 @@ export default function NewsPage() {
       <Header />
 
       {isAdmin && adminMode && (
-        <div style={{ position: 'fixed', top: '145px', left: '133px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             onClick={startAddingNew}
             className={styles.addBtn}

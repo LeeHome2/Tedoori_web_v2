@@ -636,7 +636,7 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   return (
     <div className={styles.container} ref={containerRef}>
       {isAdmin && adminMode && (
-          <div style={{ position: 'fixed', top: '145px', left: '133px', zIndex: lightboxOpen ? 0 : 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: lightboxOpen ? 0 : 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button 
                 onClick={openAddModal} 
                 className={styles.addBtn}
