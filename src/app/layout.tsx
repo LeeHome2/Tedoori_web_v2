@@ -5,9 +5,12 @@ import { AdminProvider } from "@/context/AdminContext";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
-  weight: ["400", "700"], // Reduced font weights for faster loading
+  weight: ["300", "400", "700"], // Added 300 for body font-weight
   variable: "--font-noto-sans-kr",
   display: 'swap',
+  preload: true,
+  adjustFontFallback: true,
+  fallback: ['Apple SD Gothic Neo', 'Malgun Gothic', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
@@ -21,7 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
+      <head>
+        <link rel="dns-prefetch" href="https://iieabdeguunlnvqyhrwm.supabase.co" />
+        <link rel="preconnect" href="https://iieabdeguunlnvqyhrwm.supabase.co" crossOrigin="anonymous" />
+      </head>
       <body className={notoSansKr.className}>
         <AdminProvider>
           {children}

@@ -8,7 +8,7 @@ export default async function Home() {
   const supabase = createAdminClient();
   const { data: projects } = await supabase
     .from('projects')
-    .select('*')
+    .select('id, title, slug, imageUrl, link, showId, showTitle, hasDetailLink, type, videoId, content, memoStyle, isVisible, cardWidth, cardHeight, lockedAspectRatio, order')
     .order('order', { ascending: true });
 
   return <HomeClient initialProjects={projects || []} />;
