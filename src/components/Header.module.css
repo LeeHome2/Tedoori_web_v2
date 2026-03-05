@@ -159,3 +159,42 @@
   font-size: 0.8em;
   color: #666;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .header {
+    padding: 20px;
+    padding-right: 20px;
+    top: 5px;
+    left: 10px;
+  }
+
+  .leftGroup {
+    margin-left: 0; /* Reset margin on mobile */
+  }
+
+  .rightGroup {
+    margin-right: 0; /* Reset margin on mobile */
+  }
+
+  .aboutLink {
+    margin-right: 30px; /* Reduce spacing on mobile */
+    margin-top: 25px;
+  }
+
+  .menuTrigger {
+    margin-top: 25px;
+  }
+
+  .menuNav {
+    right: 0; /* Align with right edge on mobile */
+  }
+
+  .menuText {
+    font-size: 13pt; /* Slightly smaller on mobile */
+  }
+
+  .menuList {
+    font-size: 13pt; /* Match menuText on mobile */
+  }
+}

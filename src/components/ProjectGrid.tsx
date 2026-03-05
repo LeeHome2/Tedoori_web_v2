@@ -15,6 +15,13 @@ export default function ProjectGrid() {
   const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fix hydration error - only enable DnD after client mount
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // Upload State
   const [imageUrl, setImageUrl] = useState('');
@@ -324,28 +331,41 @@ export default function ProjectGrid() {
           </div>
       )}
 
-      <DndContext 
-        sensors={sensors} 
-        collisionDetection={closestCenter} 
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext 
-          items={projects.map(p => p.id)} 
-          strategy={rectSortingStrategy}
-          disabled={!adminMode} // Disable sorting if not in admin mode
+      {isMounted ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
-          <div className={styles.grid}>
-            {projects.map((project, index) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onEdit={openEditModal}
-                priority={index < 8} // First 8 cards for faster initial load
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+          <SortableContext
+            items={projects.map(p => p.id)}
+            strategy={rectSortingStrategy}
+            disabled={!adminMode} // Disable sorting if not in admin mode
+          >
+            <div className={styles.grid}>
+              {projects.map((project, index) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onEdit={openEditModal}
+                  priority={index < 8} // First 8 cards for faster initial load
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <div className={styles.grid}>
+          {projects.map((project, index) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onEdit={openEditModal}
+              priority={index < 8} // First 8 cards for faster initial load
+            />
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
