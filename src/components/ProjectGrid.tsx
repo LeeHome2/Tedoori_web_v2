@@ -282,8 +282,10 @@ export default function ProjectGrid() {
       closeModal();
   };
 
-  // Only show loading if we have no projects and loading is true
-  if (loading && projects.length === 0) return <div style={{ padding: '100px 20px', textAlign: 'center', color: '#999' }}>Loading...</div>;
+  // Show loading only if we truly have no projects and are loading
+  if (loading && projects.length === 0) {
+    return null; // Show nothing instead of "Loading..." for instant feel
+  }
 
   return (
     <>
@@ -338,7 +340,7 @@ export default function ProjectGrid() {
                 key={project.id}
                 project={project}
                 onEdit={openEditModal}
-                priority={index < 4} // First 4 cards are above-the-fold
+                priority={index < 8} // First 8 cards for faster initial load
               />
             ))}
           </div>

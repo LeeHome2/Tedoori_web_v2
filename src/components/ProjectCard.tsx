@@ -320,8 +320,9 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                   className={styles.image}
                   loading={priority ? "eager" : "lazy"}
                   priority={priority}
-                  quality={priority ? 85 : 75}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
+                  quality={priority ? 90 : 80}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  placeholder="empty"
               />
           ) : (
               <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />

@@ -2,17 +2,19 @@
   margin-bottom: 20px; /* Add bottom margin to prevent overlap with next row */
   display: block;
   position: relative; /* Added for absolute positioning of admin overlay */
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 0.2s ease-out;
   flex: 1 1 220px; /* Flex-grow, Flex-shrink, Flex-basis */
   min-width: 220px;
   max-width: 100%;
   transition: width 0.3s ease, height 0.3s ease, flex-grow 0.3s ease; /* Smooth resize transition */
   padding-bottom: 30px; /* Reserve space for overlayInfo if needed, or rely on margin */
+  will-change: transform;
+  content-visibility: auto;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .imageWrapper {
@@ -25,7 +27,7 @@
   width: 100%;
   height: auto;
   display: block;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .card:hover .image {
