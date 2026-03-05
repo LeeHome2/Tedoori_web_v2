@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
 import styles from "./essays.module.css";
+import DOMPurify from 'dompurify';
 
 interface Essay {
   id: string;
@@ -279,7 +280,7 @@ export default function EssaysPage() {
                         {expandedId === essay.id && (
                           <div
                             style={{ color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap' }}
-                            dangerouslySetInnerHTML={{ __html: essay.content }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(essay.content) }}
                           />
                         )}
                       </>

@@ -20,23 +20,48 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
   }
 
-  // Validation
+  // Validation: File type check
   const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   if (!validTypes.includes(file.type)) {
     return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
   }
 
-  if (file.size > 10 * 1024 * 1024) { // 10MB
+  // Validation: File extension whitelist
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+  const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+  if (!validExtensions.includes(fileExtension)) {
+    return NextResponse.json({ error: 'Invalid file extension' }, { status: 400 });
+  }
+
+  // Validation: File size (10MB max)
+  if (file.size > 10 * 1024 * 1024) {
     return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
   }
 
   try {
     const supabase = createAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Normalize filename to avoid invalid characters (only alphanumeric, dashes, dots)
-    const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '');
-    const filename = `${Date.now()}-${sanitizedFilename}`;
+
+    // Validation: Check file magic bytes (first few bytes to verify actual file type)
+    const magicBytes = buffer.slice(0, 4).toString('hex');
+    const validMagicBytes: { [key: string]: string[] } = {
+      'image/jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'],
+      'image/png': ['89504e47'],
+      'image/gif': ['47494638'],
+      'image/webp': ['52494646'] // RIFF header
+    };
+
+    const isValidMagicByte = validMagicBytes[file.type]?.some(magic =>
+      magicBytes.startsWith(magic)
+    );
+
+    if (!isValidMagicByte) {
+      return NextResponse.json({ error: 'File content does not match declared type' }, { status: 400 });
+    }
+
+    // Generate secure filename using timestamp and random string
+    const randomStr = Math.random().toString(36).substring(2, 15);
+    const filename = `${Date.now()}-${randomStr}${fileExtension}`;
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage

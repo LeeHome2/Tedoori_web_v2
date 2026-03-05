@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
 import styles from "./news.module.css";
+import DOMPurify from 'dompurify';
 
 interface NewsItem {
   id: string;
@@ -280,7 +281,7 @@ export default function NewsPage() {
                         {expandedId === news.id && (
                           <div
                             style={{ color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap' }}
-                            dangerouslySetInnerHTML={{ __html: news.content }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(news.content) }}
                           />
                         )}
                       </>

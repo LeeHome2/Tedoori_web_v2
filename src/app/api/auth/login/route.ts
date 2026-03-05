@@ -17,8 +17,11 @@ export async function POST(request: Request) {
     });
   };
 
-  // 1. Simple hardcoded check
-  if (username === 'admin' && password === 'admin') {
+  // 1. Environment variable check (fallback for simple auth)
+  const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+  if (ADMIN_USERNAME && ADMIN_PASSWORD && username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     setAdminCookie();
     return NextResponse.json({ success: true });
   }
