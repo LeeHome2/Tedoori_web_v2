@@ -222,21 +222,22 @@ export async function PUT(request: Request) {
 
   // Check if it's a reorder operation (array of projects)
   if (Array.isArray(body)) {
-    // Batch update display orders
+    // Batch update display orders using PostgreSQL RPC function
+    // This replaces N+1 queries (100 updates for 100 projects) with a single batch operation
     const updates = body.map((project: Project, index: number) => ({
       id: project.id,
       display_order: index,
     }));
 
-    for (const update of updates) {
-      const { error } = await supabase
-        .from('projects')
-        .update({ display_order: update.display_order })
-        .eq('id', update.id);
+    // Call the batch update RPC function
+    const { error } = await supabase
+      .rpc('batch_update_project_orders', {
+        project_data: updates
+      });
 
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
+    if (error) {
+      console.error('[Batch Update Error]', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

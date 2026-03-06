@@ -49,3 +49,20 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# supabase
+/supabase/.temp/
+
+# temporary scripts and files
+check-*.js
+setup-*.js
+restore-*.js
+show-*.js
+find-*.js
+open-*.js
+create-*.js
+test-*.js
+apply-*.js
+temp-*.html
+file_list.txt
+project_structure.txt
