@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styles from './ProjectCard.module.css';
@@ -33,7 +34,8 @@ function getVisibilityLabel(visibility: string): string {
 export default function ProjectCard({ project, onEdit, priority = false }: ProjectCardProps) {
   const { isAdmin, adminMode } = useAdmin();
   const { updateProject } = useProjects();
-  
+  const router = useRouter();
+
   // Resize State
   const [isResizing, setIsResizing] = useState(false);
   const [lockedRatio, setLockedRatio] = useState(!!project.lockedAspectRatio);
@@ -188,13 +190,15 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
 
   const handleResizeSave = async () => {
       if (confirm("Save new size settings?")) {
-          await updateProject({ 
-              ...project, 
-              cardWidth: dimensions.width, 
+          await updateProject({
+              ...project,
+              cardWidth: dimensions.width,
               cardHeight: dimensions.height,
               lockedAspectRatio: lockedRatio
           });
           setIsResizing(false);
+          // Refresh to get latest data from server and bypass cache
+          router.refresh();
       }
   };
 

@@ -1,13 +1,18 @@
 import HomeClient from "@/components/HomeClient";
 import { createAdminClient } from "@/lib/supabase/server";
+import { cookies } from 'next/headers';
 
-// Aggressive caching with ISR for better performance
-export const revalidate = 300; // Cache for 5 minutes
-export const dynamic = 'force-static';
+// Note: Caching is conditionally disabled for admin users to ensure fresh data
+// For regular users, ISR provides better performance
+export const revalidate = 60; // Reduced to 1 minute for faster updates
 export const dynamicParams = true;
-export const fetchCache = 'force-cache';
 
 export default async function Home() {
+  // Check if user is admin - if so, fetch fresh data
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get('admin_token');
+  const isAdmin = adminToken?.value === 'authenticated';
+
   // Fetch projects on the server with optimized query
   const supabase = createAdminClient();
 
