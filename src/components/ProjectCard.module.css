@@ -221,6 +221,7 @@
 .resizing {
     outline: 2px dashed #000;
     z-index: 50;
+    overflow: visible !important;
 }
 
 .resizeHandle {
@@ -239,18 +240,19 @@
 
 .resizeOverlay {
     position: absolute;
-    bottom: -50px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     background: white;
-    padding: 10px;
+    padding: 12px;
     border-radius: 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-width: 200px;
+    border: 2px solid black;
 }
 
 .resizeControlsRow {
