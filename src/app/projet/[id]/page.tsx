@@ -19,14 +19,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!project) {
     return {
-      title: "프로젝트를 찾을 수 없습니다 | 테두리 건축사사무소",
+      title: "Project Not Found | Tedoori Architects",
     };
   }
 
-  const title = `${project.title} | 테두리 건축사사무소`;
+  const title = `${project.title} | Tedoori Architects`;
   const description = project.details?.program
     ? `${project.title} - ${project.details.program}`
-    : `테두리 건축사사무소의 ${project.title} 프로젝트`;
+    : `${project.title} project by Tedoori Architects`;
 
   return {
     title,
