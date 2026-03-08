@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProjectById, getProjects } from "@/lib/db";
 import ProjetClient from "@/components/ProjetClient";
+import type { Metadata } from "next";
 
 export const revalidate = 60;
 
@@ -8,6 +9,35 @@ interface PageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const decodedId = decodeURIComponent(id);
+
+  const project = await getProjectById(decodedId);
+
+  if (!project) {
+    return {
+      title: "프로젝트를 찾을 수 없습니다 | 테두리 건축사사무소",
+    };
+  }
+
+  const title = `${project.title} | 테두리 건축사사무소`;
+  const description = project.details?.program
+    ? `${project.title} - ${project.details.program}`
+    : `테두리 건축사사무소의 ${project.title} 프로젝트`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: project.imageUrl ? [{ url: project.imageUrl }] : [],
+      type: "website",
+    },
+  };
 }
 
 export default async function ProjectPage({ params }: PageProps) {

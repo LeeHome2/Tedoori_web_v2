@@ -14,11 +14,32 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "Tedoori - architectes",
-  description: "Tedoori - architectes",
+  title: "테두리 건축사사무소 | Tedoori - architectes",
+  description: "테두리 건축사사무소는 공간의 본질을 탐구하며 건축, 인테리어, 도시설계 프로젝트를 수행합니다. Tedoori architectes creates meaningful spaces through architecture, interior design, and urban planning.",
+  keywords: ["테두리", "테두리 건축", "테두리 건축사사무소", "건축사사무소", "건축", "인테리어", "도시설계", "Tedoori", "architectes", "architecture"],
+  authors: [{ name: "Tedoori" }],
+  creator: "Tedoori",
+  publisher: "Tedoori",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  openGraph: {
+    title: "테두리 건축사사무소 | Tedoori - architectes",
+    description: "테두리 건축사사무소는 공간의 본질을 탐구하며 건축, 인테리어, 도시설계 프로젝트를 수행합니다.",
+    url: "https://tedoori.net",
+    siteName: "Tedoori",
+    locale: "ko_KR",
+    type: "website",
+  },
   icons: {
     icon: '/favicon.png',
   },
+  metadataBase: new URL('https://tedoori.net'),
 };
 
 export default function RootLayout({
