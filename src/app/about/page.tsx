@@ -113,11 +113,10 @@ export default function AboutPage() {
   return (
     <main>
       <Header />
-      <div style={{ 
-        maxWidth: '800px', 
-        margin: '150px auto 100px', 
-        padding: '0 20px', 
-        fontFamily: 'Consolas, monospace',
+      <div style={{
+        maxWidth: '800px',
+        margin: '150px auto 100px',
+        padding: '0 20px',
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>

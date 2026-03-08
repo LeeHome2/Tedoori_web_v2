@@ -181,7 +181,6 @@ export default function EssaysPage() {
         maxWidth: '800px',
         margin: '150px auto 100px',
         padding: '0 20px',
-        fontFamily: 'Consolas, monospace',
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>
