@@ -120,7 +120,7 @@ export default function AboutPage() {
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold' }}>ABOUT</h1>
+        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', paddingLeft: '10px' }}>ABOUT</h1>
         
         {/* Intro Section */}
         <div 
@@ -217,7 +217,7 @@ export default function AboutPage() {
             onClick={() => !editingSection && handleEditStart('contact')}
             title={isAdmin && adminMode ? "Click to edit contact" : ""}
         >
-          <h2 style={{ fontSize: '18px', marginBottom: '20px', fontWeight: 'bold' }}>CONTACT</h2>
+          <h2 style={{ fontSize: '18px', marginBottom: '20px', fontWeight: 'bold', paddingLeft: '0' }}>CONTACT</h2>
           
           {editingSection === 'contact' ? (
                 <div onClick={e => e.stopPropagation()}>

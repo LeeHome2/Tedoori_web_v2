@@ -21,35 +21,20 @@
 
 .leftGroup {
     display: flex;
-    align-items: flex-end; /* Changed from flex-start to flex-end */
+    align-items: flex-end;
     gap: 20px;
     position: relative;
     z-index: 102;
-    margin-left: 83px; /* Align with add button (133px visual left: 20px header left + 30px padding + 83px margin) */
-}
-
-.logoWrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px; /* Space between logo and nav */
-}
-
-.projectNav {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 0px; /* Adjust bottom margin for better alignment */
-    margin-left: 20px; /* Space from logo */
-    font-size: 15pt; /* Set font size to 15pt */
+    margin-left: 83px;
 }
 
 .rightGroup {
     position: relative;
     z-index: 102;
     display: flex;
-    align-items: flex-end; /* Align items to the bottom */
-    margin-right: 170px; /* Align with blog section right edge (200px padding in ProjectDetail) */
+    align-items: flex-end;
+    gap: 50px;
+    margin-right: 170px;
 }
 
 .menuWrapper {
@@ -57,22 +42,6 @@
     padding-bottom: 0px; /* Fine-tune bottom alignment */
 }
 
-.aboutLink {
-    text-decoration: none;
-    color: var(--color-black);
-    margin-right: 50px; /* Changed back to 50px to match menuTrigger */
-    display: flex;
-    align-items: center;
-    height: 20px;
-    margin-top: 33px;
-    line-height: 1;
-    cursor: pointer;
-    padding-bottom: 3px; /* Fine-tune bottom alignment */
-}
-
-.aboutLink:hover {
-    text-decoration: underline;
-}
 
 .brand {
   font-weight: bold;
@@ -80,6 +49,7 @@
   margin-right: 0;
   display: block;
   line-height: 0;
+  margin-left: 30px;
 }
 
 .logoImage {
@@ -96,29 +66,23 @@
 
 @media (max-width: 768px) {
   .leftGroup {
-      flex-direction: column; /* Stack logo and nav vertically */
-      align-items: flex-start; /* Align to the left */
-      gap: 10px; /* Space between logo and nav */
-      margin-left: 0; /* Reset margin on mobile */
-  }
-
-  .projectNav {
-    position: static; /* Reset fixed position */
-    margin: 0;
-    margin-top: 5px;
-    margin-left: 0;
-  }
-  
-  .menuWrapper {
-    z-index: 1001; /* Ensure menu is above project nav */
-  }
-
-  .logoWrapper {
-    padding-bottom: 0;
+      margin-left: 0;
   }
 
   .rightGroup {
-      margin-right: 0; /* Reset margin on mobile */
+      margin-right: 0;
+  }
+
+  .menuWrapper {
+    z-index: 1001;
+  }
+
+  .menuTrigger {
+    margin-top: 25px;
+  }
+
+  .menuNav {
+    left: 0;
   }
 }
 
@@ -167,17 +131,15 @@
 .menuNav {
   position: absolute;
   top: 100%;
-  right: -10px; /* Align right edge with trigger - adjusted for padding */
-  left: auto; /* Reset left */
+  left: 0;
   opacity: 0;
-  transform: translate(0, -10px); /* Adjust transform */
-  /* transition removed for instant toggle */
+  transform: translate(0, -10px);
   pointer-events: none;
-  background: transparent; /* Changed from white to transparent */
-  padding: 10px;
+  background: transparent;
+  padding-top: 10px;
   min-width: 150px;
-  text-align: right; /* Right align text */
-  z-index: 9999; /* Maximize z-index to ensure it's on top of everything */
+  text-align: left;
+  z-index: 9999;
 }
 
 .menuNav.open {
@@ -191,18 +153,17 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  height: 20px; /* Align with other elements */
+  height: 20px;
   margin-top: 33px;
+  margin-right: 0;
   transition: opacity 0.2s ease;
   line-height: 1;
-  margin-right: 0; /* Remove margin to align perfectly with right edge */
 }
 
 .menuText {
-    font-weight: 300; /* Light weight */
-    text-transform: lowercase;
-    font-size: 15pt; /* Changed from 18pt to 15pt */
-    font-family: Consolas, monospace;
+    font-weight: 300;
+    text-transform: uppercase;
+    font-size: 18pt;
 }
 
 .menuTrigger:hover {
@@ -215,9 +176,8 @@
   margin: 0;
   padding: 0;
   margin-right: 0; /* Reset margin since container is aligned */
-  font-family: Consolas, monospace;
-  font-size: 15pt; /* Match menuText */
-  font-weight: 300; /* Match menuText */
+  font-size: 18pt; /* Match menuText */
+  font-weight: 300; /* Match menuText - Light */
 }
 
 .menuList li {
@@ -227,10 +187,17 @@
 .menuList a {
   text-decoration: none;
   color: var(--color-black);
+  text-transform: capitalize;
+  font-weight: 300;
 }
 
 .menuList a:hover {
-  text-decoration: none; /* Remove underline on hover */
+  text-decoration: none;
+}
+
+.menuList button {
+  text-transform: capitalize;
+  font-weight: 300;
 }
 
 .active {

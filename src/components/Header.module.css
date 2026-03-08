@@ -22,48 +22,33 @@
 /* Container for Logo */
 .leftGroup {
   display: flex;
-  align-items: flex-end; /* Changed from center to flex-end */
+  align-items: flex-end;
   gap: 20px;
   position: relative;
-  z-index: 102; /* Above menu */
-  margin-left: 83px; /* Align with add button (133px visual left: 20px header left + 30px padding + 83px margin) */
+  z-index: 102;
+  margin-left: 83px;
 }
 
 .rightGroup {
   position: relative;
   z-index: 102;
   display: flex;
-  align-items: flex-end; /* Align items to the bottom */
-  margin-right: 170px; /* Align with blog section right edge (ProjectDetailHeader matches this) */
+  align-items: flex-end;
+  gap: 50px;
+  margin-right: 170px;
 }
 
 .menuWrapper {
   position: relative;
 }
 
-.aboutLink {
-  text-decoration: none;
-  color: black;
-  margin-right: 20px;
-  display: flex;
-  align-items: center;
-  height: 20px;
-  margin-top: 33px; /* Matched with ProjectDetailHeader */
-  margin-right: 50px;
-  line-height: 1;
-  cursor: pointer;
-  padding-bottom: 3px; /* Fine-tune bottom alignment */
-}
-
-.aboutLink:hover {
-  text-decoration: underline;
-}
 
 .brand {
   font-weight: bold;
   text-transform: uppercase;
   display: block;
   line-height: 0;
+  margin-left: 30px;
 }
 
 .logoImage {
@@ -80,18 +65,16 @@
 
 .menuNav {
   position: absolute;
-  top: 100%; /* Below header */
-  right: -10px; /* Align right edge with trigger - adjusted for padding */
-  left: auto; /* Reset left */
+  top: 100%;
+  left: 0;
   opacity: 0;
-  transform: translate(0, -10px); /* Adjust transform */
-  /* transition removed for instant toggle */
+  transform: translate(0, -10px);
   pointer-events: none;
-  background: transparent; /* Changed from white to transparent */
-  padding: 10px;
+  background: transparent;
+  padding-top: 10px;
   min-width: 150px;
-  text-align: right; /* Right align text */
-  z-index: 9999; /* Maximize z-index to ensure it's on top of everything */
+  text-align: left;
+  z-index: 9999;
 }
 
 .menuNav.open {
@@ -106,17 +89,16 @@
   align-items: center;
   justify-content: flex-end;
   height: 20px;
-  margin-right: 0; /* Remove margin to align perfectly with right edge */
-  margin-top: 33px; /* Matched with ProjectDetailHeader */
+  margin-top: 33px;
+  margin-right: 0;
   transition: opacity 0.2s ease;
   line-height: 1;
 }
 
 .menuText {
-    font-weight: 300; /* Light weight */
-    text-transform: lowercase;
-
-    font-size: 15pt; /* Changed from 18pt to 15pt */
+    font-weight: 300;
+    text-transform: uppercase;
+    font-size: 18pt;
 }
 
 .menuTrigger:hover {
@@ -130,8 +112,8 @@
   padding: 0;
   margin-right: 0; /* Reset margin since container is aligned */
 
-  font-size: 15pt; /* Match menuText */
-  font-weight: 300; /* Match menuText */
+  font-size: 18pt; /* Match menuText */
+  font-weight: 300; /* Match menuText - Light */
 }
 
 .menuList li {
@@ -141,10 +123,17 @@
 .menuList a {
   text-decoration: none;
   color: black;
+  text-transform: capitalize;
+  font-weight: 300;
 }
 
 .menuList a:hover {
-  text-decoration: none; /* Remove underline on hover */
+  text-decoration: none;
+}
+
+.menuList button {
+  text-transform: capitalize;
+  font-weight: 300;
 }
 
 .active {
@@ -168,16 +157,11 @@
   }
 
   .leftGroup {
-    margin-left: 0; /* Reset margin on mobile */
+    margin-left: 0;
   }
 
   .rightGroup {
-    margin-right: 0; /* Reset margin on mobile */
-  }
-
-  .aboutLink {
-    margin-right: 30px; /* Reduce spacing on mobile */
-    margin-top: 25px;
+    margin-right: 0;
   }
 
   .menuTrigger {
@@ -185,7 +169,7 @@
   }
 
   .menuNav {
-    right: 0; /* Align with right edge on mobile */
+    left: 0;
   }
 
   .menuText {

@@ -168,7 +168,7 @@ export default function NewsPage() {
       <Header />
 
       {isAdmin && adminMode && (
-        <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: '150px', left: '163px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             onClick={startAddingNew}
             className={styles.addBtn}
@@ -185,12 +185,6 @@ export default function NewsPage() {
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px', fontSize: '14px', color: '#666' }}>
-          <span>works</span>
-          <span>/</span>
-          <span style={{ color: 'black', fontWeight: 'bold' }}>news</span>
-        </div>
-
         <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', textTransform: 'uppercase' }}>News</h1>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

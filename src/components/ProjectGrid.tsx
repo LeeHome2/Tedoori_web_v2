@@ -308,24 +308,24 @@ export default function ProjectGrid() {
       )}
 
       {isAdmin && (
-          <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div style={{ position: 'fixed', top: '150px', left: '163px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
               {adminMode && (
-                  <button onClick={openAddModal} 
-                    style={{ 
-                        padding: '0', 
-                        background: 'transparent', 
-                        border: 'none', 
-                        cursor: 'pointer', 
-                        width: '37px', // Changed from 40px to 37px
-                        height: '37px', // Changed from 40px to 37px
+                  <button onClick={openAddModal}
+                    style={{
+                        padding: '0',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        width: '36px',
+                        height: '36px',
                         position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                     }}
                   >
-                      <div style={{ position: 'absolute', width: '100%', height: '2px', backgroundColor: 'black' }} />
-                      <div style={{ position: 'absolute', width: '2px', height: '100%', backgroundColor: 'black' }} />
+                      <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: 'black' }} />
+                      <div style={{ position: 'absolute', width: '1px', height: '100%', backgroundColor: 'black' }} />
                   </button>
               )}
           </div>

@@ -20,19 +20,16 @@ export default function ProjectDetailHeader({
   prevProject,
   nextProject,
 }: ProjectDetailHeaderProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isTedooriOpen, setIsTedooriOpen] = useState(false);
+  const [isWorksOpen, setIsWorksOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { isAdmin, logout, adminMode, toggleAdminMode } = useAdmin();
   const pathname = usePathname();
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
   const handleLoginClick = (e: React.MouseEvent) => {
       e.preventDefault();
       setIsLoginModalOpen(true);
-      setIsOpen(false); // Close menu when opening modal
+      setIsTedooriOpen(false);
   };
 
   const getProjectHref = (project: Project) => {
@@ -44,105 +41,100 @@ export default function ProjectDetailHeader({
         <header className={styles.header}>
         <div className={styles.inner}>
             <div className={styles.leftGroup}>
-                <div className={styles.logoWrapper}>
-                    <Link href="/" className={styles.brand}>
-                        <Image 
-                          src="/logo.png" 
-                          alt="NP2F Logo" 
-                          width={120} 
-                          height={40} 
-                          className={styles.logoImage}
-                          priority
-                        />
-                    </Link>
-                </div>
-                
-                <div className={styles.projectNav}>
-                    {prevProject ? (
-                        <Link href={getProjectHref(prevProject)} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
-                            <span className={styles.arrowLeftSmall}></span>
-                        </Link>
-                    ) : (
-                        <span className={`${styles.navArrow} ${styles.disabled}`}>
-                            <span className={styles.arrowLeftSmall}></span>
-                        </span>
-                    )}
-                    
-                    <span className={styles.projectId}>{currentProject.id}</span>
-                    
-                    {nextProject ? (
-                        <Link href={getProjectHref(nextProject)} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
-                            <span className={styles.arrowRightSmall}></span>
-                        </Link>
-                    ) : (
-                        <span className={`${styles.navArrow} ${styles.disabled}`}>
-                            <span className={styles.arrowRightSmall}></span>
-                        </span>
-                    )}
-                </div>
+                <Link href="/" className={styles.brand}>
+                    <Image
+                      src="/logo.png"
+                      alt="NP2F Logo"
+                      width={120}
+                      height={40}
+                      className={styles.logoImage}
+                      priority
+                    />
+                </Link>
             </div>
 
             <div className={styles.rightGroup}>
-                <Link href="/about" className={styles.aboutLink}>
-                  <span className={styles.menuText}>about</span>
-                </Link>
-
-                <div 
-                    className={styles.menuWrapper}
-                    onMouseEnter={() => window.innerWidth >= 768 && setIsOpen(true)}
-                    onMouseLeave={() => window.innerWidth >= 768 && setIsOpen(false)}
-                    onClick={() => window.innerWidth < 768 && toggleMenu()}
+                {/* TEDOORI Dropdown */}
+                <div
+                  className={styles.menuWrapper}
+                  onMouseEnter={() => window.innerWidth >= 768 && setIsTedooriOpen(true)}
+                  onMouseLeave={() => window.innerWidth >= 768 && setIsTedooriOpen(false)}
+                  onClick={() => window.innerWidth < 768 && setIsTedooriOpen(!isTedooriOpen)}
                 >
-                    <div 
-                      className={styles.menuTrigger} 
-                      aria-expanded={isOpen}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <span className={styles.menuText}>works</span>
-                    </div>
+                  <div
+                    className={styles.menuTrigger}
+                    aria-expanded={isTedooriOpen}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span className={styles.menuText}>TEDOORI</span>
+                  </div>
 
-                    <nav className={`${styles.menuNav} ${isOpen ? styles.open : ""}`}>
+                  <nav className={`${styles.menuNav} ${isTedooriOpen ? styles.open : ""}`}>
                     <ul className={styles.menuList}>
-                  <li>
-                    <Link href="/" className={pathname === '/' ? styles.active : ''}>projects</Link>
-                  </li>
-                  <li>
-                    <Link href="/essays" className={pathname === '/essays' ? styles.active : ''}>essays</Link>
-                  </li>
-                  <li>
-                    <Link href="/news" className={pathname === '/news' ? styles.active : ''}>news</Link>
-                  </li>
-                    {isAdmin && (
+                      <li>
+                        <Link href="/about" className={pathname === '/about' ? styles.active : ''}>About</Link>
+                      </li>
+                      <li>
+                        <Link href="/news" className={pathname === '/news' ? styles.active : ''}>News</Link>
+                      </li>
+                      {isAdmin && (
                         <>
-                            <li>
-                                <button 
-                                    onClick={toggleAdminMode} 
-                                    style={{ 
-                                        background: 'none', 
-                                        border: 'none', 
-                                        font: 'inherit', 
-                                        cursor: 'pointer', 
-                                        textDecoration: 'none',
-                                        fontWeight: 'normal',
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
-                                    {adminMode ? 'admin: on' : 'admin: off'}
-                                </button>
-                            </li>
-                            <li>
-                                <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>logout</button>
-                            </li>
+                          <li>
+                            <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>Logout</button>
+                          </li>
+                          <li>
+                            <button
+                              onClick={toggleAdminMode}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                font: 'inherit',
+                                cursor: 'pointer',
+                                textDecoration: 'none',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {adminMode ? 'Admin: on' : 'Admin: off'}
+                            </button>
+                          </li>
                         </>
-                    )}
-                    {!isAdmin && (
+                      )}
+                      {!isAdmin && (
                         <li>
-                            <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>login</button>
+                          <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>Login</button>
                         </li>
-                    )}
+                      )}
                     </ul>
-                    </nav>
+                  </nav>
+                </div>
+
+                {/* WORKS Dropdown */}
+                <div
+                  className={styles.menuWrapper}
+                  onMouseEnter={() => window.innerWidth >= 768 && setIsWorksOpen(true)}
+                  onMouseLeave={() => window.innerWidth >= 768 && setIsWorksOpen(false)}
+                  onClick={() => window.innerWidth < 768 && setIsWorksOpen(!isWorksOpen)}
+                >
+                  <div
+                    className={styles.menuTrigger}
+                    aria-expanded={isWorksOpen}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <span className={styles.menuText}>WORKS</span>
+                  </div>
+
+                  <nav className={`${styles.menuNav} ${isWorksOpen ? styles.open : ""}`}>
+                    <ul className={styles.menuList}>
+                      <li>
+                        <Link href="/" className={pathname === '/' ? styles.active : ''}>Projects</Link>
+                      </li>
+                      <li>
+                        <Link href="/essays" className={pathname === '/essays' ? styles.active : ''}>Essays</Link>
+                      </li>
+                    </ul>
+                  </nav>
                 </div>
             </div>
         </div>

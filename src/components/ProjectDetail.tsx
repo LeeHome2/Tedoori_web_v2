@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef, useId } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Project, GalleryItem, ContentBlock, MemoStyle } from "@/data/projects";
 import styles from "./ProjectDetail.module.css";
 import { useAdmin } from "@/context/AdminContext";
@@ -13,9 +14,11 @@ import BlogEditor from "./BlogEditor";
 
 interface ProjectDetailProps {
   project: Project;
+  prevProject: Project | null;
+  nextProject: Project | null;
 }
 
-export default function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
+export default function ProjectDetail({ project: initialProject, prevProject, nextProject }: ProjectDetailProps) {
   // Generate a unique ID for DndContext to avoid hydration mismatches
   const dndContextId = useId();
   
@@ -97,16 +100,27 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   };
 
   // Resizable Pane State
-  const [leftPaneWidth, setLeftPaneWidth] = useState(project.galleryWidthRatio || 70); // Default Gallery 70% or saved value
+  const [leftPaneWidth, setLeftPaneWidth] = useState(() => {
+    // Try to load from localStorage first (for non-admin users)
+    if (typeof window !== 'undefined') {
+      const localWidth = localStorage.getItem(`projectWidth_${project.id}`);
+      if (localWidth) {
+        return parseFloat(localWidth);
+      }
+    }
+    // Otherwise use admin-set width or default
+    return project.galleryWidthRatio || 70;
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
-  
+
   // Update leftPaneWidth if project data changes (e.g. initial load or external update)
+  // Only update if no local override exists or if in admin mode
   useEffect(() => {
-    if (project.galleryWidthRatio) {
+    if (project.galleryWidthRatio && (isAdmin && adminMode)) {
         setLeftPaneWidth(project.galleryWidthRatio);
     }
-  }, [project.galleryWidthRatio]);
+  }, [project.galleryWidthRatio, isAdmin, adminMode]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
@@ -139,11 +153,16 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
 
-      // Save to DB
-      if (project.id) {
+      // Save to DB only if admin and in edit mode
+      if (isAdmin && adminMode && isBlogEditing && project.id) {
           await updateProject({ ...project, galleryWidthRatio: currentWidthRef.current });
+      } else {
+          // For non-admin users, save to localStorage only
+          if (typeof window !== 'undefined' && project.id) {
+              localStorage.setItem(`projectWidth_${project.id}`, currentWidthRef.current.toString());
+          }
       }
-  }, [project, updateProject, handleMouseMove]); // Dependencies needed for updateProject and project.id
+  }, [project, updateProject, handleMouseMove, isAdmin, adminMode, isBlogEditing]);
 
   const startResizingEnhanced = useCallback(() => {
     isResizing.current = true;
@@ -636,9 +655,9 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
   return (
     <div className={styles.container} ref={containerRef}>
       {isAdmin && adminMode && (
-          <div style={{ position: 'fixed', top: '150px', left: '175px', zIndex: lightboxOpen ? 0 : 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button 
-                onClick={openAddModal} 
+          <div style={{ position: 'fixed', top: '150px', left: '163px', zIndex: lightboxOpen ? 0 : 1999, display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                onClick={openAddModal}
                 className={styles.addBtn}
                 aria-label="십자 버튼"
                 >
@@ -692,59 +711,81 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       {/* Resizer Handle */}
       <div
         className={styles.resizer}
-        style={{ cursor: (isAdmin && adminMode && isBlogEditing) ? 'ew-resize' : 'default' }}
+        style={{ cursor: 'ew-resize' }}
         onMouseDown={(e) => {
-            if (isAdmin && adminMode && isBlogEditing) {
-                startResizingEnhanced(); // Use the enhanced version that saves
-            } else {
-                e.preventDefault();
-            }
+            startResizingEnhanced();
         }}
       >
-        <div className={styles.resizerHandleIcon} style={{ opacity: (isAdmin && adminMode && isBlogEditing) ? 1 : 0 }} />
+        <div className={styles.resizerHandleIcon} />
       </div>
 
       {/* Right Pane: Blog Section */}
-      <div 
-        className={styles.infoColumn} 
+      <div
+        className={styles.infoColumn}
         style={{ width: isDesktop ? `${100 - leftPaneWidth}%` : '100%', flexShrink: 0 }}
       >
+        {/* Project Navigation with Edit Button */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div className={styles.projectNav}>
+                {prevProject ? (
+                    <Link href={prevProject.link || `/projet/${prevProject.id}`} className={styles.navArrow} title={`Previous: ${prevProject.title}`}>
+                        &lt;
+                    </Link>
+                ) : (
+                    <span className={`${styles.navArrow} ${styles.disabled}`}>
+                        &lt;
+                    </span>
+                )}
+
+                <span className={styles.projectId}>{project.id}</span>
+
+                {nextProject ? (
+                    <Link href={nextProject.link || `/projet/${nextProject.id}`} className={styles.navArrow} title={`Next: ${nextProject.title}`}>
+                        &gt;
+                    </Link>
+                ) : (
+                    <span className={`${styles.navArrow} ${styles.disabled}`}>
+                        &gt;
+                    </span>
+                )}
+            </div>
+
+            {isAdmin && adminMode && (
+                <button
+                    className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
+                    onClick={async () => {
+                        if (isBlogEditing) {
+                            try {
+                                await saveBlogContent();
+                                setIsBlogEditing(false);
+                            } catch (error) {
+                                // Keep edit mode open on error
+                                return;
+                            }
+                        } else {
+                            setIsBlogEditing(true);
+                        }
+                    }}
+                    disabled={isSavingBlog}
+                >
+                    {isSavingBlog ? 'Saving...' : (isBlogEditing ? 'Done' : 'Edit')}
+                </button>
+            )}
+        </div>
+
         {/* Blog Section: Scrollable */}
         <div className={styles.blogSection}>
-            {isAdmin && adminMode && (
-                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-                    <button
-                        className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
-                        onClick={async () => {
-                            if (isBlogEditing) {
-                                try {
-                                    await saveBlogContent();
-                                    setIsBlogEditing(false);
-                                } catch (error) {
-                                    // Keep edit mode open on error
-                                    return;
-                                }
-                            } else {
-                                setIsBlogEditing(true);
-                            }
-                        }}
-                        disabled={isSavingBlog}
-                    >
-                        {isSavingBlog ? 'Saving...' : (isBlogEditing ? 'Done' : 'Edit')}
-                    </button>
-                 </div>
-            )}
             {isAdmin && adminMode && isBlogEditing ? (
-                <BlogEditor 
-                    content={blogHtml} 
-                    editable={true} 
-                    onChange={handleBlogChange} 
+                <BlogEditor
+                    content={blogHtml}
+                    editable={true}
+                    onChange={handleBlogChange}
                     projectId={project.id}
                 />
             ) : (
-                <div 
+                <div
                     className={styles.blogContent}
-                    dangerouslySetInnerHTML={{ __html: blogHtml || '<p>No content yet.</p>' }} 
+                    dangerouslySetInnerHTML={{ __html: blogHtml || '<p>No content yet.</p>' }}
                 />
             )}
         </div>
@@ -760,8 +801,8 @@ export default function ProjectDetail({ project: initialProject }: ProjectDetail
       >
         <div className={styles.closeBtn} onClick={closeLightbox} role="button" aria-label="Close gallery">
              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(45deg)' }}></span>
-                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(-45deg)' }}></span>
+                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(45deg)' }}></span>
+                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(-45deg)' }}></span>
              </div>
         </div>
         

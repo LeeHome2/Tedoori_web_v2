@@ -1,10 +1,15 @@
 .container {
   display: flex;
   flex-direction: column; /* Mobile: Column layout */
-  padding-top: 80px;
   animation: fadeIn 0.5s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 100vh; /* Full viewport height */
   overflow: hidden; /* Hide outer scroll */
+  background: transparent;
+  z-index: 1; /* Below header (2000) */
 }
 
 @keyframes fadeIn {
@@ -17,53 +22,63 @@
     flex-direction: row; /* Desktop: Row layout (Split Pane) */
     align-items: stretch;
     margin-left: 180px; /* Logo width 120px + gap 50px */
-    padding-top: 150px;
     padding-right: 200px;
     padding-bottom: 20px;
+  }
+
+  .imageColumn,
+  .infoColumn {
+    padding-top: 150px;
   }
 }
 
 @media (max-width: 768px) {
   .container {
     margin-left: 0;
-    padding-top: 150px;
     flex-direction: column-reverse;
     justify-content: flex-end;
-    overflow: visible; /* Allow scrolling */
-    height: auto; /* Let content dictate height */
+    overflow: visible; /* Allow scrolling on mobile */
+    height: auto; /* Let content dictate height on mobile */
+    position: relative; /* Remove fixed positioning on mobile */
   }
 
   .imageColumn {
-    flex-grow: 1; 
-    height: auto; 
+    flex-grow: 1;
     min-height: 300px;
-    overflow: visible; /* Show full gallery */
+    overflow: visible; /* Show full gallery on mobile */
+    height: auto;
+    padding-top: 150px;
   }
 
   .infoColumn {
-    height: auto;
     flex-shrink: 0;
     padding-bottom: 20px;
-    padding-top: 20px; /* Add top padding to infoColumn in mobile */
-    overflow: visible;
+    padding-top: 150px;
     border-bottom: 1px solid #eee; /* Added separator line */
     margin-bottom: 20px; /* Spacing after line */
-  }
-  
-  .blogSection {
-      overflow: visible; /* Show full blog content */
+    overflow: visible; /* Show full content on mobile */
+    height: auto;
   }
 }
 
 .infoColumn {
   padding: 0;
   padding-left: 20px;
+  padding-top: 150px; /* Top spacing matching imageColumn */
   position: relative;
   display: flex;
   flex-direction: column;
   height: 100%; /* Fill container height */
-  overflow: hidden;
-  background: white;
+  overflow-y: auto; /* Enable independent scroll */
+  background: transparent;
+  z-index: 1; /* Below header (2000) */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  box-sizing: border-box;
+}
+
+.infoColumn::-webkit-scrollbar {
+  display: none;
 }
 
 /* Blog Header */
@@ -105,20 +120,13 @@
     border-color: black;
 }
 
-/* Blog Section (Scrollable) */
+/* Blog Section */
 .blogSection {
   flex-grow: 1;
-  overflow-y: auto;
   padding-right: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px; /* Reduced gap */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.blogSection::-webkit-scrollbar {
-  display: none;
 }
 
 .blogContent {
@@ -250,8 +258,8 @@
     color: black;
     border: none;
     cursor: pointer;
-    width: 37px; /* Changed from 40px to 37px */
-    height: 37px; /* Changed from 40px to 37px */
+    width: 36px;
+    height: 36px;
     position: relative;
     display: flex;
     align-items: center;
@@ -315,6 +323,7 @@
   justify-content: center;
   flex-shrink: 0;
   margin-left: 80px; /* Added left margin */
+  align-self: stretch; /* Stretch to container height */
 }
 
 .resizer::after {
@@ -349,11 +358,14 @@
 
 .imageColumn {
   padding: 0;
+  padding-top: 150px; /* Top spacing for header clearance */
   height: 100%;
-  overflow-y: auto; /* Enable vertical scroll */
-  background: white;
+  overflow-y: auto; /* Enable independent scroll */
+  background: transparent;
+  z-index: 1; /* Below header (2000) */
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+  box-sizing: border-box;
 }
 
 .imageColumn::-webkit-scrollbar {
@@ -675,8 +687,8 @@
   right: 20px;
   cursor: pointer;
   z-index: 3001;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
 }
 
 .prevBtn,
@@ -685,8 +697,8 @@
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  width: 50px;
-  height: 50px;
+  width: 36px;
+  height: 36px;
   z-index: 3001;
   user-select: none;
   display: flex;
@@ -720,8 +732,8 @@
     display: block;
     width: 25px; /* Match closeBtn inner span width proportion */
     height: 25px;
-    border-top: 2px solid black;
-    border-left: 2px solid black;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
 }
 
 .arrowLeft {
@@ -849,4 +861,28 @@
 .saveBtn {
     background: black;
     color: white;
+}
+
+/* Project Navigation Styles */
+.projectNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15pt;
+}
+
+.navArrow {
+    text-decoration: none;
+    color: black;
+    font-size: 15pt;
+}
+
+.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.projectId {
+    font-weight: normal;
+    font-size: 15pt;
 }

@@ -48,7 +48,7 @@ export default function BackToTop() {
           points="1,18 18,2 35,18"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="1"
           strokeLinecap="square"
           strokeLinejoin="miter"
           shapeRendering="geometricPrecision"
