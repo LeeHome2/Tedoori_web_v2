@@ -115,9 +115,8 @@
 .menuText {
     font-weight: 300; /* Light weight */
     text-transform: lowercase;
-    
+
     font-size: 15pt; /* Changed from 18pt to 15pt */
-    font-family: Consolas, monospace;
 }
 
 .menuTrigger:hover {
@@ -131,7 +130,6 @@
   padding: 0;
   margin-right: 0; /* Reset margin since container is aligned */
 
-  font-family: Consolas, monospace;
   font-size: 15pt; /* Match menuText */
   font-weight: 300; /* Match menuText */
 }
