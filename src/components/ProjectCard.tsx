@@ -286,7 +286,8 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
   }, [project.content]);
 
   // If not admin mode and project is private, don't render
-  if (isAdmin && !adminMode && currentVisibility === 'private') {
+  // Hide private projects when: not logged in OR admin mode is off
+  if (currentVisibility === 'private' && (!isAdmin || !adminMode)) {
       return null;
   }
 

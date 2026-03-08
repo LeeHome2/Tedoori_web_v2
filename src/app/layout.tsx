@@ -16,6 +16,9 @@ const notoSansKr = Noto_Sans_KR({
 export const metadata: Metadata = {
   title: "Tedoori - architectes",
   description: "Tedoori - architectes",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

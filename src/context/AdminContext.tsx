@@ -121,7 +121,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-      // await fetch('/api/auth/logout', { method: 'POST' }); // Also clear simple auth cookie
+      await fetch('/api/auth/logout', { method: 'POST' }); // Also clear simple auth cookie
       router.push('/'); // Redirect to home instead of login
     } catch (error) {
       console.error('Logout failed', error);
