@@ -66,7 +66,7 @@ export default function Header() {
                   {isAdmin && (
                     <>
                       <li>
-                        <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>Logout</button>
+                        <button onClick={logout} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}>Logout</button>
                       </li>
                       <li>
                         <button
@@ -76,7 +76,6 @@ export default function Header() {
                             border: 'none',
                             font: 'inherit',
                             cursor: 'pointer',
-                            textDecoration: 'none',
                             whiteSpace: 'nowrap'
                           }}
                         >
@@ -87,7 +86,7 @@ export default function Header() {
                   )}
                   {!isAdmin && (
                     <li>
-                      <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer', textDecoration: 'none' }}>Login</button>
+                      <button onClick={handleLoginClick} style={{ background: 'none', border: 'none', font: 'inherit', cursor: 'pointer' }}>Login</button>
                     </li>
                   )}
                 </ul>
