@@ -28,10 +28,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
-      console.log('[AdminContext] Supabase user:', user ? 'AUTHENTICATED' : 'NOT AUTHENTICATED');
-
       if (user) {
-        console.log('[AdminContext] Setting isAdmin=true (Supabase)');
         setIsAdmin(true);
         // Restore admin mode from session storage if available
         const storedMode = sessionStorage.getItem('adminMode');
@@ -42,12 +39,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         // 2. Fallback: Check Simple Auth (admin_token)
         try {
           const res = await fetch('/api/auth/check');
-          console.log('[AdminContext] Auth check response:', res.status);
           if (res.ok) {
             const data = await res.json();
-            console.log('[AdminContext] Auth check data:', data);
             if (data.isAdmin) {
-              console.log('[AdminContext] Setting isAdmin=true (Cookie)');
               setIsAdmin(true);
               const storedMode = sessionStorage.getItem('adminMode');
               if (storedMode === 'true') {
@@ -56,19 +50,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
               return; // Successfully authenticated via Simple Auth
             }
           }
-        } catch (err) {
-          console.log('[AdminContext] Auth check error:', err);
+        } catch {
           // Ignore fetch errors
         }
 
         // If both failed
-        console.log('[AdminContext] Setting isAdmin=false (no auth)');
         setIsAdmin(false);
         setAdminMode(false); // Force disable admin mode if not authenticated
         sessionStorage.removeItem('adminMode');
       }
     } catch (error) {
-      console.error('[AdminContext] Auth check failed', error);
+      console.error('Auth check failed', error);
       setIsAdmin(false);
       setAdminMode(false);
     } finally {
@@ -132,17 +124,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    console.log('[AdminContext] Logout initiated');
     setIsAdmin(false);
     setAdminMode(false);
     sessionStorage.removeItem('adminMode');
     try {
       const supabase = createClient();
+      console.log('[AdminContext] Calling Supabase signOut');
       await supabase.auth.signOut();
-      await fetch('/api/auth/logout', { method: 'POST' }); // Also clear simple auth cookie
+      console.log('[AdminContext] Calling /api/auth/logout');
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      console.log('[AdminContext] Logout API response:', res.status);
       // Force reload to clear all state
+      console.log('[AdminContext] Reloading page');
       window.location.href = '/';
     } catch (error) {
-      console.error('Logout failed', error);
+      console.error('[AdminContext] Logout failed', error);
       window.location.href = '/'; // Force reload even on error
     }
   };
