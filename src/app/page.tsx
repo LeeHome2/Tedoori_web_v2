@@ -3,9 +3,9 @@ import { createAdminClient } from "@/lib/supabase/server";
 import type { ProjectRow } from "@/types/database";
 import type { Project } from "@/data/projects";
 
-// Note: Caching is conditionally disabled for admin users to ensure fresh data
-// For regular users, ISR provides better performance
-export const revalidate = 60; // Reduced to 1 minute for faster updates
+// Disable caching for fresh data on every request
+// Client-side handles caching via ProjectContext
+export const revalidate = 0; // No caching - always fetch fresh data
 export const dynamicParams = true;
 
 export default async function Home() {
