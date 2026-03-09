@@ -12,6 +12,7 @@ export interface ProjectDetail {
   status: string;
   photographer: string;
   content?: string;
+  galleryWidthRatio?: number;
 }
 
 export type GalleryItem = 
