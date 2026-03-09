@@ -63,11 +63,9 @@ const nextConfig: NextConfig = {
   },
   // ✅ 프로덕션 최적화
   compiler: {
-    // Temporarily disabled for auth debugging
-    removeConsole: false,
-    // removeConsole: process.env.NODE_ENV === 'production' ? {
-    //   exclude: ['error', 'warn'],
-    // } : false,
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
 };
 

@@ -74,21 +74,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[AdminContext] Auth state change:', event, session ? 'HAS_SESSION' : 'NO_SESSION');
-
       if (event === 'SIGNED_IN' && session) {
-        console.log('[AdminContext] SIGNED_IN event - setting isAdmin=true');
         setIsAdmin(true);
         setAdminMode(true);
         sessionStorage.setItem('adminMode', 'true');
       } else if (event === 'SIGNED_OUT') {
-        console.log('[AdminContext] SIGNED_OUT event - setting isAdmin=false');
         setIsAdmin(false);
         setAdminMode(false);
         sessionStorage.removeItem('adminMode');
       } else if (event === 'INITIAL_SESSION' && !session) {
         // Important: Handle initial session with no user
-        console.log('[AdminContext] INITIAL_SESSION with no user - ensuring logged out');
         setIsAdmin(false);
         setAdminMode(false);
       }
@@ -124,22 +119,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    console.log('[AdminContext] Logout initiated');
     setIsAdmin(false);
     setAdminMode(false);
     sessionStorage.removeItem('adminMode');
     try {
       const supabase = createClient();
-      console.log('[AdminContext] Calling Supabase signOut');
       await supabase.auth.signOut();
-      console.log('[AdminContext] Calling /api/auth/logout');
-      const res = await fetch('/api/auth/logout', { method: 'POST' });
-      console.log('[AdminContext] Logout API response:', res.status);
+      await fetch('/api/auth/logout', { method: 'POST' });
       // Force reload to clear all state
-      console.log('[AdminContext] Reloading page');
       window.location.href = '/';
     } catch (error) {
-      console.error('[AdminContext] Logout failed', error);
+      console.error('Logout failed', error);
       window.location.href = '/'; // Force reload even on error
     }
   };
