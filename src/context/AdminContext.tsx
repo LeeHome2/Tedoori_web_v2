@@ -38,7 +38,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       } else {
         // 2. Fallback: Check Simple Auth (admin_token)
         try {
-          const res = await fetch('/api/auth/check');
+          const res = await fetch('/api/auth/check', {
+            cache: 'no-store', // Disable caching
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+            }
+          });
           if (res.ok) {
             const data = await res.json();
             if (data.isAdmin) {
