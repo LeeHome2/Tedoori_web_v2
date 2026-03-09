@@ -4,7 +4,7 @@ import ProjetClient from "@/components/ProjetClient";
 import type { Metadata } from "next";
 import type { Project } from "@/data/projects";
 
-export const revalidate = 60;
+export const revalidate = 0; // No caching - always fetch fresh data
 
 interface PageProps {
   params: Promise<{
