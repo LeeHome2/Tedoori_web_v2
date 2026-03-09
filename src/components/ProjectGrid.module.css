@@ -10,11 +10,27 @@
   margin-left: 179px; /* Logo width 120px + gap 50px */
 }
 
+.addButton {
+  position: fixed;
+  top: 150px;
+  left: 163px;
+  z-index: 2001;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
 @media (max-width: 768px) {
   .grid {
     margin-left: 0;
     padding: 100px 20px 20px 20px; /* Reduce padding for mobile */
     column-gap: 20px; /* Reduce gap for mobile */
     row-gap: 20px;
+  }
+
+  .addButton {
+    top: auto;
+    bottom: 30px;
+    left: 20px;
   }
 }

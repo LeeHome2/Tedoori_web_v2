@@ -12,6 +12,13 @@
   content-visibility: auto;
 }
 
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 0;
+    padding-bottom: 10px;
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -65,10 +72,9 @@
     z-index: 10;
     justify-content: flex-start;
     flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.8);
+    background: transparent;
     padding: 6px;
     border-radius: 0;
-    backdrop-filter: blur(4px);
     right: auto;
 }
 

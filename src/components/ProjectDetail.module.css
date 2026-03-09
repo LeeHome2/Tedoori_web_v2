@@ -9,12 +9,45 @@
   height: 100vh; /* Full viewport height */
   overflow: hidden; /* Hide outer scroll */
   background: transparent;
-  z-index: 1; /* Below header (2000) */
+  z-index: auto; /* Don't create stacking context */
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.imageColumn {
+  padding: 0;
+  padding-top: 150px; /* Top spacing for header clearance */
+  height: 100%;
+  overflow-y: auto; /* Enable independent scroll */
+  background: transparent;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  box-sizing: border-box;
+}
+
+.imageColumn::-webkit-scrollbar {
+  display: none;
+}
+
+.infoColumn {
+  padding: 0;
+  padding-top: 150px; /* Top spacing matching imageColumn */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Fill container height */
+  overflow-y: auto; /* Enable independent scroll */
+  background: transparent;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  box-sizing: border-box;
+}
+
+.infoColumn::-webkit-scrollbar {
+  display: none;
 }
 
 @media (min-width: 768px) {
@@ -29,6 +62,10 @@
   .imageColumn,
   .infoColumn {
     padding-top: 150px;
+  }
+
+  .infoColumn {
+    padding-left: 165px; /* Align with logo left edge (20 + 30 + 83 + 32 = 165px) */
   }
 }
 
@@ -47,7 +84,8 @@
     min-height: 300px;
     overflow: visible; /* Show full gallery on mobile */
     height: auto;
-    padding-top: 20px;
+    padding-top: 10px;
+    padding-bottom: 20px;
   }
 
   .infoColumn {
@@ -60,26 +98,17 @@
     overflow: visible; /* Show full content on mobile */
     height: auto;
   }
-}
 
-.infoColumn {
-  padding: 0;
-  padding-left: 165px; /* Align with logo left edge (20 + 30 + 83 + 32 = 165px) */
-  padding-top: 150px; /* Top spacing matching imageColumn */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%; /* Fill container height */
-  overflow-y: auto; /* Enable independent scroll */
-  background: transparent;
-  z-index: 1; /* Below header (2000) */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-  box-sizing: border-box;
-}
+  .blogSection {
+    margin-left: -10px; /* Reduce left padding on mobile */
+    padding-right: 0; /* Remove right padding on mobile */
+  }
 
-.infoColumn::-webkit-scrollbar {
-  display: none;
+  .grid {
+    gap: 20px; /* Reduce gap for mobile */
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 /* Blog Header */
@@ -261,7 +290,10 @@
     cursor: pointer;
     width: 36px;
     height: 36px;
-    position: relative;
+    position: fixed;
+    top: 47px;
+    z-index: 9999;
+    pointer-events: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -287,6 +319,14 @@
 .addBtn:hover::before,
 .addBtn:hover::after {
     background-color: #333; /* Slight hover effect */
+}
+
+@media (max-width: 768px) {
+  .addBtn {
+    top: auto;
+    bottom: 30px;
+    left: 20px !important;
+  }
 }
 
 .addButton {
@@ -365,28 +405,24 @@
   }
 }
 
-.imageColumn {
-  padding: 0;
-  padding-top: 150px; /* Top spacing for header clearance */
-  height: 100%;
-  overflow-y: auto; /* Enable independent scroll */
-  background: transparent;
-  z-index: 1; /* Below header (2000) */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-  box-sizing: border-box;
-}
-
-.imageColumn::-webkit-scrollbar {
-  display: none;
-}
-
 /* Flex Layout matching Main Page style */
 .grid {
   display: flex;
   flex-wrap: wrap;
   gap: 80px; /* Increased gap from 20px to 30px */
   padding-left: 40px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    gap: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .imageWrapper {
+    height: auto;
+  }
 }
 
 .imageWrapper {
@@ -569,10 +605,9 @@
     z-index: 10;
     justify-content: flex-start;
     flex-wrap: wrap;
-    background: rgba(255, 255, 255, 0.8);
+    background: transparent;
     padding: 6px;
     border-radius: 0;
-    backdrop-filter: blur(4px);
 }
 
 .controlsRow {

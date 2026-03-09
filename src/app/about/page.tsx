@@ -337,14 +337,14 @@ export default function AboutPage() {
       <Header />
 
       {isAdmin && adminMode && (
-        <div style={{ position: 'fixed', top: '150px', right: '220px', zIndex: 2001 }}>
+        <div className={styles.addBtnWrapper}>
           <button onClick={handleAddText} className={styles.addBtn} title="Add block" aria-label="Add block">
           </button>
         </div>
       )}
 
-      <div style={{
-        maxWidth: '800px',
+      <div className={styles.contentWrapper} style={{
+        width: 'calc(40vw - 145px)',
         marginTop: '150px',
         marginBottom: '100px',
         marginLeft: '165px',

@@ -15,7 +15,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  pointer-events: auto;
+  pointer-events: none;
   position: relative;
 }
 
@@ -27,6 +27,7 @@
   position: relative;
   z-index: 102;
   margin-left: 83px;
+  pointer-events: auto;
 }
 
 .rightGroup {
@@ -36,6 +37,7 @@
   align-items: flex-end;
   gap: 50px;
   margin-right: 170px;
+  pointer-events: auto;
 }
 
 .menuWrapper {
@@ -161,10 +163,14 @@
     padding: 20px;
     padding-right: 20px;
     top: 5px;
-    left: 10px;
+    left: 0;
   }
 
   .leftGroup {
+    margin-left: 0;
+  }
+
+  .brand {
     margin-left: 0;
   }
 
@@ -187,5 +193,9 @@
   .menuList {
     font-size: 12pt;
     font-weight: bold;
+  }
+
+  .menuList button {
+    font-weight: 500 !important;
   }
 }

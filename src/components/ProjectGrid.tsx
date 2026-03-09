@@ -308,7 +308,7 @@ export default function ProjectGrid() {
       )}
 
       {isAdmin && (
-          <div style={{ position: 'fixed', top: '150px', left: '163px', zIndex: 2001, display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <div className={styles.addButton}>
               {adminMode && (
                   <button onClick={openAddModal}
                     style={{
@@ -388,21 +388,21 @@ export default function ProjectGrid() {
                   </div>
                   
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                      <button 
+                      <button
                         onClick={() => setProjectType('project')}
-                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', fontSize: '12px', textDecoration: projectType === 'project' ? 'underline' : 'none' }}
                       >
                           Project
                       </button>
-                      <button 
+                      <button
                         onClick={() => setProjectType('video')}
-                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', fontSize: '12px', textDecoration: projectType === 'video' ? 'underline' : 'none' }}
                       >
                           Video
                       </button>
-                      <button 
+                      <button
                         onClick={() => setProjectType('memo')}
-                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', fontSize: '12px', textDecoration: projectType === 'memo' ? 'underline' : 'none' }}
                       >
                           Memo
                       </button>
@@ -432,29 +432,29 @@ export default function ProjectGrid() {
 
                       <div style={{ display: 'flex', gap: '20px', fontSize: '12px' }}>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                              <input 
-                                  type="checkbox" 
-                                  checked={showId} 
-                                  onChange={(e) => setShowId(e.target.checked)} 
+                              <input
+                                  type="checkbox"
+                                  checked={showId}
+                                  onChange={(e) => setShowId(e.target.checked)}
                               />
-                              <span>Show ID</span>
+                              <span>id</span>
                           </label>
                           <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                              <input 
-                                  type="checkbox" 
-                                  checked={showTitle} 
-                                  onChange={(e) => setShowTitle(e.target.checked)} 
+                              <input
+                                  type="checkbox"
+                                  checked={showTitle}
+                                  onChange={(e) => setShowTitle(e.target.checked)}
                               />
-                              <span>Show Title</span>
+                              <span>title</span>
                           </label>
                           {projectType !== 'memo' && (
                             <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                                <input 
-                                    type="checkbox" 
-                                    checked={hasDetailLink} 
-                                    onChange={(e) => setHasDetailLink(e.target.checked)} 
+                                <input
+                                    type="checkbox"
+                                    checked={hasDetailLink}
+                                    onChange={(e) => setHasDetailLink(e.target.checked)}
                                 />
-                                <span>Detail Link</span>
+                                <span>link</span>
                             </label>
                           )}
                       </div>
@@ -495,18 +495,18 @@ export default function ProjectGrid() {
                                 {uploadError && <span style={{ color: 'red', fontSize: '12px' }}>{uploadError}</span>}
                             </div>
 
-                            <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-                                <span style={{fontWeight: 'bold'}}>{projectType === 'video' ? 'YouTube URL:' : 'Link (optional):'}</span>
-                                <input 
-                                    name="link" 
-                                    defaultValue={editingProject?.link} 
-                                    placeholder={projectType === 'video' ? "https://www.youtube.com/watch?v=..." : "Project link"} 
+                            <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                <span style={{fontWeight: 'bold', minWidth: '80px'}}>{projectType === 'video' ? 'YouTube URL:' : 'Link:'}</span>
+                                <input
+                                    name="link"
+                                    defaultValue={editingProject?.link}
+                                    placeholder={projectType === 'video' ? "https://www.youtube.com/watch?v=..." : "Project link"}
                                     onChange={projectType === 'video' ? handleLinkChange : undefined}
-                                    style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '0' }} 
+                                    style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0' }}
                                 />
-                                {fetchingVideo && <span style={{fontSize: '12px', color: '#666'}}>Fetching video info...</span>}
-                                {isYoutube && <span style={{fontSize: '12px', color: 'green'}}>YouTube video detected!</span>}
                             </label>
+                            {fetchingVideo && <span style={{fontSize: '12px', color: '#666', marginLeft: '90px'}}>Fetching video info...</span>}
+                            {isYoutube && <span style={{fontSize: '12px', color: 'green', marginLeft: '90px'}}>YouTube video detected!</span>}
                           </>
                       )}
 
@@ -597,22 +597,22 @@ export default function ProjectGrid() {
                       )}
                       
                       <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                          <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '0', cursor: 'pointer' }}>Cancel</button>
+                          <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Cancel</button>
                           {editingProject && (
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => {
                                     if(confirm('Are you sure you want to delete this project?')) {
                                         deleteProject(editingProject.id);
                                         closeModal();
                                     }
                                 }}
-                                style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '0', cursor: 'pointer' }}
+                                style={{ flex: 1, padding: '10px', background: 'none', color: '#cc0000', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
                               >
                                   Delete
                               </button>
                           )}
-                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '0', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
+                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', textDecoration: 'underline', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
                               {editingProject ? 'Update' : 'Create'}
                           </button>
                       </div>

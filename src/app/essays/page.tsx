@@ -302,7 +302,7 @@ export default function EssaysPage() {
       <Header />
 
       {isAdmin && adminMode && (
-        <div style={{ position: 'fixed', top: '150px', right: '220px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div className={styles.addBtnWrapper}>
           <button
             onClick={startAddingNew}
             className={styles.addBtn}
@@ -312,8 +312,8 @@ export default function EssaysPage() {
         </div>
       )}
 
-      <div style={{
-        maxWidth: '800px',
+      <div className={styles.contentWrapper} style={{
+        width: 'calc(40vw - 145px)',
         marginTop: '150px',
         marginBottom: '100px',
         marginLeft: '165px',

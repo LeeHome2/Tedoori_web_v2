@@ -645,6 +645,19 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   return (
     <div className={styles.container} ref={containerRef}>
+      {/* Add Button - Fixed position to avoid z-index stacking issues */}
+      {isAdmin && adminMode && (
+        <button
+          onClick={openAddModal}
+          className={styles.addBtn}
+          aria-label="십자 버튼"
+          style={{
+            left: `calc(${100 - leftPaneWidth}% + 40px)`
+          }}
+        >
+        </button>
+      )}
+
       {/* Left Pane: Blog Section */}
       <div
         className={styles.infoColumn}
@@ -678,7 +691,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
             {isAdmin && adminMode && (
                 <button
-                    className={`${styles.headerBtn} ${isBlogEditing ? styles.active : ''}`}
                     onClick={async () => {
                         if (isBlogEditing) {
                             try {
@@ -693,6 +705,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                         }
                     }}
                     disabled={isSavingBlog}
+                    style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: 'black' }}
                 >
                     {isSavingBlog ? 'Saving...' : (isBlogEditing ? 'Done' : 'Edit')}
                 </button>
@@ -733,25 +746,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
         className={styles.imageColumn}
         style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 1, position: 'relative' }}
       >
-        {/* Sticky Add Button at gallery top (in header area) */}
-        {isAdmin && adminMode && (
-          <div style={{
-            position: 'absolute',
-            top: '49px',
-            left: '40px',
-            zIndex: 2000,
-            pointerEvents: 'none'
-          }}>
-            <button
-              onClick={openAddModal}
-              className={styles.addBtn}
-              aria-label="십자 버튼"
-              style={{ pointerEvents: 'auto', position: 'sticky', top: '49px' }}
-            >
-            </button>
-          </div>
-        )}
-
         {isAdmin && adminMode && uploading && !isModalOpen && (
             <div className={styles.progressBar}>
                 <div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div>
@@ -1029,24 +1023,24 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                   </div>
                   
                   <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setProjectType('project')}
-                        style={{ padding: '5px 10px', background: projectType === 'project' ? 'black' : '#eee', color: projectType === 'project' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', fontSize: '12px', textDecoration: projectType === 'project' ? 'underline' : 'none' }}
                       >
                           Image
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setProjectType('video')}
-                        style={{ padding: '5px 10px', background: projectType === 'video' ? 'black' : '#eee', color: projectType === 'video' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', fontSize: '12px', textDecoration: projectType === 'video' ? 'underline' : 'none' }}
                       >
                           Video
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setProjectType('memo')}
-                        style={{ padding: '5px 10px', background: projectType === 'memo' ? 'black' : '#eee', color: projectType === 'memo' ? 'white' : 'black', border: 'none', borderRadius: '0', cursor: 'pointer', fontSize: '12px' }}
+                        style={{ padding: '5px 10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', fontSize: '12px', textDecoration: projectType === 'memo' ? 'underline' : 'none' }}
                       >
                           Memo
                       </button>
@@ -1203,17 +1197,17 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                           )}
                           
                           <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                              <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '0', cursor: 'pointer' }}>Cancel</button>
+                              <button type="button" onClick={closeModal} style={{ flex: 1, padding: '10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Cancel</button>
                               {editingItemIndex !== null && (
-                                  <button 
-                                    type="button" 
+                                  <button
+                                    type="button"
                                     onClick={handleDeleteFromModal}
-                                    style={{ flex: 1, padding: '10px', background: '#fff5f5', color: '#cc0000', border: '1px solid #ffdada', borderRadius: '0', cursor: 'pointer' }}
+                                    style={{ flex: 1, padding: '10px', background: 'none', color: '#cc0000', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
                                   >
                                       Delete
                                   </button>
                               )}
-                              <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'black', color: 'white', border: 'none', borderRadius: '0', cursor: 'pointer', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
+                              <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', textDecoration: 'underline', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
                                   {editingItemIndex !== null ? 'Update' : 'Add'}
                               </button>
                           </div>

@@ -15,7 +15,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  pointer-events: auto;
+  pointer-events: none;
   position: relative;
 }
 
@@ -26,6 +26,7 @@
     position: relative;
     z-index: 102;
     margin-left: 83px;
+    pointer-events: auto;
 }
 
 .rightGroup {
@@ -35,11 +36,11 @@
     align-items: flex-end;
     gap: 50px;
     margin-right: 170px;
+    pointer-events: auto;
 }
 
 .menuWrapper {
     position: relative;
-    padding-bottom: 0px; /* Fine-tune bottom alignment */
 }
 
 
@@ -61,28 +62,6 @@
 @media (min-width: 768px) {
   .logoImage {
     width: 120px;
-  }
-}
-
-@media (max-width: 768px) {
-  .leftGroup {
-      margin-left: 0;
-  }
-
-  .rightGroup {
-      margin-right: 0;
-  }
-
-  .menuWrapper {
-    z-index: 1001;
-  }
-
-  .menuTrigger {
-    margin-top: 25px;
-  }
-
-  .menuNav {
-    left: 0;
   }
 }
 
@@ -213,6 +192,52 @@
   margin-top: 10px;
   font-size: 0.8em;
   color: #666;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 20px;
+    padding-right: 20px;
+    top: 5px;
+    left: 0;
+  }
+
+  .leftGroup {
+      margin-left: 0;
+  }
+
+  .brand {
+    margin-left: 0;
+  }
+
+  .rightGroup {
+      margin-right: 0;
+  }
+
+  .menuWrapper {
+    z-index: 1001;
+  }
+
+  .menuTrigger {
+    margin-top: 25px;
+  }
+
+  .menuNav {
+    left: 0;
+  }
+
+  .menuText {
+    font-size: 12pt;
+  }
+
+  .menuList {
+    font-size: 12pt;
+    font-weight: bold;
+  }
+
+  .menuList button {
+    font-weight: 500 !important;
+  }
 }
 
 /* Hide header when lightbox is active 
