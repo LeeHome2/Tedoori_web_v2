@@ -192,8 +192,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const setRefs = (node: HTMLDivElement | null) => {
       setNodeRef(node);
-      // @ts-ignore
-      itemRef.current = node;
+      (itemRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
   };
 
   // Get YouTube embed URL from videoId

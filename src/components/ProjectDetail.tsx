@@ -46,7 +46,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const [descriptionBlocks, setDescriptionBlocks] = useState<ContentBlock[]>(project.descriptionBlocks || []);
   const lastSelectionRef = useRef<{ blockId: string, cursorIndex: number } | null>(null);
   // HTML Content State for BlogEditor
-  // @ts-ignore
   const [blogHtml, setBlogHtml] = useState(project.content || project.details?.content || '');
 
   // Local Edit Mode for Blog Section
@@ -54,7 +53,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const [isSavingBlog, setIsSavingBlog] = useState(false);
 
   useEffect(() => {
-    // @ts-ignore
     setBlogHtml(project.content || project.details?.content || '');
   }, [project.content, project.details]);
   
@@ -269,8 +267,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
           // Clear selection
           lastSelectionRef.current = null;
 
-      } catch (err: any) {
-          setError(err.message);
+      } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
           setUploading(false);
           e.target.value = '';
@@ -547,8 +545,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
           const data = await res.json();
           setImageUrl(data.url);
-      } catch (err: any) {
-          setError(err.message);
+      } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
           setUploading(false);
       }
@@ -960,8 +958,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                                     src={item.src} 
                                     alt={`Thumbnail ${index}`} 
                                     style={{ height: '100%', width: 'auto' }}
-                                    // @ts-ignore
-                                    fetchPriority="low" 
+                                    {...({ fetchPriority: 'low' } as React.ImgHTMLAttributes<HTMLImageElement>)} 
                                 />
                                 {item.type === 'video' && (
                                     <div style={{

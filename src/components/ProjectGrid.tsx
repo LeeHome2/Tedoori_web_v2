@@ -221,8 +221,8 @@ export default function ProjectGrid() {
 
           const data = await res.json();
           setImageUrl(data.url);
-      } catch (err: any) {
-          setUploadError(err.message);
+      } catch (err: unknown) {
+          setUploadError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
           setUploading(false);
       }
@@ -240,9 +240,9 @@ export default function ProjectGrid() {
           return;
       }
 
-      const projectData: any = {
-          id: formData.get('id'),
-          title: formData.get('title'),
+      const projectData: Partial<Project> & { id?: string } = {
+          id: formData.get('id') as string | undefined,
+          title: formData.get('title') as string | undefined,
           imageUrl: currentImageUrl,
           // Let server handle slug generation if not editing
           // slug: formData.get('slug') || ... <- Removed client-side generation
@@ -284,7 +284,7 @@ export default function ProjectGrid() {
               setUploadError("Project ID already exists. Please choose a unique ID.");
               return;
           }
-          await addProject(projectData);
+          await addProject(projectData as Project);
       }
       closeModal();
   };

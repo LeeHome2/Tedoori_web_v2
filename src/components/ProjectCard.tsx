@@ -109,8 +109,7 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
   // Combine refs
   const setRefs = (node: HTMLDivElement | null) => {
       setNodeRef(node);
-      // @ts-ignore
-      cardRef.current = node;
+      (cardRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
   };
 
   const [showVisibilityOptions, setShowVisibilityOptions] = useState(false);

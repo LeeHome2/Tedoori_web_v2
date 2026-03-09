@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { Project } from '@/data/projects';
 import { cookies } from 'next/headers';
+import type { ProjectRow } from '@/types/database';
 
 const getSupabaseClient = async () => {
   const cookieStore = await cookies();
@@ -48,14 +49,13 @@ export const getProjects = async (): Promise<Project[]> => {
   }
   // ...
 
-  return (data || []).map((row: any) => ({
+  return (data || []).map((row: ProjectRow) => ({
     id: row.id,
     title: row.title,
     slug: row.slug,
     imageUrl: row.image_url,
     link: `/projet/${row.id}`,
-    details: row.details || {},
-    galleryImages: row.gallery_images || [],
+    galleryImages: (row.gallery_images || []) as any,
     isVisible: row.is_visible,
     type: row.details?.type,
     content: row.details?.content,
@@ -69,7 +69,7 @@ export const getProjects = async (): Promise<Project[]> => {
     hasDetailLink: row.details?.hasDetailLink,
     showId: row.details?.showId,
     showTitle: row.details?.showTitle,
-  }));
+  } as Project));
 };
 
 export const getProjectById = async (id: string): Promise<Project | null> => {
@@ -91,8 +91,7 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
     slug: data.slug,
     imageUrl: data.image_url,
     link: `/projet/${data.id}`,
-    details: data.details || {},
-    galleryImages: data.gallery_images || [],
+    galleryImages: (data.gallery_images || []) as any,
     isVisible: data.is_visible,
     type: data.details?.type,
     content: data.details?.content,
@@ -106,6 +105,6 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
     hasDetailLink: data.details?.hasDetailLink,
     showId: data.details?.showId,
     showTitle: data.details?.showTitle,
-  };
+  } as Project;
 };
 

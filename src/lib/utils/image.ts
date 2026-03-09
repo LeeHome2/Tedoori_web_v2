@@ -68,9 +68,9 @@ export async function uploadImage(file: File): Promise<string> {
     }
 
     return uploadData.url;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to upload image', error);
-    throw new Error(`Failed to upload image: ${error.message || error}`);
+    throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

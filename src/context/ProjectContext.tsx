@@ -145,9 +145,9 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
         setProjects(finalProjects);
         addToHistory(finalProjects);
         
-    } catch (e: any) {
+    } catch (e: unknown) {
         setProjects(previousProjects);
-        setError(e.message || 'Failed to create project');
+        setError(e instanceof Error ? e.message : 'Failed to create project');
     }
   };
 

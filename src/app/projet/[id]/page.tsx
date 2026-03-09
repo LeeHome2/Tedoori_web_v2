@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProjectById, getProjects } from "@/lib/db";
 import ProjetClient from "@/components/ProjetClient";
 import type { Metadata } from "next";
+import type { Project } from "@/data/projects";
 
 export const revalidate = 60;
 
@@ -60,21 +61,20 @@ export default async function ProjectPage({ params }: PageProps) {
     notFound();
   }
 
-  const isValidProject = (p: any) => {
+  const isValidProject = (p: Project) => {
     // Skip memo and video types
     if (p.type === 'memo' || p.type === 'video') return false;
 
     // Skip if it has a videoId (YouTube page)
-    if (p.videoId || p.details?.videoId) return false;
+    if (p.videoId) return false;
 
     // Skip if detail link is disabled
     if (p.hasDetailLink === false) return false;
 
     // Check for content
     const hasGallery = p.galleryImages && p.galleryImages.length > 0;
-    const hasDescription = (p.content && p.content.trim() !== '') || 
-                           (p.descriptionBlocks && p.descriptionBlocks.length > 0) ||
-                           (p.details && p.details.content_html && p.details.content_html.trim() !== '');
+    const hasDescription = (p.content && p.content.trim() !== '') ||
+                           (p.descriptionBlocks && p.descriptionBlocks.length > 0);
 
     // If it has no gallery and no description content, consider it empty and skip
     if (!hasGallery && !hasDescription) return false;

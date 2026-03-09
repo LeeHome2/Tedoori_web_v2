@@ -1,6 +1,8 @@
 import HomeClient from "@/components/HomeClient";
 import { createAdminClient } from "@/lib/supabase/server";
 import { cookies } from 'next/headers';
+import type { ProjectRow } from "@/types/database";
+import type { Project } from "@/data/projects";
 
 // Note: Caching is conditionally disabled for admin users to ensure fresh data
 // For regular users, ISR provides better performance
@@ -29,14 +31,13 @@ export default async function Home() {
     }
 
     // Transform database format to frontend format (same as API route)
-    const projects = (data || []).map((row: any) => ({
+    const projects = (data || []).map((row: ProjectRow): Project => ({
       id: row.id,
       title: row.title,
       slug: row.slug,
       imageUrl: row.image_url,
       link: `/projet/${row.id}`,
-      details: row.details || {},
-      galleryImages: row.gallery_images || [],
+      galleryImages: (row.gallery_images || []) as any,
       isVisible: row.is_visible,
       // Extract layout and content info from details JSONB
       cardWidth: row.details?.cardWidth,
@@ -51,8 +52,7 @@ export default async function Home() {
       showTitle: row.details?.showTitle !== undefined ? row.details.showTitle : true,
       hasDetailLink: row.details?.hasDetailLink !== undefined ? row.details.hasDetailLink : true,
       descriptionBlocks: row.details?.descriptionBlocks || [],
-      order: row.display_order,
-    }));
+    }) as Project);
 
     return <HomeClient initialProjects={projects} />;
   } catch (error) {

@@ -167,9 +167,9 @@ export default function AboutPage() {
 
       await fetchBlocks();
       setEditingId(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save block:', error);
-      alert(`Failed to save: ${error.message}`);
+      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -257,8 +257,8 @@ export default function AboutPage() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = async (e: any) => {
-      const file = e.target.files?.[0];
+    input.onchange = async (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
       try {
@@ -269,8 +269,8 @@ export default function AboutPage() {
         setFormData(prev => ({
           content: prev.content + '\n' + generateImageHtml(url) + '\n'
         }));
-      } catch (error: any) {
-        alert(error.message);
+      } catch (error: unknown) {
+        alert(error instanceof Error ? error.message : 'Unknown error');
       } finally {
         setIsUploading(false);
       }

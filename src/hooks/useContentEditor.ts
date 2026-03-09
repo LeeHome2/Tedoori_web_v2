@@ -7,12 +7,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { uploadImage, generateImageHtml } from '@/lib/utils/image';
 import { generateYoutubeIframe } from '@/lib/utils/youtube';
 
-interface ContentItem {
+export interface ContentItem {
   id: string;
   title?: string;
   content: string;
   date?: string;
   order_index?: number;
+  created_at?: string;
+  updated_at?: string;
   [key: string]: any;
 }
 
@@ -95,9 +97,9 @@ export function useContentEditor({
       console.log('Item saved successfully');
       await fetchItems();
       setEditingId(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save item:', error);
-      alert(`Failed to save: ${error.message}`);
+      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -127,9 +129,9 @@ export function useContentEditor({
       await fetchItems();
       setIsAddingNew(false);
       setFormData(defaultFormData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save new item:', error);
-      alert(`Failed to save: ${error.message}`);
+      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -148,9 +150,9 @@ export function useContentEditor({
       }
 
       await fetchItems();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete item:', error);
-      alert(`Failed to delete: ${error.message}`);
+      alert(`Failed to delete: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -220,9 +222,6 @@ export function useContentEditor({
   const startEditing = (item: ContentItem) => {
     setEditingId(item.id);
     setFormData({
-      title: item.title,
-      content: item.content,
-      date: item.date,
       ...item,
     });
   };
@@ -244,8 +243,8 @@ export function useContentEditor({
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = async (e: any) => {
-      const file = e.target.files?.[0];
+    input.onchange = async (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
       try {
@@ -259,8 +258,8 @@ export function useContentEditor({
           ...prev,
           content: prev.content + '\n' + generateImageHtml(url) + '\n',
         }));
-      } catch (error: any) {
-        alert(error.message);
+      } catch (error: unknown) {
+        alert(error instanceof Error ? error.message : 'Unknown error');
       } finally {
         setIsUploading(false);
       }

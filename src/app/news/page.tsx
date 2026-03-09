@@ -4,7 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
-import { useContentEditor } from "@/hooks/useContentEditor";
+import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
 import styles from "./news.module.css";
 import DOMPurify from 'dompurify';
 
@@ -49,7 +49,7 @@ export default function NewsPage() {
   });
 
   // Custom startEditing to also expand the content
-  const handleStartEditing = (newsItem: NewsItem) => {
+  const handleStartEditing = (newsItem: ContentItem) => {
     startEditing(newsItem);
     setExpandedId(newsItem.id);
   };
@@ -191,7 +191,7 @@ export default function NewsPage() {
                     ) : (
                       <>
                         <span style={{ fontSize: '12px', color: '#999', display: 'block', marginBottom: '5px' }}>
-                          {new Date(newsItem.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
+                          {newsItem.date && new Date(newsItem.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
                         </span>
                         <h2
                           style={{ fontSize: '18px', marginBottom: '10px', cursor: 'pointer', fontWeight: expandedId === newsItem.id ? 'bold' : 'normal' }}

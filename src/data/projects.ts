@@ -62,9 +62,10 @@ export interface MemoStyle {
 
 export interface ContentBlock {
   id: string;
-  type: 'text' | 'image';
+  type: 'text' | 'image' | 'video';
   content: string;
   width?: number;
+  order?: number;
 }
 
 export interface Project {

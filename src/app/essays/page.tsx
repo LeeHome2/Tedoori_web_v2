@@ -4,7 +4,7 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
-import { useContentEditor } from "@/hooks/useContentEditor";
+import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
 import styles from "./essays.module.css";
 import DOMPurify from 'dompurify';
 
@@ -49,7 +49,7 @@ export default function EssaysPage() {
   });
 
   // Custom startEditing to also expand the content
-  const handleStartEditing = (essay: Essay) => {
+  const handleStartEditing = (essay: ContentItem) => {
     startEditing(essay);
     setExpandedId(essay.id);
   };
@@ -191,7 +191,7 @@ export default function EssaysPage() {
                     ) : (
                       <>
                         <span style={{ fontSize: '12px', color: '#999', display: 'block', marginBottom: '5px' }}>
-                          {new Date(essay.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
+                          {essay.date && new Date(essay.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
                         </span>
                         <h2
                           style={{ fontSize: '18px', marginBottom: '10px', cursor: 'pointer', fontWeight: expandedId === essay.id ? 'bold' : 'normal' }}

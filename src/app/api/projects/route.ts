@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import type { Project } from '@/data/projects';
+import type { ProjectRow } from '@/types/database';
 import { cookies } from 'next/headers';
 
 async function getAuthenticatedClient() {
@@ -59,7 +60,7 @@ export async function GET() {
   }
 
   // Transform database format to frontend format
-  const projects = (data || []).map((row: any) => {
+  const projects = (data || []).map((row: ProjectRow) => {
     const project = {
       id: row.id,
       title: row.title,
