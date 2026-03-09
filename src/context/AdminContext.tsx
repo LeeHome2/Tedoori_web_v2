@@ -119,18 +119,29 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    setIsAdmin(false);
-    setAdminMode(false);
-    sessionStorage.removeItem('adminMode');
     try {
+      // First, call logout APIs
       const supabase = createClient();
       await supabase.auth.signOut();
       await fetch('/api/auth/logout', { method: 'POST' });
-      // Force reload to clear all state
+
+      // Wait a bit to ensure cookie deletion is processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Then clear local state
+      setIsAdmin(false);
+      setAdminMode(false);
+      sessionStorage.removeItem('adminMode');
+
+      // Finally, force reload to clear all state
       window.location.href = '/';
     } catch (error) {
       console.error('Logout failed', error);
-      window.location.href = '/'; // Force reload even on error
+      // Even on error, clear state and reload
+      setIsAdmin(false);
+      setAdminMode(false);
+      sessionStorage.removeItem('adminMode');
+      window.location.href = '/';
     }
   };
 
