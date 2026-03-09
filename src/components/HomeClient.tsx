@@ -21,7 +21,7 @@ function HomeContent() {
     if (adminMode) {
       refreshProjects();
     }
-  }, [adminMode]);
+  }, [adminMode, refreshProjects]);
 
   return (
     <main>

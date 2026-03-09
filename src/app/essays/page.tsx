@@ -8,14 +8,6 @@ import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
 import styles from "./essays.module.css";
 import DOMPurify from 'dompurify';
 
-interface Essay {
-  id: string;
-  title: string;
-  content: string;
-  date: string;
-  created_at: string;
-}
-
 export default function EssaysPage() {
   const { isAdmin, adminMode } = useAdmin();
   const [expandedId, setExpandedId] = useState<string | null>(null);

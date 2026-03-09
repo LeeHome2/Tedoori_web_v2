@@ -39,7 +39,7 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
 
   const clearError = () => setError(null);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/projects');
@@ -56,14 +56,15 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
     } finally {
       setLoading(false);
     }
-  };
+  }, [historyIndex]);
 
   useEffect(() => {
     // Only fetch if we don't have initial data
     if (initialProjects.length === 0) {
       fetchProjects();
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   const addToHistory = (newProjects: Project[]) => {
       const newHistory = history.slice(0, historyIndex + 1);

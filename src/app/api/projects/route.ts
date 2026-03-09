@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import type { Project } from '@/data/projects';
-import type { ProjectRow } from '@/types/database';
+import type { ProjectRow, ProjectDetails } from '@/types/database';
 import { cookies } from 'next/headers';
 
 async function getAuthenticatedClient() {
@@ -144,7 +144,8 @@ export async function POST(request: Request) {
   }
   
   // Inject layout and content info into details for storage
-  newProject.details = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (newProject as any).details = {
       ...newProject.details,
       cardWidth: newProject.cardWidth,
       cardHeight: newProject.cardHeight,
@@ -158,7 +159,8 @@ export async function POST(request: Request) {
       showId: newProject.showId,
       showTitle: newProject.showTitle,
       hasDetailLink: newProject.hasDetailLink,
-  } as any;
+      descriptionBlocks: newProject.descriptionBlocks,
+  } as ProjectDetails;
 
   if (!newProject.galleryImages) {
     newProject.galleryImages = [];

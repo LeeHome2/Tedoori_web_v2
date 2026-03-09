@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
@@ -48,11 +48,7 @@ export default function AboutPage() {
     content: ''
   });
 
-  useEffect(() => {
-    fetchBlocks();
-  }, []);
-
-  const fetchBlocks = async () => {
+  const fetchBlocks = useCallback(async () => {
     try {
       const res = await fetch('/api/about');
       if (res.ok) {
@@ -95,7 +91,11 @@ export default function AboutPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []); // No dependencies needed - only runs once on mount
+
+  useEffect(() => {
+    fetchBlocks();
+  }, [fetchBlocks]);
 
   const initializeDefaultBlocks = async () => {
     try {
