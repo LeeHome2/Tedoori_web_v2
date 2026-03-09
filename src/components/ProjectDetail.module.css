@@ -325,7 +325,9 @@
   flex-shrink: 0;
   margin-left: 80px; /* Left margin for spacing */
   margin-right: 0; /* Reset right margin */
-  align-self: stretch; /* Stretch to container height */
+  height: 100vh; /* Full viewport height */
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .resizer::after {
@@ -347,9 +349,14 @@
   pointer-events: none;
 }
 
+.resizer:hover,
+.resizer:active {
+  background-color: #000;
+}
+
 .resizer:hover .resizerHandleIcon,
 .resizer:active .resizerHandleIcon {
-  background-color: #999;
+  background-color: #000;
 }
 
 @media (min-width: 768px) {

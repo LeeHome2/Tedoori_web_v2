@@ -5,29 +5,8 @@ import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
 import OfficeMap from '@/components/OfficeMap';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import TextAlign from '@tiptap/extension-text-align';
-import Dropcursor from '@tiptap/extension-dropcursor';
 import styles from './about.module.css';
+import DOMPurify from 'dompurify';
 import imageCompression from 'browser-image-compression';
 
 interface AboutBlock {
@@ -41,13 +20,13 @@ const DEFAULT_BLOCKS: AboutBlock[] = [
   {
     id: 'intro-block',
     type: 'text',
-    content: `<p style="margin-bottom: 20px;">Tedoori is an architectural practice based in Seoul.</p><p>We focus on the essential qualities of space and structure, exploring the relationship between form and function.</p>`,
+    content: `Tedoori is an architectural practice based in Seoul.\n\nWe focus on the essential qualities of space and structure, exploring the relationship between form and function.`,
     order_index: 0
   },
   {
     id: 'contact-block',
     type: 'text',
-    content: `<p>Email: info@tedoori.com</p><p>Tel: +82 2 1234 5678</p><p>Address: 123, Sejong-daero, Jongno-gu, Seoul, Republic of Korea</p>`,
+    content: `Email: info@tedoori.com\nTel: +82 2 1234 5678\nAddress: 123, Sejong-daero, Jongno-gu, Seoul, Republic of Korea`,
     order_index: 1
   },
   {
@@ -58,202 +37,15 @@ const DEFAULT_BLOCKS: AboutBlock[] = [
   }
 ];
 
-function TextBlockEditor({ block, onSave, onCancel, onDelete }: { block: AboutBlock; onSave: (content: string) => void; onCancel: () => void; onDelete: () => void }) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        dropcursor: false,
-      }),
-      Image.configure({
-        inline: false,
-        allowBase64: true,
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph', 'image'],
-      }),
-      Dropcursor.configure({
-        color: '#000000',
-        width: 2,
-      }),
-    ],
-    content: block.content,
-    immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        style: 'white-space: pre-wrap;',
-      },
-    },
-  });
-
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editor) return;
-
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 800,
-      useWebWorker: true,
-      fileType: 'image/webp'
-    };
-
-    try {
-      setIsUploading(true);
-      const compressedFile = await imageCompression(file, options);
-
-      const formData = new FormData();
-      formData.append('file', compressedFile);
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-
-      editor.chain().focus().setImage({ src: data.url }).run();
-    } catch (error) {
-      console.error('Image upload failed:', error);
-      alert('Image upload failed');
-    } finally {
-      setIsUploading(false);
-      e.target.value = '';
-    }
-  };
-
-  if (!editor) return null;
-
-  return (
-    <div className={styles.editorWrapper}>
-      <div className={styles.toolbar}>
-        <button onClick={() => editor.chain().focus().toggleBold().run()} className={editor.isActive('bold') ? styles.active : ''}>
-          <strong>B</strong>
-        </button>
-        <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive('italic') ? styles.active : ''}>
-          <em>I</em>
-        </button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive('heading', { level: 2 }) ? styles.active : ''}>
-          H2
-        </button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={editor.isActive('heading', { level: 3 }) ? styles.active : ''}>
-          H3
-        </button>
-        <button onClick={() => editor.chain().focus().setTextAlign('left').run()} className={editor.isActive({ textAlign: 'left' }) ? styles.active : ''}>
-          Left
-        </button>
-        <button onClick={() => editor.chain().focus().setTextAlign('center').run()} className={editor.isActive({ textAlign: 'center' }) ? styles.active : ''}>
-          Center
-        </button>
-        <label className={styles.imageBtn}>
-          Image
-          <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
-        </label>
-        {isUploading && <span>Uploading...</span>}
-      </div>
-      <EditorContent editor={editor} className={styles.editorContent} />
-      <div className={styles.buttonRow}>
-        <button onClick={() => {
-          const html = editor.getHTML();
-          console.log('Editor HTML before save:', html);
-          onSave(html);
-        }} className={styles.saveBtn}>Save</button>
-        <button onClick={onCancel} className={styles.cancelBtn}>Cancel</button>
-        <button onClick={onDelete} className={styles.deleteBtn}>Delete</button>
-      </div>
-    </div>
-  );
-}
-
-function SortableBlock({ block, isEditing, onEdit, onDelete, onSave, onCancel }: {
-  block: AboutBlock;
-  isEditing: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
-  onSave: (content: string) => void;
-  onCancel: () => void;
-}) {
-  const { isAdmin, adminMode } = useAdmin();
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: block.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  if (block.type === 'map') {
-    return (
-      <div ref={setNodeRef} style={style} className={styles.block}>
-        <div style={{ position: 'relative' }}>
-          <OfficeMap />
-          {isAdmin && adminMode && (
-            <div className={styles.blockControls}>
-              <button {...attributes} {...listeners} className={styles.dragHandle}>☰</button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (block.type === 'image') {
-    return (
-      <div ref={setNodeRef} style={style} className={styles.block}>
-        <div className={styles.imageBlock}>
-          <img src={block.content} alt="About" style={{ maxWidth: '100%', height: 'auto' }} />
-          {isAdmin && adminMode && (
-            <div className={styles.blockControls}>
-              <button {...attributes} {...listeners} className={styles.dragHandle}>☰</button>
-              <button onClick={onDelete} className={styles.deleteBtn}>Delete</button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} className={styles.block}>
-      {isEditing ? (
-        <TextBlockEditor block={block} onSave={onSave} onCancel={onCancel} onDelete={onDelete} />
-      ) : (
-        <div className={styles.textBlock}>
-          <div
-            className={styles.textContent}
-            dangerouslySetInnerHTML={{ __html: block.content }}
-          />
-          {isAdmin && adminMode && (
-            <div className={styles.blockControls}>
-              <button {...attributes} {...listeners} className={styles.dragHandle}>☰</button>
-              <button onClick={onEdit} className={styles.editBtn}>Edit</button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function AboutPage() {
   const { isAdmin, adminMode } = useAdmin();
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const [isUploading, setIsUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    content: ''
+  });
 
   useEffect(() => {
     fetchBlocks();
@@ -265,26 +57,19 @@ export default function AboutPage() {
       if (res.ok) {
         const data = await res.json();
 
-        // If no blocks in database, initialize with default blocks
         if (data.length === 0) {
-          console.log('No blocks found, initializing with defaults...');
           await initializeDefaultBlocks();
         } else {
-          // Check if default blocks exist in DB
           const hasIntro = data.some((b: AboutBlock) => b.id === 'intro-block');
           const hasContact = data.some((b: AboutBlock) => b.id === 'contact-block');
           const hasMap = data.some((b: AboutBlock) => b.id === 'map-block');
 
-          // If any default block is missing, add them
           if (!hasIntro || !hasContact || !hasMap) {
-            console.log('Some default blocks missing, adding them...');
             const missingBlocks: AboutBlock[] = [];
-
             if (!hasIntro) missingBlocks.push(DEFAULT_BLOCKS[0]);
             if (!hasContact) missingBlocks.push(DEFAULT_BLOCKS[1]);
             if (!hasMap) missingBlocks.push(DEFAULT_BLOCKS[2]);
 
-            // Add missing default blocks to DB
             for (const block of missingBlocks) {
               await fetch('/api/about', {
                 method: 'POST',
@@ -293,7 +78,6 @@ export default function AboutPage() {
               });
             }
 
-            // Re-fetch to get complete list
             const newRes = await fetch('/api/about');
             if (newRes.ok) {
               const newData = await newRes.json();
@@ -306,7 +90,6 @@ export default function AboutPage() {
       }
     } catch (error) {
       console.error('Failed to fetch blocks', error);
-      // On error, show default blocks
       setBlocks(DEFAULT_BLOCKS);
     } finally {
       setIsLoading(false);
@@ -315,7 +98,6 @@ export default function AboutPage() {
 
   const initializeDefaultBlocks = async () => {
     try {
-      // Create all default blocks in DB
       for (const block of DEFAULT_BLOCKS) {
         await fetch('/api/about', {
           method: 'POST',
@@ -324,7 +106,6 @@ export default function AboutPage() {
         });
       }
 
-      // Re-fetch to get the created blocks
       const res = await fetch('/api/about');
       if (res.ok) {
         const data = await res.json();
@@ -336,36 +117,13 @@ export default function AboutPage() {
     }
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setBlocks((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        const newItems = arrayMove(items, oldIndex, newIndex);
-
-        // Save new order to backend (upsert handles both existing and default blocks)
-        fetch('/api/about', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newItems)
-        });
-
-        return newItems;
-      });
-    }
-  };
-
   const handleAddText = async () => {
     const newBlock: AboutBlock = {
       id: `block-${Date.now()}`,
       type: 'text',
-      content: '<p>New text block</p>',
+      content: 'New text block',
       order_index: blocks.length
     };
-
-    console.log('Adding text block:', newBlock);
 
     try {
       const res = await fetch('/api/about', {
@@ -374,26 +132,127 @@ export default function AboutPage() {
         body: JSON.stringify(newBlock)
       });
 
-      console.log('Response status:', res.status);
-
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Error response:', errorData);
         alert(`Failed to add block: ${errorData.error || 'Unknown error'}`);
         return;
       }
 
       const data = await res.json();
-      console.log('Created block:', data);
       setBlocks([...blocks, data]);
       setEditingId(data.id);
+      setFormData({ content: data.content });
     } catch (error) {
       console.error('Failed to add block', error);
-      alert('Failed to add block. Check console for details.');
+      alert('Failed to add block');
     }
   };
 
-  const handleAddImageClick = () => {
+  const handleSaveInline = async (id: string) => {
+    const block = blocks.find(b => b.id === id);
+    if (!block) return;
+
+    try {
+      const res = await fetch('/api/about', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...block, content: formData.content })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to save');
+      }
+
+      await fetchBlocks();
+      setEditingId(null);
+    } catch (error: any) {
+      console.error('Failed to save block:', error);
+      alert(`Failed to save: ${error.message}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this block?')) return;
+
+    try {
+      await fetch(`/api/about?id=${id}`, {
+        method: 'DELETE'
+      });
+      setBlocks(blocks.filter(b => b.id !== id));
+    } catch (error) {
+      console.error('Failed to delete block', error);
+      setBlocks(blocks.filter(b => b.id !== id));
+    }
+  };
+
+  const handleMoveUp = async (id: string) => {
+    const index = blocks.findIndex(b => b.id === id);
+    if (index <= 0) return;
+
+    const newBlocks = [...blocks];
+    [newBlocks[index - 1], newBlocks[index]] = [newBlocks[index], newBlocks[index - 1]];
+
+    const updates = newBlocks.map((item, idx) => ({
+      id: item.id,
+      order_index: idx
+    }));
+
+    setBlocks(newBlocks);
+
+    try {
+      await fetch('/api/about', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      await fetchBlocks();
+    }
+  };
+
+  const handleMoveDown = async (id: string) => {
+    const index = blocks.findIndex(b => b.id === id);
+    if (index < 0 || index >= blocks.length - 1) return;
+
+    const newBlocks = [...blocks];
+    [newBlocks[index], newBlocks[index + 1]] = [newBlocks[index + 1], newBlocks[index]];
+
+    const updates = newBlocks.map((item, idx) => ({
+      id: item.id,
+      order_index: idx
+    }));
+
+    setBlocks(newBlocks);
+
+    try {
+      await fetch('/api/about', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      await fetchBlocks();
+    }
+  };
+
+  const startEditing = (block: AboutBlock) => {
+    setEditingId(block.id);
+    setFormData({
+      content: block.content
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setFormData({
+      content: ''
+    });
+  };
+
+  const handleAddImage = async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -409,137 +268,68 @@ export default function AboutPage() {
       };
 
       try {
-        console.log('Compressing image...');
+        setIsUploading(true);
+        console.log('Compressing image...', file.name, file.type, file.size);
         const compressedFile = await imageCompression(file, options);
+        console.log('Compressed:', compressedFile.name, compressedFile.type, compressedFile.size);
+
+        // Rename file to have .webp extension
+        const webpFile = new File([compressedFile], `${Date.now()}.webp`, { type: 'image/webp' });
 
         const formData = new FormData();
-        formData.append('file', compressedFile);
+        formData.append('file', webpFile);
 
-        console.log('Uploading image...');
+        console.log('Uploading to /api/upload...');
         const uploadRes = await fetch('/api/upload', {
           method: 'POST',
           body: formData
         });
 
-        if (!uploadRes.ok) {
-          const errorText = await uploadRes.text();
-          console.error('Upload failed:', errorText);
-          throw new Error('Upload failed');
-        }
+        console.log('Upload response status:', uploadRes.status);
         const uploadData = await uploadRes.json();
-        console.log('Upload successful:', uploadData);
+        console.log('Upload response data:', uploadData);
 
-        const newBlock: AboutBlock = {
-          id: `block-${Date.now()}`,
-          type: 'image',
-          content: uploadData.url,
-          order_index: blocks.length
-        };
-
-        console.log('Creating image block:', newBlock);
-        const res = await fetch('/api/about', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newBlock)
-        });
-
-        console.log('Response status:', res.status);
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error('Error response:', errorData);
-          alert(`Failed to add image block: ${errorData.error || 'Unknown error'}`);
-          return;
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.error || 'Upload failed');
         }
 
-        const data = await res.json();
-        console.log('Created block:', data);
-        setBlocks([...blocks, data]);
-      } catch (error) {
-        console.error('Failed to add image', error);
-        alert('Failed to add image. Check console for details.');
+        // Add image HTML to content
+        setFormData(prev => ({
+          content: prev.content + `\n<img src="${uploadData.url}" alt="Uploaded image" style="max-width: 100%; height: auto; margin: 10px 0;" />\n`
+        }));
+      } catch (error: any) {
+        console.error('Failed to upload image', error);
+        alert(`Failed to upload image: ${error.message || error}`);
+      } finally {
+        setIsUploading(false);
       }
     };
     input.click();
   };
 
-  const handleAddMap = async () => {
-    const newBlock: AboutBlock = {
-      id: `block-${Date.now()}`,
-      type: 'map',
-      content: '',
-      order_index: blocks.length
-    };
+  const handleAddYouTube = () => {
+    const url = prompt('Enter YouTube URL:');
+    if (!url) return;
 
-    console.log('Adding map block:', newBlock);
-
-    try {
-      const res = await fetch('/api/about', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBlock)
-      });
-
-      console.log('Response status:', res.status);
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Error response:', errorData);
-        alert(`Failed to add map: ${errorData.error || 'Unknown error'}`);
-        return;
-      }
-
-      const data = await res.json();
-      console.log('Created block:', data);
-      setBlocks([...blocks, data]);
-    } catch (error) {
-      console.error('Failed to add map', error);
-      alert('Failed to add map. Check console for details.');
+    // Extract video ID from various YouTube URL formats
+    let videoId = '';
+    if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    } else if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtube.com/embed/')) {
+      videoId = url.split('embed/')[1].split('?')[0];
     }
-  };
 
-  const handleSave = async (blockId: string, content: string) => {
-    const block = blocks.find(b => b.id === blockId);
-    if (!block) return;
-
-    console.log('Saving block with content:', content);
-
-    try {
-      // Use PUT with upsert - works for both new and existing blocks
-      const res = await fetch('/api/about', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...block, content })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        console.log('Saved block data:', data);
-        setBlocks(blocks.map(b => b.id === blockId ? data : b));
-        setEditingId(null);
-      }
-    } catch (error) {
-      console.error('Failed to save block', error);
-      alert('Failed to save block');
+    if (!videoId) {
+      alert('Invalid YouTube URL');
+      return;
     }
-  };
 
-  const handleDelete = async (blockId: string) => {
-    if (!confirm('Delete this block?')) return;
-
-    try {
-      // Try to delete from DB
-      const res = await fetch(`/api/about?id=${blockId}`, {
-        method: 'DELETE'
-      });
-
-      // Remove from local state regardless of DB result (for default blocks)
-      setBlocks(blocks.filter(b => b.id !== blockId));
-    } catch (error) {
-      console.error('Failed to delete block', error);
-      // Still remove from local state
-      setBlocks(blocks.filter(b => b.id !== blockId));
-    }
+    // Add YouTube iframe to content
+    setFormData(prev => ({
+      content: prev.content + `\n<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="margin: 10px 0;"></iframe>\n`
+    }));
   };
 
   return (
@@ -548,30 +338,8 @@ export default function AboutPage() {
 
       {isAdmin && adminMode && (
         <div style={{ position: 'fixed', top: '150px', right: '40px', zIndex: 2001 }}>
-          <button onClick={() => setShowAddModal(true)} className={styles.addBtn} title="Add block" aria-label="Add block">
+          <button onClick={handleAddText} className={styles.addBtn} title="Add block" aria-label="Add block">
           </button>
-        </div>
-      )}
-
-      {showAddModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2 className={styles.modalTitle}>Add Block</h2>
-            <div className={styles.blockTypeList}>
-              <button onClick={() => { handleAddText(); setShowAddModal(false); }} className={styles.blockTypeBtn}>
-                📝 Text Block
-              </button>
-              <button onClick={() => { handleAddImageClick(); setShowAddModal(false); }} className={styles.blockTypeBtn}>
-                📷 Image Block
-              </button>
-              <button onClick={() => { handleAddMap(); setShowAddModal(false); }} className={styles.blockTypeBtn}>
-                🗺️ Map Block
-              </button>
-            </div>
-            <button onClick={() => setShowAddModal(false)} className={styles.modalClose}>
-              Cancel
-            </button>
-          </div>
         </div>
       )}
 
@@ -585,32 +353,130 @@ export default function AboutPage() {
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', paddingLeft: '0' }}>ABOUT</h1>
+        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', textTransform: 'uppercase' }}>About</h1>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          id={`dnd-about`}
-        >
-          <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-            {blocks.map((block) => (
-              <SortableBlock
-                key={block.id}
-                block={block}
-                isEditing={editingId === block.id}
-                onEdit={() => setEditingId(block.id)}
-                onDelete={() => handleDelete(block.id)}
-                onSave={(content) => handleSave(block.id, content)}
-                onCancel={() => setEditingId(null)}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {blocks.map((block) => {
+            const isEditing = editingId === block.id;
 
-        {blocks.length === 0 && !isLoading && (
-          <p style={{ color: '#999', textAlign: 'center', padding: '40px 0' }}>Loading...</p>
-        )}
+            if (block.type === 'map') {
+              return (
+                <div key={block.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '20px', position: 'relative' }}>
+                  <OfficeMap />
+                  {isAdmin && adminMode && (
+                    <div style={{ position: 'absolute', top: '10px', right: '60px', display: 'flex', gap: '10px', zIndex: 1000 }}>
+                      <button
+                        onClick={() => handleMoveUp(block.id)}
+                        style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'white', border: '1px solid #ddd' }}
+                        title="Move up"
+                      >
+                        ∧
+                      </button>
+                      <button
+                        onClick={() => handleMoveDown(block.id)}
+                        style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'white', border: '1px solid #ddd' }}
+                        title="Move down"
+                      >
+                        ∨
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <article key={block.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
+                  <div style={{ flex: 1 }}>
+                    {isEditing ? (
+                      <div style={{ position: 'relative' }}>
+                        <textarea
+                          value={formData.content}
+                          onChange={(e) => setFormData({ content: e.target.value })}
+                          rows={10}
+                          style={{ width: '100%', color: '#666', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical', fontSize: '14px' }}
+                        />
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                          <button
+                            onClick={handleAddImage}
+                            disabled={isUploading}
+                            style={{ padding: '4px 8px', fontSize: '11px', cursor: isUploading ? 'wait' : 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                          >
+                            {isUploading ? 'uploading...' : '+add image'}
+                          </button>
+                          <button
+                            onClick={handleAddYouTube}
+                            style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                          >
+                            +add youtube
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        style={{ color: '#000', whiteSpace: 'pre-wrap' }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.content.replace(/\n/g, '<br>'), { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
+                      />
+                    )}
+                  </div>
+
+                  {isAdmin && adminMode && (
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexShrink: 0 }}>
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={() => handleMoveUp(block.id)}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none' }}
+                            title="Move up"
+                          >
+                            ∧
+                          </button>
+                          <button
+                            onClick={() => handleMoveDown(block.id)}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none' }}
+                            title="Move down"
+                          >
+                            ∨
+                          </button>
+                          <button
+                            onClick={() => handleDelete(block.id)}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#cc0000' }}
+                          >
+                            delete
+                          </button>
+                          <button
+                            onClick={() => handleSaveInline(block.id)}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}
+                          >
+                            save
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}
+                          >
+                            cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => startEditing(block)}
+                          style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: 'black' }}
+                        >
+                          edit
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+
+          {blocks.length === 0 && !isLoading && (
+            <p style={{ color: '#999', textAlign: 'center', padding: '40px 0' }}>No blocks yet.</p>
+          )}
+        </div>
       </div>
 
       <BackToTop />

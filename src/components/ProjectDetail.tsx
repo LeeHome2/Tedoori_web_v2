@@ -105,9 +105,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   // Resizable Pane State
   const [leftPaneWidth, setLeftPaneWidth] = useState(() => {
-    // Always start with DB default or fallback to 70
+    // Always start with DB default or fallback to 60 (4:6 ratio)
     console.log('[Resizer Init] project.galleryWidthRatio:', project.galleryWidthRatio);
-    return project.galleryWidthRatio || 70;
+    return project.galleryWidthRatio || 60;
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
@@ -115,7 +115,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   // Always use DB default on mount and when project changes
   useEffect(() => {
     console.log('[Resizer Update] project.galleryWidthRatio:', project.galleryWidthRatio);
-    setLeftPaneWidth(project.galleryWidthRatio || 70);
+    setLeftPaneWidth(project.galleryWidthRatio || 60);
   }, [project.galleryWidthRatio]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {

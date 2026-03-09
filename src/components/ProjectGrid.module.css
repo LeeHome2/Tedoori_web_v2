@@ -7,7 +7,7 @@
   max-width: none;
   margin: 0;
   justify-content: flex-start;
-  margin-left: 180px; /* Logo width 120px + gap 50px */
+  margin-left: 179px; /* Logo width 120px + gap 50px */
 }
 
 @media (max-width: 768px) {

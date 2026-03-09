@@ -86,26 +86,14 @@ export async function PUT(request: Request) {
 
     // Batch update for reordering
     if (Array.isArray(body)) {
-      const updates = body.map((block: AboutBlock, index: number) => ({
-        id: block.id,
-        order_index: index,
-        type: block.type,
-        content: block.content
-      }));
-
-      // Upsert each block (update if exists, insert if not)
-      for (const update of updates) {
-        await supabase
+      const updates = body.map(item =>
+        supabase
           .from('about_blocks')
-          .upsert({
-            id: update.id,
-            type: update.type,
-            content: update.content,
-            order_index: update.order_index,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-      }
+          .update({ order_index: item.order_index })
+          .eq('id', item.id)
+      );
 
+      await Promise.all(updates);
       return NextResponse.json({ success: true });
     }
 

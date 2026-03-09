@@ -6,6 +6,7 @@ import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
 import styles from "./essays.module.css";
 import DOMPurify from 'dompurify';
+import imageCompression from 'browser-image-compression';
 
 interface Essay {
   id: string;
@@ -21,6 +22,7 @@ export default function EssaysPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -124,6 +126,60 @@ export default function EssaysPage() {
     }
   };
 
+  const handleMoveUp = async (id: string) => {
+    const index = essays.findIndex(item => item.id === id);
+    if (index <= 0) return;
+
+    const newItems = [...essays];
+    [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
+
+    // Update order_index for all items
+    const updates = newItems.map((item, idx) => ({
+      id: item.id,
+      order_index: idx
+    }));
+
+    setEssays(newItems);
+
+    try {
+      await fetch('/api/essays', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      await fetchEssays(); // Revert on error
+    }
+  };
+
+  const handleMoveDown = async (id: string) => {
+    const index = essays.findIndex(item => item.id === id);
+    if (index < 0 || index >= essays.length - 1) return;
+
+    const newItems = [...essays];
+    [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+
+    // Update order_index for all items
+    const updates = newItems.map((item, idx) => ({
+      id: item.id,
+      order_index: idx
+    }));
+
+    setEssays(newItems);
+
+    try {
+      await fetch('/api/essays', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch (error) {
+      console.error('Failed to update order:', error);
+      await fetchEssays(); // Revert on error
+    }
+  };
+
   const startAddingNew = () => {
     setIsAddingNew(true);
     setFormData({
@@ -160,6 +216,85 @@ export default function EssaysPage() {
       content: '',
       date: new Date().toISOString().split('T')[0]
     });
+  };
+
+  const handleAddImage = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+        fileType: 'image/webp'
+      };
+
+      try {
+        setIsUploading(true);
+        console.log('Compressing image...', file.name, file.type, file.size);
+        const compressedFile = await imageCompression(file, options);
+        console.log('Compressed:', compressedFile.name, compressedFile.type, compressedFile.size);
+
+        // Rename file to have .webp extension
+        const webpFile = new File([compressedFile], `${Date.now()}.webp`, { type: 'image/webp' });
+
+        const formData = new FormData();
+        formData.append('file', webpFile);
+
+        console.log('Uploading to /api/upload...');
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        console.log('Upload response status:', uploadRes.status);
+        const uploadData = await uploadRes.json();
+        console.log('Upload response data:', uploadData);
+
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.error || 'Upload failed');
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          content: prev.content + `\n<img src="${uploadData.url}" alt="Uploaded image" style="max-width: 100%; height: auto; margin: 10px 0;" />\n`
+        }));
+      } catch (error: any) {
+        console.error('Failed to upload image', error);
+        alert(`Failed to upload image: ${error.message || error}`);
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    input.click();
+  };
+
+  const handleAddYouTube = () => {
+    const url = prompt('Enter YouTube URL:');
+    if (!url) return;
+
+    let videoId = '';
+    if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    } else if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtube.com/embed/')) {
+      videoId = url.split('embed/')[1].split('?')[0];
+    }
+
+    if (!videoId) {
+      alert('Invalid YouTube URL');
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      content: prev.content + `\n<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="margin: 10px 0;"></iframe>\n`
+    }));
   };
 
   return (
@@ -208,13 +343,30 @@ export default function EssaysPage() {
                     placeholder="Title"
                     style={{ fontSize: '18px', fontWeight: 'bold', width: '100%', marginBottom: '10px', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '4px' }}
                   />
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    placeholder="Content"
-                    rows={10}
-                    style={{ width: '100%', color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical' }}
-                  />
+                  <div>
+                    <textarea
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      placeholder="Content"
+                      rows={10}
+                      style={{ width: '100%', color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical' }}
+                    />
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                      <button
+                        onClick={handleAddImage}
+                        disabled={isUploading}
+                        style={{ padding: '4px 8px', fontSize: '11px', cursor: isUploading ? 'wait' : 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                      >
+                        {isUploading ? 'uploading...' : '+add image'}
+                      </button>
+                      <button
+                        onClick={handleAddYouTube}
+                        style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                      >
+                        +add youtube
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexShrink: 0 }}>
                   <button
@@ -255,12 +407,29 @@ export default function EssaysPage() {
                           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                           style={{ fontSize: '18px', fontWeight: 'bold', width: '100%', marginBottom: '10px', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '4px' }}
                         />
-                        <textarea
-                          value={formData.content}
-                          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                          rows={10}
-                          style={{ width: '100%', color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical' }}
-                        />
+                        <div>
+                          <textarea
+                            value={formData.content}
+                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                            rows={10}
+                            style={{ width: '100%', color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical' }}
+                          />
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                            <button
+                              onClick={handleAddImage}
+                              disabled={isUploading}
+                              style={{ padding: '4px 8px', fontSize: '11px', cursor: isUploading ? 'wait' : 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                            >
+                              {isUploading ? 'uploading...' : '+add image'}
+                            </button>
+                            <button
+                              onClick={handleAddYouTube}
+                              style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                            >
+                              +add youtube
+                            </button>
+                          </div>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -269,14 +438,14 @@ export default function EssaysPage() {
                         </span>
                         <h2
                           style={{ fontSize: '18px', marginBottom: '10px', cursor: 'pointer', fontWeight: expandedId === essay.id ? 'bold' : 'normal' }}
-                          onClick={() => !isAdmin || !adminMode ? setExpandedId(expandedId === essay.id ? null : essay.id) : null}
+                          onClick={() => setExpandedId(expandedId === essay.id ? null : essay.id)}
                         >
                           {essay.title}
                         </h2>
                         {expandedId === essay.id && (
                           <div
                             style={{ color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap' }}
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(essay.content) }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(essay.content, { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
                           />
                         )}
                       </>
@@ -288,14 +457,28 @@ export default function EssaysPage() {
                       {isEditing ? (
                         <>
                           <button
+                            onClick={() => handleMoveUp(essay.id)}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none' }}
+                            title="Move up"
+                          >
+                            ∧
+                          </button>
+                          <button
+                            onClick={() => handleMoveDown(essay.id)}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none' }}
+                            title="Move down"
+                          >
+                            ∨
+                          </button>
+                          <button
                             onClick={() => handleDelete(essay.id)}
-                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#cc0000' }}
                           >
                             delete
                           </button>
                           <button
                             onClick={() => handleSaveInline(essay.id)}
-                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'black', color: 'white', border: 'none' }}
+                            style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}
                           >
                             save
                           </button>

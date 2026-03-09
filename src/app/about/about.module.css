@@ -251,29 +251,19 @@
 
 .saveBtn,
 .cancelBtn,
-.buttonRow .deleteBtn {
+.buttonRow .deleteBtn,
+.moveBtn {
   padding: 8px 16px;
-  border: none;
   cursor: pointer;
   font-size: 14px;
   border-radius: 0;
-}
-
-.saveBtn {
-  background: black;
-  color: white;
-}
-
-.saveBtn:hover {
-  background: #333;
-}
-
-.cancelBtn {
   background: #f0f0f0;
   border: 1px solid #ddd;
 }
 
-.cancelBtn:hover {
+.saveBtn:hover,
+.cancelBtn:hover,
+.moveBtn:hover {
   background: #e0e0e0;
 }
 
@@ -281,12 +271,21 @@
   background: #fff5f5;
   color: #cc0000;
   border: 1px solid #ffdada;
-  margin-left: auto;
 }
 
 .buttonRow .deleteBtn:hover {
   background: #ffebeb;
   border-color: #ffbaba;
+}
+
+.moveBtn {
+  padding: 8px 12px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.spacer {
+  flex: 1;
 }
 
 /* Add Block Modal */

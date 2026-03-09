@@ -7,7 +7,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from('essays')
     .select('*')
-    .order('date', { ascending: false });
+    .order('order_index', { ascending: true });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -61,6 +61,22 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
+
+    // Batch update for reordering
+    if (Array.isArray(body)) {
+      const supabase = createAdminClient();
+      const updates = body.map(item =>
+        supabase
+          .from('essays')
+          .update({ order_index: item.order_index })
+          .eq('id', item.id)
+      );
+
+      await Promise.all(updates);
+      return NextResponse.json({ success: true });
+    }
+
+    // Single item update
     const { id, title, content, date } = body;
 
     if (!id || !title || !date) {
