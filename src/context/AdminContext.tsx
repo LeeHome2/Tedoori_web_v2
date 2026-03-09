@@ -28,7 +28,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
+      console.log('[AdminContext] Supabase user:', user ? 'AUTHENTICATED' : 'NOT AUTHENTICATED');
+
       if (user) {
+        console.log('[AdminContext] Setting isAdmin=true (Supabase)');
         setIsAdmin(true);
         // Restore admin mode from session storage if available
         const storedMode = sessionStorage.getItem('adminMode');
@@ -39,9 +42,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         // 2. Fallback: Check Simple Auth (admin_token)
         try {
           const res = await fetch('/api/auth/check');
+          console.log('[AdminContext] Auth check response:', res.status);
           if (res.ok) {
             const data = await res.json();
+            console.log('[AdminContext] Auth check data:', data);
             if (data.isAdmin) {
+              console.log('[AdminContext] Setting isAdmin=true (Cookie)');
               setIsAdmin(true);
               const storedMode = sessionStorage.getItem('adminMode');
               if (storedMode === 'true') {
@@ -50,17 +56,19 @@ export function AdminProvider({ children }: { children: ReactNode }) {
               return; // Successfully authenticated via Simple Auth
             }
           }
-        } catch (ignore) {
+        } catch (err) {
+          console.log('[AdminContext] Auth check error:', err);
           // Ignore fetch errors
         }
 
         // If both failed
+        console.log('[AdminContext] Setting isAdmin=false (no auth)');
         setIsAdmin(false);
         setAdminMode(false); // Force disable admin mode if not authenticated
         sessionStorage.removeItem('adminMode');
       }
     } catch (error) {
-      console.error('Auth check failed', error);
+      console.error('[AdminContext] Auth check failed', error);
       setIsAdmin(false);
       setAdminMode(false);
     } finally {
@@ -74,14 +82,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[AdminContext] Auth state change:', event, session ? 'HAS_SESSION' : 'NO_SESSION');
+
       if (event === 'SIGNED_IN' && session) {
+        console.log('[AdminContext] SIGNED_IN event - setting isAdmin=true');
         setIsAdmin(true);
         setAdminMode(true);
         sessionStorage.setItem('adminMode', 'true');
       } else if (event === 'SIGNED_OUT') {
+        console.log('[AdminContext] SIGNED_OUT event - setting isAdmin=false');
         setIsAdmin(false);
         setAdminMode(false);
         sessionStorage.removeItem('adminMode');
+      } else if (event === 'INITIAL_SESSION' && !session) {
+        // Important: Handle initial session with no user
+        console.log('[AdminContext] INITIAL_SESSION with no user - ensuring logged out');
+        setIsAdmin(false);
+        setAdminMode(false);
       }
     });
 

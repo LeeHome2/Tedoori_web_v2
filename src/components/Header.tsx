@@ -12,8 +12,11 @@ export default function Header() {
   const [isTedooriOpen, setIsTedooriOpen] = useState(false);
   const [isWorksOpen, setIsWorksOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const { isAdmin, logout, adminMode, toggleAdminMode } = useAdmin();
+  const { isAdmin, logout, adminMode, toggleAdminMode, isLoading } = useAdmin();
   const pathname = usePathname();
+
+  // Debug logging
+  console.log('[Header] isAdmin:', isAdmin, 'isLoading:', isLoading, 'adminMode:', adminMode);
 
   const handleLoginClick = (e: React.MouseEvent) => {
     e.preventDefault();
