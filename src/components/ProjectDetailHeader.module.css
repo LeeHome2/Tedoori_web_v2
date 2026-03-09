@@ -49,7 +49,7 @@
   margin-right: 0;
   display: block;
   line-height: 0;
-  margin-left: 30px;
+  margin-left: 32px;
 }
 
 .logoImage {
@@ -161,7 +161,7 @@
 }
 
 .menuText {
-    font-weight: 300;
+    font-weight: 500;
     text-transform: uppercase;
     font-size: 12pt;
 }
@@ -177,7 +177,7 @@
   padding: 0;
   margin-right: 0; /* Reset margin since container is aligned */
   font-size: 12pt; /* Match menuText */
-  font-weight: 300; /* Match menuText - Light */
+  font-weight: 500;
 }
 
 .menuList li {
@@ -188,20 +188,16 @@
   text-decoration: none;
   color: var(--color-black);
   text-transform: capitalize;
-  font-weight: 300;
+  font-weight: 500;
 }
 
-.menuList a:not(.active):hover {
+.menuList a:hover {
   text-decoration: underline;
-}
-
-.menuList a.active:hover {
-  text-decoration: none !important;
 }
 
 .menuList button {
   text-transform: capitalize;
-  font-weight: 300;
+  font-weight: 500;
 }
 
 .menuList button:hover {
@@ -210,7 +206,7 @@
 
 .active {
   text-decoration: none !important;
-  font-weight: normal; /* Remove bold */
+  font-weight: 500;
 }
 
 .unlink {

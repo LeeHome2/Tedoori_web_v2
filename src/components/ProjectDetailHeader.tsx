@@ -45,11 +45,11 @@ export default function ProjectDetailHeader({
                     <Image
                       src="/logo.png"
                       alt="NP2F Logo"
-                      width={120}
-                      height={40}
+                      width={125}
+                      height={45}
                       className={styles.logoImage}
                       priority
-                    />
+                      />
                 </Link>
             </div>
 

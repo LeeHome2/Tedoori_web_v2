@@ -65,7 +65,10 @@ export const getProjects = async (): Promise<Project[]> => {
     cardWidth: row.details?.cardWidth,
     cardHeight: row.details?.cardHeight,
     lockedAspectRatio: row.details?.lockedAspectRatio,
+    galleryWidthRatio: row.details?.galleryWidthRatio,
     hasDetailLink: row.details?.hasDetailLink,
+    showId: row.details?.showId,
+    showTitle: row.details?.showTitle,
   }));
 };
 
@@ -99,7 +102,10 @@ export const getProjectById = async (id: string): Promise<Project | null> => {
     cardWidth: data.details?.cardWidth,
     cardHeight: data.details?.cardHeight,
     lockedAspectRatio: data.details?.lockedAspectRatio,
+    galleryWidthRatio: data.details?.galleryWidthRatio,
     hasDetailLink: data.details?.hasDetailLink,
+    showId: data.details?.showId,
+    showTitle: data.details?.showTitle,
   };
 };
 

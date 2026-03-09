@@ -1,72 +1,161 @@
-
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
-const updateSchema = z.object({
-  section: z.string(),
-  content: z.string().max(1000, "Content exceeds 1000 characters"),
-});
+export interface AboutBlock {
+  id: string;
+  type: 'text' | 'image' | 'map';
+  content: string;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+async function getAuthenticatedClient() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('admin_token');
+  if (token?.value === 'authenticated') {
+    return createAdminClient();
+  }
+  return null;
+}
 
 export async function GET() {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('about_content')
-    .select('section, content');
+    .from('about_blocks')
+    .select('*')
+    .order('order_index', { ascending: true });
 
   if (error) {
-    // If table doesn't exist yet, return empty or defaults
-    return NextResponse.json({});
+    console.error('Error fetching about blocks:', error);
+    return NextResponse.json([]);
   }
 
-  // Transform array to object for easier frontend consumption
-  const contentMap = data.reduce((acc: any, item: any) => {
-    acc[item.section] = item.content;
-    return acc;
-  }, {});
+  return NextResponse.json(data || []);
+}
 
-  return NextResponse.json(contentMap);
+export async function POST(request: Request) {
+  const supabase = await getAuthenticatedClient();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const block: AboutBlock = await request.json();
+
+    // Get max order_index
+    const { data: maxData } = await supabase
+      .from('about_blocks')
+      .select('order_index')
+      .order('order_index', { ascending: false })
+      .limit(1);
+
+    const nextOrder = maxData && maxData.length > 0 ? maxData[0].order_index + 1 : 0;
+
+    const { data, error } = await supabase
+      .from('about_blocks')
+      .insert({
+        id: block.id,
+        type: block.type,
+        content: block.content || '',
+        order_index: nextOrder,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error('Failed to create block:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 export async function PUT(request: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token');
-  const isAdmin = token?.value === 'authenticated';
-
-  if (!isAdmin) {
+  const supabase = await getAuthenticatedClient();
+  if (!supabase) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const body = await request.json();
-    const result = updateSchema.safeParse(body);
-    
-    if (!result.success) {
-        return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
+
+    // Batch update for reordering
+    if (Array.isArray(body)) {
+      const updates = body.map((block: AboutBlock, index: number) => ({
+        id: block.id,
+        order_index: index,
+        type: block.type,
+        content: block.content
+      }));
+
+      // Upsert each block (update if exists, insert if not)
+      for (const update of updates) {
+        await supabase
+          .from('about_blocks')
+          .upsert({
+            id: update.id,
+            type: update.type,
+            content: update.content,
+            order_index: update.order_index,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+      }
+
+      return NextResponse.json({ success: true });
     }
 
-    const { section, content } = result.data;
+    // Single block update - use upsert
+    const block: AboutBlock = body;
+    const { data, error } = await supabase
+      .from('about_blocks')
+      .upsert({
+        id: block.id,
+        type: block.type,
+        content: block.content,
+        order_index: block.order_index,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' })
+      .select()
+      .single();
 
-    // Use Admin Client to bypass RLS and ensure update
-    const supabase = createAdminClient();
-    
+    if (error) throw error;
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error('Failed to update block:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  const supabase = await getAuthenticatedClient();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+    }
+
     const { error } = await supabase
-      .from('about_content')
-      .update({ content, updated_at: new Date().toISOString() })
-      .eq('section', section);
+      .from('about_blocks')
+      .delete()
+      .eq('id', id);
 
-    if (error) {
-        // If row doesn't exist, try insert (upsert)
-        const { error: insertError } = await supabase
-            .from('about_content')
-            .upsert({ section, content, updated_at: new Date().toISOString() }, { onConflict: 'section' });
-            
-        if (insertError) throw insertError;
-    }
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Update failed' }, { status: 500 });
+    console.error('Failed to delete block:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

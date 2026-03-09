@@ -21,7 +21,7 @@
   .container {
     flex-direction: row; /* Desktop: Row layout (Split Pane) */
     align-items: stretch;
-    margin-left: 180px; /* Logo width 120px + gap 50px */
+    margin-left: 0; /* Reset margin */
     padding-right: 200px;
     padding-bottom: 20px;
   }
@@ -35,7 +35,7 @@
 @media (max-width: 768px) {
   .container {
     margin-left: 0;
-    flex-direction: column-reverse;
+    flex-direction: column;
     justify-content: flex-end;
     overflow: visible; /* Allow scrolling on mobile */
     height: auto; /* Let content dictate height on mobile */
@@ -47,11 +47,12 @@
     min-height: 300px;
     overflow: visible; /* Show full gallery on mobile */
     height: auto;
-    padding-top: 150px;
+    padding-top: 20px;
   }
 
   .infoColumn {
     flex-shrink: 0;
+    padding-left: 20px; /* Reset padding for mobile */
     padding-bottom: 20px;
     padding-top: 150px;
     border-bottom: 1px solid #eee; /* Added separator line */
@@ -63,7 +64,7 @@
 
 .infoColumn {
   padding: 0;
-  padding-left: 20px;
+  padding-left: 165px; /* Align with logo left edge (20 + 30 + 83 + 32 = 165px) */
   padding-top: 150px; /* Top spacing matching imageColumn */
   position: relative;
   display: flex;
@@ -322,7 +323,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-left: 80px; /* Added left margin */
+  margin-left: 80px; /* Left margin for spacing */
+  margin-right: 0; /* Reset right margin */
   align-self: stretch; /* Stretch to container height */
 }
 
@@ -540,7 +542,7 @@
   padding: 20px;
   min-height: 200px; /* Ensure visibility */
   border-radius: 0; /* Square corners */
-  border: 1px solid #ccc; /* Changed to gray border */
+  border: none;
   overflow-y: auto; /* Scrollable if too long */
   word-wrap: break-word; /* Break long words */
   white-space: pre-wrap; /* Preserve newlines */
@@ -664,8 +666,8 @@
   text-align: left; /* Ensure text alignment is left */
   padding: 2rem;
   border-radius: 0;
-  border: 1px solid #ccc; /* Changed to gray border */
-  
+  border: none;
+
   /* Text Handling */
   overflow: hidden;
   word-wrap: break-word;

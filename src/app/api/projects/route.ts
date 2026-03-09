@@ -59,29 +59,37 @@ export async function GET() {
   }
 
   // Transform database format to frontend format
-  const projects = (data || []).map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    slug: row.slug,
-    imageUrl: row.image_url,
-    link: `/projet/${row.id}`,
-    details: row.details || {},
-    galleryImages: row.gallery_images || [],
-    isVisible: row.is_visible,
-    // Extract layout and content info from details
-    cardWidth: row.details?.cardWidth,
-    cardHeight: row.details?.cardHeight,
-    lockedAspectRatio: row.details?.lockedAspectRatio,
-    galleryWidthRatio: row.details?.galleryWidthRatio,
-    type: row.details?.type || 'project',
-    videoId: row.details?.videoId,
-    content: row.details?.content,
-    memoStyle: row.details?.memoStyle,
-    showId: row.details?.showId,
-    showTitle: row.details?.showTitle,
-    hasDetailLink: row.details?.hasDetailLink,
-    descriptionBlocks: row.details?.descriptionBlocks || [],
-  }));
+  const projects = (data || []).map((row: any) => {
+    const project = {
+      id: row.id,
+      title: row.title,
+      slug: row.slug,
+      imageUrl: row.image_url,
+      link: `/projet/${row.id}`,
+      details: row.details || {},
+      galleryImages: row.gallery_images || [],
+      isVisible: row.is_visible,
+      // Extract layout and content info from details
+      cardWidth: row.details?.cardWidth,
+      cardHeight: row.details?.cardHeight,
+      lockedAspectRatio: row.details?.lockedAspectRatio,
+      galleryWidthRatio: row.details?.galleryWidthRatio,
+      type: row.details?.type || 'project',
+      videoId: row.details?.videoId,
+      content: row.details?.content,
+      memoStyle: row.details?.memoStyle,
+      showId: row.details?.showId,
+      showTitle: row.details?.showTitle,
+      hasDetailLink: row.details?.hasDetailLink,
+      descriptionBlocks: row.details?.descriptionBlocks || [],
+    };
+
+    if (row.id === '777') {
+      console.log('[API GET] Project 777 galleryWidthRatio:', project.galleryWidthRatio);
+    }
+
+    return project;
+  });
 
   return NextResponse.json(projects);
 }
@@ -248,6 +256,8 @@ export async function PUT(request: Request) {
   const project: Project = projectData;
   const targetId = originalId || project.id;
 
+  console.log('[API PUT] Received galleryWidthRatio:', project.galleryWidthRatio);
+
   // Inject layout and content info into details for storage
   // Ensure we preserve existing details if any
   const detailsToSave = {
@@ -266,6 +276,8 @@ export async function PUT(request: Request) {
       showTitle: project.showTitle,
       hasDetailLink: project.hasDetailLink,
   };
+
+  console.log('[API PUT] detailsToSave.galleryWidthRatio:', detailsToSave.galleryWidthRatio);
 
   const { data, error } = await supabase
     .from('projects')

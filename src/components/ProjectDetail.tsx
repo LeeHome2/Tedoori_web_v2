@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef, useId } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Project, GalleryItem, ContentBlock, MemoStyle } from "@/data/projects";
@@ -19,12 +19,12 @@ interface ProjectDetailProps {
 }
 
 export default function ProjectDetail({ project: initialProject, prevProject, nextProject }: ProjectDetailProps) {
-  // Generate a unique ID for DndContext to avoid hydration mismatches
-  const dndContextId = useId();
-  
   // Use context to get live data if available, otherwise fallback to props
   const { projects, updateProject } = useProjects();
   const project = projects.find(p => p.id === initialProject.id) || initialProject;
+
+  // Generate a stable ID for DndContext based on project ID to avoid hydration mismatches
+  const dndContextId = `dnd-${project.id}`;
 
   const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
 
@@ -69,9 +69,12 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const saveBlogContent = async () => {
       setIsSavingBlog(true);
       try {
+        console.log('[Save] Saving galleryWidthRatio:', leftPaneWidth);
+
         await updateProject({
           ...project,
           content: blogHtml, // Save to project.content as well
+          galleryWidthRatio: leftPaneWidth, // Save resizer ratio
           details: {
             year: project.details?.year || '',
             location: project.details?.location || '',
@@ -86,12 +89,13 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
             status: project.details?.status || '',
             photographer: project.details?.photographer || '',
             ...project.details,
-            content: blogHtml // Save to project.details.content as well
+            content: blogHtml, // Save to project.details.content as well
+            galleryWidthRatio: leftPaneWidth // Save to details as well
           }
         });
-        console.log('Blog content saved successfully');
+        console.log('[Save] Blog content and resizer ratio saved successfully');
       } catch (error) {
-        console.error('Failed to save blog content:', error);
+        console.error('[Save] Failed to save blog content:', error);
         alert('Failed to save blog content. Please try again.');
         throw error; // Re-throw to prevent closing edit mode on error
       } finally {
@@ -101,76 +105,63 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   // Resizable Pane State
   const [leftPaneWidth, setLeftPaneWidth] = useState(() => {
-    // Try to load from localStorage first (for non-admin users)
-    if (typeof window !== 'undefined') {
-      const localWidth = localStorage.getItem(`projectWidth_${project.id}`);
-      if (localWidth) {
-        return parseFloat(localWidth);
-      }
-    }
-    // Otherwise use admin-set width or default
+    // Always start with DB default or fallback to 70
+    console.log('[Resizer Init] project.galleryWidthRatio:', project.galleryWidthRatio);
     return project.galleryWidthRatio || 70;
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
 
-  // Update leftPaneWidth if project data changes (e.g. initial load or external update)
-  // Only update if no local override exists or if in admin mode
+  // Always use DB default on mount and when project changes
   useEffect(() => {
-    if (project.galleryWidthRatio && (isAdmin && adminMode)) {
-        setLeftPaneWidth(project.galleryWidthRatio);
-    }
-  }, [project.galleryWidthRatio, isAdmin, adminMode]);
+    console.log('[Resizer Update] project.galleryWidthRatio:', project.galleryWidthRatio);
+    setLeftPaneWidth(project.galleryWidthRatio || 70);
+  }, [project.galleryWidthRatio]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
-    
+
     const containerRect = containerRef.current.getBoundingClientRect();
-    // Calculate percentage based on Gallery (Left Pane) width
-    // Adjust for padding-right (200px) and resizer margin-left (80px) to prevent jumping
-    const contentWidth = containerRect.width - 200; 
-    const resizerOffset = 80;
-    
-    let newWidth = ((e.clientX - containerRect.left - resizerOffset) / contentWidth) * 100;
-    
+
+    // Layout: [blog: (100-leftPaneWidth)%] [resizer margin: 80px] [gallery: leftPaneWidth%] [padding-right: 200px]
+    const resizerMargin = 80;
+    const paddingRight = 200;
+
+    // Available width for percentage calculation (excluding padding-right)
+    const availableWidth = containerRect.width - paddingRight;
+
+    // Blog area width in pixels (from container.left to mouse, excluding resizer margin)
+    const blogWidthPx = e.clientX - containerRect.left - resizerMargin;
+
+    // Blog area percentage
+    const blogWidthPercent = (blogWidthPx / availableWidth) * 100;
+
+    // Gallery area percentage (leftPaneWidth stores gallery width)
+    let newWidth = 100 - blogWidthPercent;
+
     // Limits (min 10%, max 90%)
     if (newWidth < 10) newWidth = 10;
     if (newWidth > 90) newWidth = 90;
-    
+
     setLeftPaneWidth(newWidth);
   }, []);
 
-
-  
-  const currentWidthRef = useRef(leftPaneWidth);
-  useEffect(() => { currentWidthRef.current = leftPaneWidth; }, [leftPaneWidth]);
-
-  // Enhanced stopResizing to save data
-  const stopResizingAndSave = useCallback(async () => {
+  // Stop resizing (no save - saving happens when Done button is clicked)
+  const stopResizing = useCallback(() => {
       isResizing.current = false;
       document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", stopResizingAndSave); // Remove self
+      document.removeEventListener("mouseup", stopResizing);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+  }, [handleMouseMove]);
 
-      // Save to DB only if admin and in edit mode
-      if (isAdmin && adminMode && isBlogEditing && project.id) {
-          await updateProject({ ...project, galleryWidthRatio: currentWidthRef.current });
-      } else {
-          // For non-admin users, save to localStorage only
-          if (typeof window !== 'undefined' && project.id) {
-              localStorage.setItem(`projectWidth_${project.id}`, currentWidthRef.current.toString());
-          }
-      }
-  }, [project, updateProject, handleMouseMove, isAdmin, adminMode, isBlogEditing]);
-
-  const startResizingEnhanced = useCallback(() => {
+  const startResizing = useCallback(() => {
     isResizing.current = true;
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", stopResizingAndSave); // Use the saver version
+    document.addEventListener("mouseup", stopResizing);
     document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
-  }, [stopResizingAndSave, handleMouseMove]);
+  }, [stopResizing, handleMouseMove]);
 
   // Removed Block Resize Logic since BlogEditor handles images differently
   // If we need resizing in BlogEditor, it's done via Tiptap extensions or NodeView
@@ -654,72 +645,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   return (
     <div className={styles.container} ref={containerRef}>
-      {isAdmin && adminMode && (
-          <div style={{ position: 'fixed', top: '150px', left: '163px', zIndex: lightboxOpen ? 0 : 1999, display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                onClick={openAddModal}
-                className={styles.addBtn}
-                aria-label="십자 버튼"
-                >
-                </button>
-          </div>
-      )}
-
-      {/* Left Pane: Gallery Section */}
-      <div 
-        className={styles.imageColumn}
-        style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 1 }}
-      >
-        {isAdmin && adminMode && uploading && !isModalOpen && (
-            <div className={styles.progressBar}>
-                <div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div>
-            </div>
-        )}
-        {isAdmin && adminMode && error && !isModalOpen && <p style={{ color: 'red', marginTop: '10px', width: '100%' }}>{error}</p>}
-
-        <DndContext 
-            id={dndContextId}
-            sensors={sensors} 
-            collisionDetection={closestCenter} 
-            onDragEnd={handleDragEnd}
-        >
-            <SortableContext 
-                items={project.galleryImages?.filter(item => (isAdmin && adminMode) || item.visibility !== 'private').map(item => item.id) || []} 
-                strategy={rectSortingStrategy}
-            >
-                <div className={styles.grid}>
-                {project.galleryImages?.map((item, index) => {
-                    if ((!isAdmin || !adminMode) && item.visibility === 'private') return null;
-                    
-                    return (
-                        <SortableGalleryItem 
-                                key={item.id}
-                                item={item} 
-                                index={index} 
-                                onClick={() => handleItemClick(index)}
-                                onDelete={handleDeleteItem}
-                                onUpdate={handleUpdateItem}
-                                onEdit={(idx, it) => openEditModal(idx, it)}
-                            />
-                    );
-                })}
-                </div>
-            </SortableContext>
-        </DndContext>
-      </div>
-
-      {/* Resizer Handle */}
-      <div
-        className={styles.resizer}
-        style={{ cursor: 'ew-resize' }}
-        onMouseDown={(e) => {
-            startResizingEnhanced();
-        }}
-      >
-        <div className={styles.resizerHandleIcon} />
-      </div>
-
-      {/* Right Pane: Blog Section */}
+      {/* Left Pane: Blog Section */}
       <div
         className={styles.infoColumn}
         style={{ width: isDesktop ? `${100 - leftPaneWidth}%` : '100%', flexShrink: 0 }}
@@ -789,6 +715,79 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                 />
             )}
         </div>
+      </div>
+
+      {/* Resizer Handle */}
+      <div
+        className={styles.resizer}
+        style={{ cursor: 'ew-resize' }}
+        onMouseDown={(e) => {
+            startResizing();
+        }}
+      >
+        <div className={styles.resizerHandleIcon} />
+      </div>
+
+      {/* Right Pane: Gallery Section */}
+      <div
+        className={styles.imageColumn}
+        style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 1, position: 'relative' }}
+      >
+        {/* Sticky Add Button at gallery top (in header area) */}
+        {isAdmin && adminMode && (
+          <div style={{
+            position: 'absolute',
+            top: '49px',
+            left: '40px',
+            zIndex: 2000,
+            pointerEvents: 'none'
+          }}>
+            <button
+              onClick={openAddModal}
+              className={styles.addBtn}
+              aria-label="십자 버튼"
+              style={{ pointerEvents: 'auto', position: 'sticky', top: '49px' }}
+            >
+            </button>
+          </div>
+        )}
+
+        {isAdmin && adminMode && uploading && !isModalOpen && (
+            <div className={styles.progressBar}>
+                <div className={styles.progressFill} style={{ width: `${uploadProgress}%` }}></div>
+            </div>
+        )}
+        {isAdmin && adminMode && error && !isModalOpen && <p style={{ color: 'red', marginTop: '10px', width: '100%' }}>{error}</p>}
+
+        <DndContext
+            id={dndContextId}
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <SortableContext
+                items={project.galleryImages?.filter(item => (isAdmin && adminMode) || item.visibility !== 'private').map(item => item.id) || []}
+                strategy={rectSortingStrategy}
+            >
+                <div className={styles.grid}>
+                {project.galleryImages?.map((item, index) => {
+                    if ((!isAdmin || !adminMode) && item.visibility === 'private') return null;
+
+                    return (
+                        <SortableGalleryItem
+                                key={item.id}
+                                item={item}
+                                index={index}
+                                onClick={() => handleItemClick(index)}
+                                onDelete={handleDeleteItem}
+                                onUpdate={handleUpdateItem}
+                                onEdit={(idx, it) => openEditModal(idx, it)}
+                            />
+                    );
+                })}
+                </div>
+            </SortableContext>
+        </DndContext>
       </div>
 
       {/* Lightbox Overlay */}

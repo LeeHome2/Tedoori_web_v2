@@ -81,14 +81,11 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Disable default HardBreak if we want to customize it, but usually default is fine (Shift+Enter)
-        // However, user said "Enter" key issue. StarterKit includes Paragraph and HardBreak.
-        // Paragraph: Enter creates new paragraph.
-        // HardBreak: Shift+Enter creates <br>.
-        // Let's ensure proper configuration.
+        // Disable default dropcursor to use custom configuration
+        dropcursor: false,
       }),
       Image.configure({
-        inline: false, 
+        inline: false,
         allowBase64: true,
       }),
       // ... (other extensions)

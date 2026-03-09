@@ -366,7 +366,7 @@
     justify-content: center;
     padding: 30px;
     background: #fafafa;
-    border: 1px solid #eee;
+    border: none;
     overflow: hidden;
     box-sizing: border-box;
 }
