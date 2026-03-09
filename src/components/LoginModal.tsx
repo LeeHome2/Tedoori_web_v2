@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdmin } from '@/context/AdminContext';
 import styles from './LoginModal.module.css';
 
@@ -15,6 +15,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAdmin();
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setUsername('');
+      setPassword('');
+      setError('');
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -32,6 +42,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
       if (res.ok) {
         login(); // Updates context state
+        // Reset form
+        setUsername('');
+        setPassword('');
+        setError('');
         onClose(); // Close modal
         // No redirection, stay on page
       } else {

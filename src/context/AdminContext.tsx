@@ -111,7 +111,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       setIsAdmin(true);
       setAdminMode(true); // Auto-enable admin mode on login
       sessionStorage.setItem('adminMode', 'true');
-      checkAuth();
+      // Don't call checkAuth() again - it causes state conflicts
   };
 
   const logout = async () => {
@@ -122,10 +122,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const supabase = createClient();
       await supabase.auth.signOut();
       await fetch('/api/auth/logout', { method: 'POST' }); // Also clear simple auth cookie
-      router.push('/'); // Redirect to home instead of login
+      // Force reload to clear all state
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout failed', error);
-      router.push('/'); // Redirect even on error
+      window.location.href = '/'; // Force reload even on error
     }
   };
 
