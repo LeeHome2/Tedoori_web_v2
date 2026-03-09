@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
+import { useContentEditor } from "@/hooks/useContentEditor";
 import styles from "./essays.module.css";
 import DOMPurify from 'dompurify';
-import imageCompression from 'browser-image-compression';
 
 interface Essay {
   id: string;
@@ -18,283 +18,40 @@ interface Essay {
 
 export default function EssaysPage() {
   const { isAdmin, adminMode } = useAdmin();
-  const [essays, setEssays] = useState<Essay[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    date: new Date().toISOString().split('T')[0]
+
+  // Use the custom hook for content management
+  const {
+    items: essays,
+    editingId,
+    isAddingNew,
+    isUploading,
+    formData,
+    setFormData,
+    handleSaveInline,
+    handleSaveNew,
+    handleDelete,
+    handleMoveUp,
+    handleMoveDown,
+    startAddingNew,
+    startEditing,
+    cancelEditing,
+    cancelAddingNew,
+    handleAddImage,
+    handleAddYouTube,
+  } = useContentEditor({
+    apiEndpoint: '/api/essays',
+    defaultFormData: {
+      title: '',
+      content: '',
+      date: new Date().toISOString().split('T')[0]
+    },
   });
 
-  useEffect(() => {
-    fetchEssays();
-  }, []);
-
-  const fetchEssays = async () => {
-    try {
-      const res = await fetch('/api/essays');
-      if (res.ok) {
-        const data = await res.json();
-        console.log('Fetched essays:', data.length);
-        setEssays(data);
-      } else {
-        console.error('Failed to fetch essays:', await res.text());
-      }
-    } catch (error) {
-      console.error('Failed to fetch essays:', error);
-    }
-  };
-
-  const handleSaveInline = async (id: string) => {
-    console.log('Saving essay update:', { id, formData });
-
-    try {
-      const res = await fetch('/api/essays', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ...formData })
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to save');
-      }
-
-      console.log('Essay saved successfully');
-      await fetchEssays();
-      setEditingId(null);
-    } catch (error: any) {
-      console.error('Failed to save essay:', error);
-      alert(`Failed to save: ${error.message}`);
-    }
-  };
-
-  const handleSaveNew = async () => {
-    if (!formData.title.trim()) {
-      alert('Title is required');
-      return;
-    }
-
-    console.log('Saving new essay:', formData);
-
-    try {
-      const res = await fetch('/api/essays', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to save');
-      }
-
-      console.log('New essay saved successfully');
-      await fetchEssays();
-      setIsAddingNew(false);
-      setFormData({
-        title: '',
-        content: '',
-        date: new Date().toISOString().split('T')[0]
-      });
-    } catch (error: any) {
-      console.error('Failed to save new essay:', error);
-      alert(`Failed to save: ${error.message}`);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this essay?')) return;
-
-    try {
-      const res = await fetch(`/api/essays?id=${id}`, {
-        method: 'DELETE'
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to delete');
-      }
-
-      await fetchEssays();
-    } catch (error: any) {
-      console.error('Failed to delete essay:', error);
-      alert(`Failed to delete: ${error.message}`);
-    }
-  };
-
-  const handleMoveUp = async (id: string) => {
-    const index = essays.findIndex(item => item.id === id);
-    if (index <= 0) return;
-
-    const newItems = [...essays];
-    [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
-
-    // Update order_index for all items
-    const updates = newItems.map((item, idx) => ({
-      id: item.id,
-      order_index: idx
-    }));
-
-    setEssays(newItems);
-
-    try {
-      await fetch('/api/essays', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-    } catch (error) {
-      console.error('Failed to update order:', error);
-      await fetchEssays(); // Revert on error
-    }
-  };
-
-  const handleMoveDown = async (id: string) => {
-    const index = essays.findIndex(item => item.id === id);
-    if (index < 0 || index >= essays.length - 1) return;
-
-    const newItems = [...essays];
-    [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
-
-    // Update order_index for all items
-    const updates = newItems.map((item, idx) => ({
-      id: item.id,
-      order_index: idx
-    }));
-
-    setEssays(newItems);
-
-    try {
-      await fetch('/api/essays', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-    } catch (error) {
-      console.error('Failed to update order:', error);
-      await fetchEssays(); // Revert on error
-    }
-  };
-
-  const startAddingNew = () => {
-    setIsAddingNew(true);
-    setFormData({
-      title: '',
-      content: '',
-      date: new Date().toISOString().split('T')[0]
-    });
-  };
-
-  const startEditing = (essay: Essay) => {
-    setEditingId(essay.id);
-    setFormData({
-      title: essay.title,
-      content: essay.content,
-      date: essay.date
-    });
-    // Expand the content when editing
+  // Custom startEditing to also expand the content
+  const handleStartEditing = (essay: Essay) => {
+    startEditing(essay);
     setExpandedId(essay.id);
-  };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setFormData({
-      title: '',
-      content: '',
-      date: new Date().toISOString().split('T')[0]
-    });
-  };
-
-  const cancelAddingNew = () => {
-    setIsAddingNew(false);
-    setFormData({
-      title: '',
-      content: '',
-      date: new Date().toISOString().split('T')[0]
-    });
-  };
-
-  const handleAddImage = async () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e: any) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1200,
-        useWebWorker: true,
-        fileType: 'image/webp'
-      };
-
-      try {
-        setIsUploading(true);
-        console.log('Compressing image...', file.name, file.type, file.size);
-        const compressedFile = await imageCompression(file, options);
-        console.log('Compressed:', compressedFile.name, compressedFile.type, compressedFile.size);
-
-        // Rename file to have .webp extension
-        const webpFile = new File([compressedFile], `${Date.now()}.webp`, { type: 'image/webp' });
-
-        const formData = new FormData();
-        formData.append('file', webpFile);
-
-        console.log('Uploading to /api/upload...');
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        console.log('Upload response status:', uploadRes.status);
-        const uploadData = await uploadRes.json();
-        console.log('Upload response data:', uploadData);
-
-        if (!uploadRes.ok) {
-          throw new Error(uploadData.error || 'Upload failed');
-        }
-
-        setFormData(prev => ({
-          ...prev,
-          content: prev.content + `\n<img src="${uploadData.url}" alt="Uploaded image" style="max-width: 100%; height: auto; margin: 10px 0;" />\n`
-        }));
-      } catch (error: any) {
-        console.error('Failed to upload image', error);
-        alert(`Failed to upload image: ${error.message || error}`);
-      } finally {
-        setIsUploading(false);
-      }
-    };
-    input.click();
-  };
-
-  const handleAddYouTube = () => {
-    const url = prompt('Enter YouTube URL:');
-    if (!url) return;
-
-    let videoId = '';
-    if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1].split('?')[0];
-    } else if (url.includes('youtube.com/watch?v=')) {
-      videoId = url.split('v=')[1].split('&')[0];
-    } else if (url.includes('youtube.com/embed/')) {
-      videoId = url.split('embed/')[1].split('?')[0];
-    }
-
-    if (!videoId) {
-      alert('Invalid YouTube URL');
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      content: prev.content + `\n<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="margin: 10px 0;"></iframe>\n`
-    }));
   };
 
   return (
@@ -491,7 +248,7 @@ export default function EssaysPage() {
                         </>
                       ) : (
                         <button
-                          onClick={() => startEditing(essay)}
+                          onClick={() => handleStartEditing(essay)}
                           style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: 'black' }}
                         >
                           edit

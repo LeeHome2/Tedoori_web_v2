@@ -7,7 +7,8 @@ import { useAdmin } from "@/context/AdminContext";
 import OfficeMap from '@/components/OfficeMap';
 import styles from './about.module.css';
 import DOMPurify from 'dompurify';
-import imageCompression from 'browser-image-compression';
+import { uploadImage, generateImageHtml } from '@/lib/utils/image';
+import { generateYoutubeIframe } from '@/lib/utils/youtube';
 
 interface AboutBlock {
   id: string;
@@ -252,7 +253,7 @@ export default function AboutPage() {
     });
   };
 
-  const handleAddImage = async () => {
+  const handleAddImage = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -260,46 +261,16 @@ export default function AboutPage() {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1200,
-        useWebWorker: true,
-        fileType: 'image/webp'
-      };
-
       try {
         setIsUploading(true);
-        console.log('Compressing image...', file.name, file.type, file.size);
-        const compressedFile = await imageCompression(file, options);
-        console.log('Compressed:', compressedFile.name, compressedFile.type, compressedFile.size);
-
-        // Rename file to have .webp extension
-        const webpFile = new File([compressedFile], `${Date.now()}.webp`, { type: 'image/webp' });
-
-        const formData = new FormData();
-        formData.append('file', webpFile);
-
-        console.log('Uploading to /api/upload...');
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        console.log('Upload response status:', uploadRes.status);
-        const uploadData = await uploadRes.json();
-        console.log('Upload response data:', uploadData);
-
-        if (!uploadRes.ok) {
-          throw new Error(uploadData.error || 'Upload failed');
-        }
+        const url = await uploadImage(file);
 
         // Add image HTML to content
         setFormData(prev => ({
-          content: prev.content + `\n<img src="${uploadData.url}" alt="Uploaded image" style="max-width: 100%; height: auto; margin: 10px 0;" />\n`
+          content: prev.content + '\n' + generateImageHtml(url) + '\n'
         }));
       } catch (error: any) {
-        console.error('Failed to upload image', error);
-        alert(`Failed to upload image: ${error.message || error}`);
+        alert(error.message);
       } finally {
         setIsUploading(false);
       }
@@ -311,24 +282,15 @@ export default function AboutPage() {
     const url = prompt('Enter YouTube URL:');
     if (!url) return;
 
-    // Extract video ID from various YouTube URL formats
-    let videoId = '';
-    if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1].split('?')[0];
-    } else if (url.includes('youtube.com/watch?v=')) {
-      videoId = url.split('v=')[1].split('&')[0];
-    } else if (url.includes('youtube.com/embed/')) {
-      videoId = url.split('embed/')[1].split('?')[0];
-    }
+    const iframe = generateYoutubeIframe(url);
 
-    if (!videoId) {
+    if (!iframe) {
       alert('Invalid YouTube URL');
       return;
     }
 
-    // Add YouTube iframe to content
     setFormData(prev => ({
-      content: prev.content + `\n<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="margin: 10px 0;"></iframe>\n`
+      content: prev.content + '\n' + iframe + '\n'
     }));
   };
 
