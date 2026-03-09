@@ -302,7 +302,7 @@ export default function EssaysPage() {
       <Header />
 
       {isAdmin && adminMode && (
-        <div style={{ position: 'fixed', top: '150px', right: '40px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: '150px', right: '220px', zIndex: 2001, display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
             onClick={startAddingNew}
             className={styles.addBtn}

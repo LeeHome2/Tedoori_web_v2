@@ -337,7 +337,7 @@ export default function AboutPage() {
       <Header />
 
       {isAdmin && adminMode && (
-        <div style={{ position: 'fixed', top: '150px', right: '40px', zIndex: 2001 }}>
+        <div style={{ position: 'fixed', top: '150px', right: '220px', zIndex: 2001 }}>
           <button onClick={handleAddText} className={styles.addBtn} title="Add block" aria-label="Add block">
           </button>
         </div>
