@@ -9,6 +9,7 @@ import OfficeMap from '@/components/OfficeMap';
 import DOMPurify from 'dompurify';
 import { uploadImage, generateImageHtml } from '@/lib/utils/image';
 import { generateYoutubeIframe } from '@/lib/utils/youtube';
+import contentStyles from '@/styles/contentPage.module.css';
 
 interface AboutBlock {
   id: string;
@@ -43,6 +44,7 @@ export default function AboutPage() {
   const { setAddAction } = useAddAction();
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
@@ -119,11 +121,21 @@ export default function AboutPage() {
     }
   };
 
-  const handleAddText = useCallback(async () => {
+  const startAddingNew = useCallback(() => {
+    setIsAddingNew(true);
+    setFormData({ content: '' });
+  }, []);
+
+  const cancelAddingNew = useCallback(() => {
+    setIsAddingNew(false);
+    setFormData({ content: '' });
+  }, []);
+
+  const handleSaveNew = async () => {
     const newBlock: AboutBlock = {
       id: `block-${Date.now()}`,
       type: 'text',
-      content: 'New text block',
+      content: formData.content || 'New text block',
       order_index: blocks.length
     };
 
@@ -142,13 +154,13 @@ export default function AboutPage() {
 
       const data = await res.json();
       setBlocks(prev => [...prev, data]);
-      setEditingId(data.id);
-      setFormData({ content: data.content });
+      setIsAddingNew(false);
+      setFormData({ content: '' });
     } catch (error) {
       console.error('Failed to add block', error);
       alert('Failed to add block');
     }
-  }, [blocks.length]);
+  };
 
   const handleSaveInline = async (id: string) => {
     const block = blocks.find(b => b.id === id);
@@ -297,27 +309,65 @@ export default function AboutPage() {
 
   // Register add action for header
   useEffect(() => {
-    setAddAction(handleAddText);
+    setAddAction(startAddingNew);
     return () => setAddAction(null);
-  }, [setAddAction, handleAddText]);
+  }, [setAddAction, startAddingNew]);
 
   return (
     <main>
       <Header />
 
-      <div style={{
-        width: 'calc(40vw - 145px)',
-        marginTop: '150px',
-        marginBottom: '100px',
-        marginLeft: '165px',
-        paddingLeft: '0',
-        paddingRight: '20px',
-        lineHeight: '1.6',
-        minHeight: '60vh',
-        fontSize: '15px'
-      }}>
+      <div className={contentStyles.contentWrapper}>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* New block form */}
+          {isAddingNew && (
+            <article style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ position: 'relative' }}>
+                    <textarea
+                      value={formData.content}
+                      onChange={(e) => setFormData({ content: e.target.value })}
+                      placeholder="Enter content..."
+                      rows={10}
+                      style={{ width: '100%', color: '#666', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical', fontSize: '14px' }}
+                    />
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                      <button
+                        onClick={handleAddImage}
+                        disabled={isUploading}
+                        style={{ padding: '4px 8px', fontSize: '11px', cursor: isUploading ? 'wait' : 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                      >
+                        {isUploading ? 'uploading...' : '+add image'}
+                      </button>
+                      <button
+                        onClick={handleAddYouTube}
+                        style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#666' }}
+                      >
+                        +add youtube
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexShrink: 0 }}>
+                  <button
+                    onClick={handleSaveNew}
+                    style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'black', color: 'white', border: 'none' }}
+                  >
+                    save
+                  </button>
+                  <button
+                    onClick={cancelAddingNew}
+                    style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}
+                  >
+                    cancel
+                  </button>
+                </div>
+              </div>
+            </article>
+          )}
+
           {blocks.map((block) => {
             const isEditing = editingId === block.id;
 

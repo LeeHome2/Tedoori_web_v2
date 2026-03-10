@@ -7,6 +7,7 @@ import { useAdmin } from "@/context/AdminContext";
 import { useAddAction } from "@/context/AddActionContext";
 import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
 import DOMPurify from 'dompurify';
+import contentStyles from '@/styles/contentPage.module.css';
 
 export default function NewsPage() {
   const { isAdmin, adminMode } = useAdmin();
@@ -57,16 +58,7 @@ export default function NewsPage() {
     <main>
       <Header />
 
-      <div style={{
-        width: 'calc(40vw - 145px)',
-        marginTop: '150px',
-        marginBottom: '100px',
-        marginLeft: '165px',
-        paddingLeft: '0',
-        paddingRight: '20px',
-        lineHeight: '1.6',
-        minHeight: '60vh'
-      }}>
+      <div className={contentStyles.contentWrapper}>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* New news form */}

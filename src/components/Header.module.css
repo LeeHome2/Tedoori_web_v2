@@ -195,7 +195,11 @@
   }
 
   .menuTrigger {
-    margin-top: 25px;
+    margin-top: 9px; /* Align bottom with logo bottom (logo height ~29px - trigger height 20px) */
+  }
+
+  .addBtn {
+    margin-top: 13px; /* Align bottom with logo bottom */
   }
 
   .menuNav {

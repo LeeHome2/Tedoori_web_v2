@@ -100,7 +100,7 @@
   }
 
   .blogSection {
-    margin-left: -10px; /* Reduce left padding on mobile */
+    margin-left: 0; /* Align with logo left edge */
     padding-right: 0; /* Remove right padding on mobile */
   }
 
@@ -413,8 +413,8 @@
 @media (max-width: 768px) {
   .grid {
     gap: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 20px; /* Match header left margin */
+    padding-right: 20px; /* Match header right margin */
   }
 
   .imageWrapper {
