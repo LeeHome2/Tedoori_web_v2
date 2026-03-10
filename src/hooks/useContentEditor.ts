@@ -3,7 +3,7 @@
  * Used by Essays, News, and About pages
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { uploadImage, generateImageHtml } from '@/lib/utils/image';
 import { generateYoutubeIframe } from '@/lib/utils/youtube';
 
@@ -51,6 +51,9 @@ export function useContentEditor({
   apiEndpoint,
   defaultFormData = {},
 }: UseContentEditorOptions): UseContentEditorReturn {
+  // Store defaultFormData in ref to prevent infinite loops
+  const defaultFormDataRef = useRef(defaultFormData);
+
   const [items, setItems] = useState<ContentItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -128,7 +131,7 @@ export function useContentEditor({
       console.log('New item saved successfully');
       await fetchItems();
       setIsAddingNew(false);
-      setFormData(defaultFormData);
+      setFormData(defaultFormDataRef.current);
     } catch (error: unknown) {
       console.error('Failed to save new item:', error);
       alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -213,10 +216,10 @@ export function useContentEditor({
   };
 
   // Start adding new item
-  const startAddingNew = () => {
+  const startAddingNew = useCallback(() => {
     setIsAddingNew(true);
-    setFormData(defaultFormData);
-  };
+    setFormData(defaultFormDataRef.current);
+  }, []);
 
   // Start editing existing item
   const startEditing = (item: ContentItem) => {
@@ -227,16 +230,16 @@ export function useContentEditor({
   };
 
   // Cancel editing
-  const cancelEditing = () => {
+  const cancelEditing = useCallback(() => {
     setEditingId(null);
-    setFormData(defaultFormData);
-  };
+    setFormData(defaultFormDataRef.current);
+  }, []);
 
   // Cancel adding new
-  const cancelAddingNew = () => {
+  const cancelAddingNew = useCallback(() => {
     setIsAddingNew(false);
-    setFormData(defaultFormData);
-  };
+    setFormData(defaultFormDataRef.current);
+  }, []);
 
   // Add image to content
   const handleAddImage = () => {

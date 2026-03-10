@@ -1,6 +1,6 @@
 "use client";
 
-import ProjectDetailHeader from "@/components/ProjectDetailHeader";
+import Header from "@/components/Header";
 import ProjectDetail from "@/components/ProjectDetail";
 import { ProjectProvider } from "@/context/ProjectContext";
 import { Project } from "@/data/projects";
@@ -21,7 +21,7 @@ export default function ProjetClient({
   return (
     <ProjectProvider initialProjects={initialProjects}>
       <main>
-        <ProjectDetailHeader />
+        <Header />
         <ProjectDetail
           project={currentProject}
           prevProject={prevProject}

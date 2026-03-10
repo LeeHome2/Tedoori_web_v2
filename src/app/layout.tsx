@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR } from "next/font/google";
+import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import "./globals.css";
 import { AdminProvider } from "@/context/AdminContext";
+import { AddActionProvider } from "@/context/AddActionContext";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],
-  weight: ["300", "400", "700"], // Added 300 for body font-weight
+  weight: ["300", "400", "700"],
   variable: "--font-noto-sans-kr",
   display: 'swap',
   preload: true,
   adjustFontFallback: true,
   fallback: ['Apple SD Gothic Neo', 'Malgun Gothic', 'sans-serif'],
+});
+
+const notoSerifKr = Noto_Serif_KR({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  variable: "--font-noto-serif-kr",
+  display: 'swap',
+  preload: false,
+  adjustFontFallback: true,
+  fallback: ['Georgia', 'serif'],
 });
 
 export const metadata: Metadata = {
@@ -53,9 +64,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://iieabdeguunlnvqyhrwm.supabase.co" />
         <link rel="preconnect" href="https://iieabdeguunlnvqyhrwm.supabase.co" crossOrigin="anonymous" />
       </head>
-      <body className={notoSansKr.className}>
+      <body className={`${notoSansKr.className} ${notoSerifKr.variable}`}>
         <AdminProvider>
-          {children}
+          <AddActionProvider>
+            {children}
+          </AddActionProvider>
         </AdminProvider>
       </body>
     </html>

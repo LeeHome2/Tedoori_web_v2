@@ -44,6 +44,22 @@
   position: relative;
 }
 
+.addBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12pt;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-top: 33px;
+  padding: 0;
+  color: black;
+}
+
+.addBtn:hover {
+  text-decoration: underline;
+}
+
 
 .brand {
   font-weight: bold;

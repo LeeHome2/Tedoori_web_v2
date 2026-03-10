@@ -6,6 +6,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./Header.module.css";
 import { useAdmin } from "@/context/AdminContext";
+import { useAddAction } from "@/context/AddActionContext";
 import LoginModal from "./LoginModal";
 
 export default function Header() {
@@ -13,6 +14,7 @@ export default function Header() {
   const [isWorksOpen, setIsWorksOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { isAdmin, logout, adminMode, toggleAdminMode } = useAdmin();
+  const { addAction } = useAddAction();
   const pathname = usePathname();
 
   const handleLoginClick = (e: React.MouseEvent) => {
@@ -39,6 +41,17 @@ export default function Header() {
           </div>
 
           <div className={styles.rightGroup}>
+            {/* Add Button - Admin Mode Only */}
+            {isAdmin && adminMode && addAction && (
+              <button
+                onClick={addAction}
+                className={styles.addBtn}
+                title="Add"
+              >
+                ADD
+              </button>
+            )}
+
             {/* TEDOORI Dropdown */}
             <div
               className={styles.menuWrapper}

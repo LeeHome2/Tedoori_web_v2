@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
+import { useAddAction } from "@/context/AddActionContext";
 import OfficeMap from '@/components/OfficeMap';
-import styles from './about.module.css';
 import DOMPurify from 'dompurify';
 import { uploadImage, generateImageHtml } from '@/lib/utils/image';
 import { generateYoutubeIframe } from '@/lib/utils/youtube';
@@ -40,6 +40,7 @@ const DEFAULT_BLOCKS: AboutBlock[] = [
 
 export default function AboutPage() {
   const { isAdmin, adminMode } = useAdmin();
+  const { setAddAction } = useAddAction();
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,7 +119,7 @@ export default function AboutPage() {
     }
   };
 
-  const handleAddText = async () => {
+  const handleAddText = useCallback(async () => {
     const newBlock: AboutBlock = {
       id: `block-${Date.now()}`,
       type: 'text',
@@ -140,14 +141,14 @@ export default function AboutPage() {
       }
 
       const data = await res.json();
-      setBlocks([...blocks, data]);
+      setBlocks(prev => [...prev, data]);
       setEditingId(data.id);
       setFormData({ content: data.content });
     } catch (error) {
       console.error('Failed to add block', error);
       alert('Failed to add block');
     }
-  };
+  }, [blocks.length]);
 
   const handleSaveInline = async (id: string) => {
     const block = blocks.find(b => b.id === id);
@@ -294,18 +295,17 @@ export default function AboutPage() {
     }));
   };
 
+  // Register add action for header
+  useEffect(() => {
+    setAddAction(handleAddText);
+    return () => setAddAction(null);
+  }, [setAddAction, handleAddText]);
+
   return (
     <main>
       <Header />
 
-      {isAdmin && adminMode && (
-        <div className={styles.addBtnWrapper}>
-          <button onClick={handleAddText} className={styles.addBtn} title="Add block" aria-label="Add block">
-          </button>
-        </div>
-      )}
-
-      <div className={styles.contentWrapper} style={{
+      <div style={{
         width: 'calc(40vw - 145px)',
         marginTop: '150px',
         marginBottom: '100px',

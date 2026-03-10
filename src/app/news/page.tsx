@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import { useAdmin } from "@/context/AdminContext";
+import { useAddAction } from "@/context/AddActionContext";
 import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
-import styles from "./news.module.css";
 import DOMPurify from 'dompurify';
 
 export default function NewsPage() {
   const { isAdmin, adminMode } = useAdmin();
+  const { setAddAction } = useAddAction();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Use the custom hook for content management
@@ -46,22 +47,17 @@ export default function NewsPage() {
     setExpandedId(newsItem.id);
   };
 
+  // Register add action for header
+  useEffect(() => {
+    setAddAction(startAddingNew);
+    return () => setAddAction(null);
+  }, [setAddAction, startAddingNew]);
+
   return (
     <main>
       <Header />
 
-      {isAdmin && adminMode && (
-        <div className={styles.addBtnWrapper}>
-          <button
-            onClick={startAddingNew}
-            className={styles.addBtn}
-            aria-label="Add news"
-          >
-          </button>
-        </div>
-      )}
-
-      <div className={styles.contentWrapper} style={{
+      <div style={{
         width: 'calc(40vw - 145px)',
         marginTop: '150px',
         marginBottom: '100px',
@@ -182,7 +178,7 @@ export default function NewsPage() {
                     ) : (
                       <>
                         <span style={{ fontSize: '12px', color: '#999', display: 'block', marginBottom: '5px' }}>
-                          {newsItem.date && new Date(newsItem.date).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')}
+                          {newsItem.date && new Date(newsItem.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}
                         </span>
                         <h2
                           style={{ fontSize: '18px', marginBottom: '10px', cursor: 'pointer', fontWeight: expandedId === newsItem.id ? 'bold' : 'normal' }}

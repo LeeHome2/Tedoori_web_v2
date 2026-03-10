@@ -211,12 +211,14 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
       {editable && (
         <div className={styles.toolbar}>
           {/* Font Family */}
-          <select 
+          <select
             className={styles.select}
             onChange={(e) => editor.chain().focus().setFontFamily(e.target.value).run()}
             value={editor.getAttributes('textStyle').fontFamily || ''}
           >
             <option value="">Font Family</option>
+            <option value="'Noto Sans KR', sans-serif">Noto Sans</option>
+            <option value="'Noto Serif KR', serif">Noto Serif</option>
             <option value="Arial, sans-serif">Arial</option>
             <option value="'Courier New', monospace">Courier New</option>
             <option value="'Georgia', serif">Georgia</option>
@@ -233,7 +235,7 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
             value={editor.getAttributes('textStyle').fontSize || ''}
           >
             <option value="">Size</option>
-            {[8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72].map(size => (
+            {[8, 9, 10, 11, 12, 13, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72].map(size => (
               <option key={size} value={size}>{size}px</option>
             ))}
           </select>

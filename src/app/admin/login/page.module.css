@@ -15,7 +15,7 @@
 .form {
   background: white;
   padding: 40px;
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
@@ -35,7 +35,7 @@
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 16px;
 }
 
@@ -45,7 +45,7 @@
   background-color: black;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 16px;
   cursor: pointer;
 }

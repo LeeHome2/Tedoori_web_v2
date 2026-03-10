@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAddAction } from '@/context/AddActionContext';
 import { Project, MemoStyle } from "@/data/projects";
 import ProjectCard from "./ProjectCard";
 import styles from "./ProjectGrid.module.css";
@@ -12,7 +13,8 @@ import Image from 'next/image';
 
 export default function ProjectGrid() {
   const { projects, loading, error, clearError, addProject, updateProject, deleteProject, reorderProjects } = useProjects();
-  const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
+  const { isAdmin, adminMode } = useAdmin();
+  const { setAddAction } = useAddAction();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -66,7 +68,7 @@ export default function ProjectGrid() {
     }
   };
 
-  const openAddModal = () => {
+  const openAddModal = useCallback(() => {
       setEditingProject(null);
       setImageUrl('');
       setUploadError(null);
@@ -83,7 +85,13 @@ export default function ProjectGrid() {
       setHasDetailLink(true);
       setVisibility('public');
       setIsModalOpen(true);
-  };
+  }, []);
+
+  // Register add action for header
+  useEffect(() => {
+    setAddAction(openAddModal);
+    return () => setAddAction(null);
+  }, [openAddModal, setAddAction]);
 
   const openEditModal = (project: Project) => {
       setEditingProject(project);
@@ -307,30 +315,7 @@ export default function ProjectGrid() {
         </div>
       )}
 
-      {isAdmin && (
-          <div className={styles.addButton}>
-              {adminMode && (
-                  <button onClick={openAddModal}
-                    style={{
-                        padding: '0',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        width: '36px',
-                        height: '36px',
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                  >
-                      <div style={{ position: 'absolute', width: '100%', height: '1px', backgroundColor: 'black' }} />
-                      <div style={{ position: 'absolute', width: '1px', height: '100%', backgroundColor: 'black' }} />
-                  </button>
-              )}
-          </div>
-      )}
-
+      
       {isMounted ? (
         <DndContext
           sensors={sensors}

@@ -7,6 +7,7 @@ import { Project, GalleryItem, ContentBlock, MemoStyle } from "@/data/projects";
 import styles from "./ProjectDetail.module.css";
 import { useAdmin } from "@/context/AdminContext";
 import { useProjects } from "@/context/ProjectContext";
+import { useAddAction } from "@/context/AddActionContext";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableGalleryItem } from "./SortableGalleryItem";
@@ -27,6 +28,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const dndContextId = `dnd-${project.id}`;
 
   const { isAdmin, adminMode, toggleAdminMode } = useAdmin();
+  const { setAddAction } = useAddAction();
 
   // Responsive State for Hydration Fix
   const [isDesktop, setIsDesktop] = useState(false);
@@ -419,7 +421,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   };
 
   // Modal Functions
-  const openAddModal = () => {
+  const openAddModal = useCallback(() => {
       setEditingItemIndex(null);
       setProjectType('project');
       setImageUrl('');
@@ -433,7 +435,13 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       setMemoStyle({});
       setVisibility('public');
       setIsModalOpen(true);
-  };
+  }, []);
+
+  // Register add action for header
+  useEffect(() => {
+    setAddAction(openAddModal);
+    return () => setAddAction(null);
+  }, [openAddModal, setAddAction]);
 
   const openEditModal = (index: number, item: GalleryItem) => {
       setEditingItemIndex(index);
@@ -575,7 +583,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               type: 'text',
               id: newId,
               content: memoContent,
-              style: memoStyle
+              style: memoStyle,
+              cardWidth: 250,  // Default card width for memo
+              cardHeight: 200  // Default card height for memo
           };
       } else if (projectType === 'video') {
           if (!youtubeId) {
@@ -589,7 +599,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               videoId: youtubeId,
               alt: imageAlt,
               width: 1200, // Default width
-              height: 800  // Default height
+              height: 800,  // Default height
+              cardWidth: 400,  // Default card width for video
+              cardHeight: 300  // Default card height for video
           };
       } else {
           // Image
@@ -603,7 +615,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               src: imageUrl,
               alt: imageAlt,
               width: 1200, // Default/Placeholder
-              height: 800
+              height: 800,
+              cardWidth: 400,  // Default card width for image
+              cardHeight: 300  // Default card height for image
           };
           // Preserve existing dimensions if editing
           if (editingItemIndex !== null && project.galleryImages) {
@@ -648,19 +662,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   return (
     <div className={styles.container} ref={containerRef}>
-      {/* Add Button - Fixed position to avoid z-index stacking issues */}
-      {isAdmin && adminMode && (
-        <button
-          onClick={openAddModal}
-          className={styles.addBtn}
-          aria-label="십자 버튼"
-          style={{
-            left: `calc(${100 - leftPaneWidth}% + 40px)`
-          }}
-        >
-        </button>
-      )}
-
       {/* Left Pane: Blog Section */}
       <div
         className={styles.infoColumn}

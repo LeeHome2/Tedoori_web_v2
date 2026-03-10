@@ -31,16 +31,17 @@ export default function ProjectDetailHeader() {
             <div className={styles.leftGroup}>
                 <div className={styles.logoWrapper}>
                     <Link href="/" className={styles.brand}>
-                        <Image
-                          src="/logo.png"
-                          alt="NP2F Logo"
-                          width={120}
-                          height={40}
+                        <Image 
+                          src="/logo.png" 
+                          alt="NP2F Logo" 
+                          width={120} 
+                          height={40} 
                           className={styles.logoImage}
                           priority
                         />
                     </Link>
                 </div>
+                
             </div>
 
             <div className={styles.rightGroup}>

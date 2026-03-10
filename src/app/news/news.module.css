@@ -1,18 +1,11 @@
-.addBtnWrapper {
-  position: fixed;
-  top: 150px;
-  right: 220px;
-  z-index: 2001;
-}
-
 .addBtn {
   padding: 0;
   background: transparent;
   color: black;
   border: none;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 37px;
+  height: 37px;
   position: relative;
   display: flex;
   align-items: center;
@@ -28,11 +21,11 @@
 
 .addBtn::before {
   width: 100%;
-  height: 1px;
+  height: 2px;
 }
 
 .addBtn::after {
-  width: 1px;
+  width: 2px;
   height: 100%;
 }
 
