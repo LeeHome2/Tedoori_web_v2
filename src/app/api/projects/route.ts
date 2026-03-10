@@ -4,6 +4,11 @@ import type { Project } from '@/data/projects';
 import type { ProjectRow, ProjectDetails } from '@/types/database';
 import { cookies } from 'next/headers';
 
+// Disable all caching for this API route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 async function getAuthenticatedClient() {
   const cookieStore = await cookies();
   const token = cookieStore.get('admin_token');
@@ -92,7 +97,11 @@ export async function GET() {
     return project;
   });
 
-  return NextResponse.json(projects);
+  const response = NextResponse.json(projects);
+  // Disable caching
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  return response;
 }
 
 export async function POST(request: Request) {
@@ -220,7 +229,10 @@ export async function POST(request: Request) {
     descriptionBlocks: data.details?.descriptionBlocks || [],
   };
 
-  return NextResponse.json(savedProject);
+  const response = NextResponse.json(savedProject);
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  return response;
 }
 
 export async function PUT(request: Request) {
@@ -251,7 +263,10 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   }
 
   // Single project update
@@ -326,7 +341,10 @@ export async function PUT(request: Request) {
     descriptionBlocks: data.details?.descriptionBlocks || [],
   };
 
-  return NextResponse.json(updatedProject);
+  const response = NextResponse.json(updatedProject);
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  return response;
 }
 
 export async function DELETE(request: Request) {
@@ -356,5 +374,8 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Project not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true });
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  response.headers.set('Pragma', 'no-cache');
+  return response;
 }

@@ -21,11 +21,7 @@ export default function ProjetClient({
   return (
     <ProjectProvider initialProjects={initialProjects}>
       <main>
-        <ProjectDetailHeader
-          currentProject={currentProject}
-          prevProject={prevProject}
-          nextProject={nextProject}
-        />
+        <ProjectDetailHeader />
         <ProjectDetail
           project={currentProject}
           prevProject={prevProject}

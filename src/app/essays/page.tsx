@@ -71,8 +71,7 @@ export default function EssaysPage() {
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', textTransform: 'uppercase' }}>Essays</h1>
-
+        
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* New essay form */}
           {isAddingNew && (

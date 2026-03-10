@@ -42,7 +42,7 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/projects');
+      const res = await fetch('/api/projects', { cache: 'no-store' });
       const data = await res.json();
       setProjects(data);
       // Initialize history

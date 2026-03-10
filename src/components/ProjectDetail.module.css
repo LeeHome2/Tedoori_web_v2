@@ -355,6 +355,8 @@
 /* Resizer Handle */
 .resizer {
   width: 1px; /* Visual width */
+  min-width: 1px;
+  max-width: 1px;
   background-color: #e0e0e0;
   /* cursor managed by inline style */
   position: relative;
@@ -368,6 +370,10 @@
   height: 100vh; /* Full viewport height */
   padding-top: 0;
   padding-bottom: 0;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  transform: translateZ(0); /* GPU acceleration to prevent subpixel rendering issues */
 }
 
 .resizer::after {
@@ -381,12 +387,7 @@
 }
 
 .resizerHandleIcon {
-  width: 4px;
-  height: 24px;
-  background-color: #ccc;
-  border-radius: 0;
-  z-index: 11;
-  pointer-events: none;
+  display: none;
 }
 
 .resizer:hover,
@@ -394,10 +395,6 @@
   background-color: #000;
 }
 
-.resizer:hover .resizerHandleIcon,
-.resizer:active .resizerHandleIcon {
-  background-color: #000;
-}
 
 @media (min-width: 768px) {
   .resizer {
@@ -542,38 +539,6 @@
     border: 1px solid #ccc;
 }
 
-.resizeToggleBtn {
-    padding: 6px 12px;
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
-    border-radius: 0;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
-}
-
-.resizeToggleBtn:hover {
-    background: #e0e0e0;
-    border-color: #ccc;
-}
-
-.editBtn {
-    padding: 6px 12px;
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
-    border-radius: 0;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
-}
-
-.editBtn:hover {
-    background: #e0e0e0;
-    border-color: #ccc;
-}
-
 /* Updated Text Item Styling */
 .textItem {
   width: 100%;
@@ -642,7 +607,7 @@
 }
 
 .dragHandle {
-    padding: 6px 10px;
+    padding: 3px 5px;
     background: #f0f0f0;
     color: #666;
     cursor: grab;
@@ -651,11 +616,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 11px;
 }
 
 .dragHandle:hover {
     background: #e0e0e0;
+}
+
+.resizeToggleBtn,
+.editBtn {
+    padding: 3px 6px;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+.resizeToggleBtn:hover,
+.editBtn:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
 }
 
 /* Lightbox Styles */

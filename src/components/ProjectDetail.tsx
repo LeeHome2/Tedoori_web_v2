@@ -141,6 +141,11 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     if (newWidth < 10) newWidth = 10;
     if (newWidth > 90) newWidth = 90;
 
+    // Round to pixel-aligned percentage to prevent subpixel rendering issues
+    // Calculate pixel width, round it, then convert back to percentage
+    const galleryWidthPx = Math.round((newWidth / 100) * availableWidth);
+    newWidth = (galleryWidthPx / availableWidth) * 100;
+
     setLeftPaneWidth(newWidth);
   }, []);
 

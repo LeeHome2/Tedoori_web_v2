@@ -3,9 +3,6 @@
   top: 150px;
   right: 220px;
   z-index: 2001;
-  display: flex;
-  gap: 8px;
-  align-items: center;
 }
 
 .addBtn {
@@ -42,23 +39,6 @@
 .addBtn:hover::before,
 .addBtn:hover::after {
   background-color: #333;
-}
-
-@media (max-width: 768px) {
-  .addBtnWrapper {
-    top: auto;
-    bottom: 30px;
-    left: 20px;
-    right: auto;
-  }
-
-  .contentWrapper {
-    width: auto !important;
-    margin-left: 20px !important;
-    margin-right: 20px !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
 }
 
 .modalOverlay {

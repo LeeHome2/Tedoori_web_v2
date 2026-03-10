@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import type { Project } from "@/data/projects";
 
 export const revalidate = 0; // No caching - always fetch fresh data
+export const dynamic = 'force-dynamic'; // Force dynamic rendering
+export const fetchCache = 'force-no-store'; // Disable fetch cache
 
 interface PageProps {
   params: Promise<{

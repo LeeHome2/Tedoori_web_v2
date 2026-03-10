@@ -50,7 +50,7 @@ export default function AboutPage() {
 
   const fetchBlocks = useCallback(async () => {
     try {
-      const res = await fetch('/api/about');
+      const res = await fetch('/api/about', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
 
@@ -75,7 +75,7 @@ export default function AboutPage() {
               });
             }
 
-            const newRes = await fetch('/api/about');
+            const newRes = await fetch('/api/about', { cache: 'no-store' });
             if (newRes.ok) {
               const newData = await newRes.json();
               setBlocks(newData);
@@ -107,7 +107,7 @@ export default function AboutPage() {
         });
       }
 
-      const res = await fetch('/api/about');
+      const res = await fetch('/api/about', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setBlocks(data);
@@ -313,10 +313,10 @@ export default function AboutPage() {
         paddingLeft: '0',
         paddingRight: '20px',
         lineHeight: '1.6',
-        minHeight: '60vh'
+        minHeight: '60vh',
+        fontSize: '15px'
       }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', textTransform: 'uppercase' }}>About</h1>
-
+        
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {blocks.map((block) => {
             const isEditing = editingId === block.id;

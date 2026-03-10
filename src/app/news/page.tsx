@@ -71,8 +71,7 @@ export default function NewsPage() {
         lineHeight: '1.6',
         minHeight: '60vh'
       }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '40px', fontWeight: 'bold', textTransform: 'uppercase' }}>News</h1>
-
+        
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* New news form */}
           {isAddingNew && (

@@ -6,7 +6,8 @@ import type { Project } from "@/data/projects";
 // Disable caching for fresh data on every request
 // Client-side handles caching via ProjectContext
 export const revalidate = 0; // No caching - always fetch fresh data
-export const dynamicParams = true;
+export const dynamic = 'force-dynamic'; // Force dynamic rendering
+export const fetchCache = 'force-no-store'; // Disable fetch cache
 
 export default async function Home() {
   // Fetch projects on the server with optimized query

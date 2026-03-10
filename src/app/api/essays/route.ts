@@ -2,6 +2,11 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+// Disable all caching for this API route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+
 export async function GET() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -13,7 +18,9 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  const response = NextResponse.json(data);
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  return response;
 }
 
 export async function POST(request: Request) {

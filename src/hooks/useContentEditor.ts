@@ -60,7 +60,7 @@ export function useContentEditor({
   // Fetch items from API
   const fetchItems = useCallback(async () => {
     try {
-      const res = await fetch(apiEndpoint);
+      const res = await fetch(apiEndpoint, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         console.log(`Fetched items from ${apiEndpoint}:`, data.length);

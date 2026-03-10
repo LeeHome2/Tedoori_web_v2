@@ -79,14 +79,13 @@
 }
 
 .editBtn, .deleteBtn, .resizeToggleBtn {
-    padding: 6px 12px;
+    padding: 3px 6px;
     background: #f0f0f0;
     color: #333;
     border: 1px solid #ddd;
     border-radius: 0;
     cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
+    font-size: 10px;
 }
 
 .editBtn:hover, .resizeToggleBtn:hover {
@@ -106,7 +105,7 @@
 }
 
 .dragHandle {
-    padding: 6px 10px;
+    padding: 3px 5px;
     background: #f0f0f0;
     color: #666;
     cursor: grab;
@@ -115,7 +114,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 11px;
 }
 
 .dragHandle:hover {
