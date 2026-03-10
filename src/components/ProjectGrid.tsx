@@ -336,6 +336,10 @@ export default function ProjectGrid() {
                   priority={index < 8} // First 8 cards for faster initial load
                 />
               ))}
+              {/* Placeholders for last row left-alignment */}
+              {[...Array(10)].map((_, i) => (
+                <div key={`placeholder-${i}`} className={styles.placeholder} style={{ width: '300px' }} />
+              ))}
             </div>
           </SortableContext>
         </DndContext>
@@ -348,6 +352,10 @@ export default function ProjectGrid() {
               onEdit={openEditModal}
               priority={index < 8} // First 8 cards for faster initial load
             />
+          ))}
+          {/* Placeholders for last row left-alignment */}
+          {[...Array(10)].map((_, i) => (
+            <div key={`placeholder-${i}`} className={styles.placeholder} style={{ width: '300px' }} />
           ))}
         </div>
       )}

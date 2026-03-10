@@ -1,14 +1,22 @@
 .grid {
   display: flex;
   flex-wrap: wrap;
-  column-gap: 100px; /* Horizontal gap */
-  row-gap: 60px; /* Vertical gap reduced by 10px */
-  padding: 150px 240px 20px 40px;
+  row-gap: 60px;
+  column-gap: 20px; /* Minimum horizontal gap between cards */
+  padding: 150px 209px 20px 40px;
   max-width: none;
   margin: 0;
-  justify-content: flex-start;
+  justify-content: space-between;
   margin-left: 179px; /* Logo width 120px + gap 50px */
+  position: relative;
 }
+
+/* Placeholder for last row left-alignment */
+.placeholder {
+  height: 0;
+  visibility: hidden;
+}
+
 
 .addButton {
   position: fixed;
