@@ -177,7 +177,7 @@
 @media (max-width: 768px) {
   .header {
     padding: 20px;
-    padding-right: 20px;
+    padding-right: 10px; /* Match visual right margin */
     top: 5px;
     left: 0;
   }
