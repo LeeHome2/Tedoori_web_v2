@@ -1,0 +1,63 @@
+.scrollTop {
+  position: fixed;
+  bottom: 30px;
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  color: #000;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 100;
+  box-shadow: none;
+  padding-bottom: 0;
+}
+
+.right {
+  right: 220px;
+}
+
+.left {
+  /* Position set dynamically via inline style */
+}
+
+.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scrollTop:hover {
+  background-color: transparent;
+  opacity: 0.6;
+}
+
+.scrollTop:active {
+  background-color: transparent;
+  transform: scale(0.95);
+}
+
+.arrowIcon {
+  display: block;
+  width: 25px;
+  height: 25px;
+}
+
+@media (max-width: 768px) {
+  .scrollTop {
+    bottom: 20px;
+  }
+
+  .right {
+    right: 20px;
+  }
+
+  .left {
+    right: 20px;
+  }
+}

@@ -12,6 +12,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import { SortableGalleryItem } from "./SortableGalleryItem";
 import BlogEditor from "./BlogEditor";
+import SectionScrollTop from "./SectionScrollTop";
 
 interface ProjectDetailProps {
   project: Project;
@@ -110,6 +111,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     return project.galleryWidthRatio || 60;
   });
   const containerRef = useRef<HTMLDivElement>(null);
+  const blogSectionRef = useRef<HTMLDivElement>(null);
+  const gallerySectionRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
 
   // Always use DB default on mount and when project changes
@@ -664,6 +667,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     <div className={styles.container} ref={containerRef}>
       {/* Left Pane: Blog Section */}
       <div
+        ref={blogSectionRef}
         className={styles.infoColumn}
         style={{ width: isDesktop ? `${100 - leftPaneWidth}%` : '100%', flexShrink: 0 }}
       >
@@ -732,6 +736,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                 />
             )}
         </div>
+        <SectionScrollTop containerRef={blogSectionRef} position="left" galleryWidthPercent={leftPaneWidth} />
       </div>
 
       {/* Resizer Handle */}
@@ -747,6 +752,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
       {/* Right Pane: Gallery Section */}
       <div
+        ref={gallerySectionRef}
         className={styles.imageColumn}
         style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 1, position: 'relative' }}
       >
@@ -786,6 +792,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                 </div>
             </SortableContext>
         </DndContext>
+        <SectionScrollTop containerRef={gallerySectionRef} position="right" />
       </div>
 
       {/* Lightbox Overlay */}
