@@ -2,7 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   row-gap: 60px;
-  column-gap: 20px; /* Minimum horizontal gap between cards */
+  column-gap: 40px; /* Minimum horizontal gap between cards */
   padding: 150px 209px 20px 40px;
   max-width: none;
   margin: 0;
