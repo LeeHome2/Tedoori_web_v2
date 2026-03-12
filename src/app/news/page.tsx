@@ -215,10 +215,11 @@ export default function NewsPage() {
                       ) : (
                         <>
                           <h2
-                            style={{ fontSize: '18px', marginBottom: '10px', cursor: 'pointer', fontWeight: 'normal' }}
+                            className={contentStyles.contentTitle}
                             onClick={() => setExpandedId(isExpanded ? null : newsItem.id)}
                           >
-                            <span style={{ marginRight: '100px' }}>{newsItem.date && new Date(newsItem.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}</span>{newsItem.title}
+                            <span className={contentStyles.contentDate}>{newsItem.date && new Date(newsItem.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}</span>
+                            <span className={contentStyles.contentTitleText}>{newsItem.title}</span>
                           </h2>
                           <div
                             style={{

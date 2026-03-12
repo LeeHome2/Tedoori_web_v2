@@ -60,8 +60,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   }, [project.content, project.details]);
   
   const handleBlogChange = async (html: string) => {
+      console.log('[BlogChange] HTML updated:', html);
       setBlogHtml(html);
-      // We don't auto-save to DB on every keystroke to avoid API spam, 
+      // We don't auto-save to DB on every keystroke to avoid API spam,
       // rely on 'Done' button or manual save if implemented, or debounce.
       // For now, BlogEditor handles local storage auto-save.
       // But we should update the context/DB when 'Done' is clicked or periodically.
@@ -71,6 +72,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       setIsSavingBlog(true);
       try {
         console.log('[Save] Saving galleryWidthRatio:', leftPaneWidth);
+        console.log('[Save] blogHtml:', blogHtml);
 
         await updateProject({
           ...project,
@@ -796,8 +798,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       </div>
 
       {/* Lightbox Overlay */}
-      <div 
-        className={`${styles.lightbox} ${lightboxOpen ? styles.open : ""}`} 
+      <div
+        className={`${styles.lightbox} ${lightboxOpen ? styles.open : ""}`}
         onClick={closeLightbox}
         role="dialog"
         aria-modal="true"
@@ -809,27 +811,23 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                 <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(-45deg)' }}></span>
              </div>
         </div>
-        
-        <div
-            className={styles.lightboxImageWrapper}
-            style={{
-                transform: (currentItem?.type === 'image' && !lightboxVideoPlaying) ? `scale(${zoomLevel})` : 'none',
-                cursor: (currentItem?.type === 'image' && !lightboxVideoPlaying) ? (zoomLevel === 1 ? 'zoom-in' : 'zoom-out') : 'default',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}
-            onClick={handleZoom}
-        >
-            <div 
-                className={styles.prevBtn} 
-                onClick={prevItem} 
-                role="button" 
+
+        {/* Main content area with navigation arrows */}
+        <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+            {/* Left navigation arrow - outside image */}
+            <div
+                className={styles.prevBtn}
+                onClick={prevItem}
+                role="button"
                 aria-label="Previous image"
-                style={{ transform: `translateY(-50%) scale(${1/zoomLevel})` }}
             >
                 <span className={styles.arrowLeft}></span>
             </div>
+
+            <div
+                className={styles.lightboxImageWrapper}
+                onClick={(e) => e.stopPropagation()}
+            >
             {currentItem && (
                 currentItem.type === 'text' ? (
                  <div 
@@ -905,13 +903,10 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                                 </>
                             ) : (
                                 <>
-                                    <Image
+                                    <img
                                         src={currentItem.src}
                                         alt={currentItem.alt || "Lightbox Image"}
-                                        width={currentItem.width}
-                                        height={currentItem.height}
                                         className={styles.lightboxImage}
-                                        unoptimized
                                     />
                                     {currentItem.type === 'video' && !lightboxVideoPlaying && (
                                         <button
@@ -943,12 +938,14 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                     )
                 )
             )}
-            <div 
-                className={styles.nextBtn} 
-                onClick={nextItem} 
-                role="button" 
+            </div>
+
+            {/* Right navigation arrow - outside image */}
+            <div
+                className={styles.nextBtn}
+                onClick={nextItem}
+                role="button"
                 aria-label="Next image"
-                style={{ transform: `translateY(-50%) scale(${1/zoomLevel})` }}
             >
                 <span className={styles.arrowRight}></span>
             </div>

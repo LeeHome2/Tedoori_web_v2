@@ -215,10 +215,11 @@ export default function EssaysPage() {
                       ) : (
                         <>
                           <h2
-                            style={{ fontSize: '18px', marginBottom: '10px', cursor: 'pointer', fontWeight: 'normal' }}
+                            className={contentStyles.contentTitle}
                             onClick={() => setExpandedId(isExpanded ? null : essay.id)}
                           >
-                            <span style={{ marginRight: '100px' }}>{essay.date && new Date(essay.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}</span>{essay.title}
+                            <span className={contentStyles.contentDate}>{essay.date && new Date(essay.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}</span>
+                            <span className={contentStyles.contentTitleText}>{essay.title}</span>
                           </h2>
                           <div
                             style={{

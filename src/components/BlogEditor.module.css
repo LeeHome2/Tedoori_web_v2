@@ -87,9 +87,32 @@
   max-width: 100%;
   height: auto;
   display: block;
-  margin: 10px auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
   border-radius: 4px;
   cursor: grab;
+}
+
+/* Image alignment - using !important to override inline styles */
+.editorContent :global(.ProseMirror img[data-align="left"]) {
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+.editorContent :global(.ProseMirror img[data-align="center"]) {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.editorContent :global(.ProseMirror img[data-align="right"]) {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+/* Fixed size images - don't respond to container resize */
+.editorContent :global(.ProseMirror img[data-fixed-size="true"]) {
+  max-width: none;
+  flex-shrink: 0;
 }
 
 .editorContent :global(.ProseMirror img.ProseMirror-selectednode) {

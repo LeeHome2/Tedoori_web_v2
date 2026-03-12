@@ -178,6 +178,28 @@
     margin: 1em auto;
 }
 
+/* Image alignment based on data-align attribute */
+.blogContent img[data-align="left"] {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.blogContent img[data-align="center"] {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.blogContent img[data-align="right"] {
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* Fixed size images - don't respond to container resize */
+.blogContent img[data-fixed-size="true"] {
+    max-width: none;
+    flex-shrink: 0;
+}
+
 .blogTextarea:focus {
     outline: none;
     border-color: #999;
@@ -648,14 +670,15 @@
   width: 100vw;
   height: 100vh;
   /* Lightbox background: opaque white per user request */
-  background-color: white; 
+  background-color: white;
   z-index: 3000;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  padding-top: 100px; /* Space for header - increased for safety */
+  box-sizing: border-box; /* Ensure padding is included in height calculation */
 }
 
 .lightbox.open {
@@ -663,17 +686,46 @@
   pointer-events: auto;
 }
 
-.lightboxImageWrapper {
+/* Main content area: from header to thumbnails */
+.lightboxContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  transition: transform 0.3s ease;
+  min-height: 0; /* Important for flex child to shrink */
+  padding: 20px 80px; /* Space for arrows on sides */
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.lightboxImageWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.lightboxImageContainer {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .lightboxImage {
-  max-width: 100%;
-  max-height: 90vh;
   object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   display: block;
 }
 
@@ -723,8 +775,8 @@
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
   z-index: 3001;
   user-select: none;
   display: flex;
@@ -745,11 +797,11 @@
 }
 
 .prevBtn {
-  left: 10px;
+  left: 20px;
 }
 
 .nextBtn {
-  right: 10px;
+  right: 20px;
 }
 
 /* Arrow Graphics */
@@ -772,19 +824,16 @@
     margin-right: 10px; /* Visual center adjustment */
 }
 
-/* Thumbnail strip in lightbox (Optional but requested) */
+/* Thumbnail strip in lightbox */
 .thumbnailStrip {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
+    justify-content: center;
     gap: 10px;
     overflow-x: auto;
-    max-width: 80vw;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 0;
+    max-width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    flex-shrink: 0; /* Don't shrink */
 }
 
 .thumbnail {

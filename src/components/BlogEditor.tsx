@@ -2,10 +2,10 @@
 "use client";
 
 import { useEditor, EditorContent } from '@tiptap/react';
-import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import { ResizableImage } from './extensions/ResizableImage';
 import TextAlign from '@tiptap/extension-text-align';
+import ImageBubbleMenu from './ImageBubbleMenu';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
@@ -84,13 +84,14 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
         // Disable default dropcursor to use custom configuration
         dropcursor: false,
       }),
-      Image.configure({
+      ResizableImage.configure({
         inline: false,
         allowBase64: true,
       }),
       // ... (other extensions)
       TextAlign.configure({
-        types: ['heading', 'paragraph', 'image'],
+        types: ['heading', 'paragraph'],
+        // Note: image alignment is handled by ResizableImage extension's align attribute
       }),
       TextStyle,
       Color,
@@ -189,8 +190,13 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
 
-      // 3. Insert into Editor
-      editor.chain().focus().setImage({ src: data.url }).run();
+      // 3. Insert into Editor with default size
+      editor.chain().focus().setImage({
+        src: data.url,
+        width: data.width || 600,
+        height: data.height || undefined,
+        fixedSize: false,
+      }).run();
       
     } catch (error) {
       console.error('Image upload failed:', error);
@@ -283,6 +289,9 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
       )}
 
       <EditorContent editor={editor} className={styles.editorContent} />
+
+      {/* Image Settings Bubble Menu - only show in edit mode */}
+      {editable && <ImageBubbleMenu editor={editor} />}
     </div>
   );
 }
