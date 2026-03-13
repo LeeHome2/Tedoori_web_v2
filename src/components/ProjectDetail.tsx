@@ -824,8 +824,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       >
         <div className={styles.closeBtn} onClick={closeLightbox} role="button" aria-label="Close gallery">
              <div style={{ position: 'relative', width: 42, height: 42 }}>
-                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(45deg)' }}></span>
-                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(-45deg)' }}></span>
+                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(45deg)' }}></span>
+                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(-45deg)' }}></span>
              </div>
         </div>
 

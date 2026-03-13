@@ -882,10 +882,10 @@
 .arrowLeft,
 .arrowRight {
     display: block;
-    width: 42px;
-    height: 42px;
-    border-top: 2px solid black;
-    border-left: 2px solid black;
+    width: 35px;
+    height: 35px;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
 }
 
 .arrowLeft {
