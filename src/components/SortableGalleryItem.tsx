@@ -64,6 +64,12 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     } else if (item.type === 'video' && item.width && item.height) {
       originalImageRef.current = { width: item.width, height: item.height };
       aspectRatioRef.current = item.width / item.height;
+    } else if (item.type === 'text') {
+      // Text items: use default size or existing cardWidth/cardHeight
+      const defaultWidth = item.cardWidth || 300;
+      const defaultHeight = item.cardHeight || 200;
+      originalImageRef.current = { width: defaultWidth, height: defaultHeight };
+      aspectRatioRef.current = defaultWidth / defaultHeight;
     }
   }, [item]);
 
@@ -132,16 +138,17 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const hasCustomSize = !!dimensions.width;
   const hasTitle = item.showTitle && item.title;
+  const isTextType = item.type === 'text';
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as const,
-    // Card width follows image width
+    // Card width follows content width
     width: hasCustomSize ? `${dimensions.width}px` : undefined,
-    // Card height = auto to fit content naturally
-    height: 'auto',
+    // Card height: text type needs explicit height, image/video uses auto
+    height: isTextType && hasCustomSize ? `${dimensions.height}px` : 'auto',
     maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
@@ -475,8 +482,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                     }}
                     autoFocus
                     style={{
-                        width: '100%',
-                        height: '100%',
+                        width: hasCustomSize ? `${dimensions.width}px` : '100%',
+                        height: hasCustomSize ? `${dimensions.height}px` : '200px',
                         resize: 'none',
                         border: 'none',
                         outline: '2px solid black', // Visual indicator for editing
@@ -491,13 +498,13 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                     }}
                 />
             ) : (
-                <div 
+                <div
                     className={styles.textItem}
                     onClick={handleTextClick}
                     style={{
                         ...(item.visibility === 'private' ? { opacity: 0.5 } : {}),
-                        width: '100%',
-                        height: '100%',
+                        width: hasCustomSize ? `${dimensions.width}px` : '100%',
+                        height: hasCustomSize ? `${dimensions.height}px` : '200px',
                         minHeight: 'unset',
                         fontFamily: item.style?.fontFamily,
                         fontSize: item.style?.fontSize,
