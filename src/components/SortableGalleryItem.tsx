@@ -149,7 +149,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     width: hasCustomSize ? `${dimensions.width}px` : undefined,
     // Card height: text type needs explicit height, image/video uses auto
     height: isTextType && hasCustomSize ? `${dimensions.height}px` : 'auto',
-    maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
+    // Remove maxWidth: 100% to prevent shrinking - resizer minimum limit ensures gallery is always large enough
+    maxWidth: isResizing ? 'none' : undefined,
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
     zIndex: isResizing || isEditingText ? 100 : 'auto',

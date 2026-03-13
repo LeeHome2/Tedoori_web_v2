@@ -103,8 +103,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       }
   };
 
-  // Resizable Pane State - Always start with fixed 4:6 ratio (60% gallery)
-  const [leftPaneWidth, setLeftPaneWidth] = useState(60);
+  // Resizable Pane State
+  const [leftPaneWidth, setLeftPaneWidth] = useState(60); // Will be adjusted on mount
+  const [initialWidthSet, setInitialWidthSet] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const blogSectionRef = useRef<HTMLDivElement>(null);
   const gallerySectionRef = useRef<HTMLDivElement>(null);
@@ -115,6 +116,58 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     if (!project.galleryImages || project.galleryImages.length === 0) return 0;
     return Math.max(...project.galleryImages.map(item => item.cardWidth || 0));
   }, [project.galleryImages]);
+
+  // Calculate minimum gallery percentage based on max image width
+  const calculateMinGalleryPercent = useCallback((containerWidth: number) => {
+    const paddingRight = 200;
+    const gridPaddingLeft = 40;
+    const safetyBuffer = 20;
+    const availableWidth = containerWidth - paddingRight;
+    const minGalleryWidthPx = maxGalleryItemWidth + gridPaddingLeft + safetyBuffer;
+    return (minGalleryWidthPx / availableWidth) * 100;
+  }, [maxGalleryItemWidth]);
+
+  // Set initial gallery width on mount - use 60% if viewport is large enough, otherwise use minimum
+  useEffect(() => {
+    if (!containerRef.current || maxGalleryItemWidth === 0 || initialWidthSet) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const minGalleryPercent = calculateMinGalleryPercent(containerRect.width);
+    const defaultPercent = 60; // Default 4:6 ratio
+
+    // Use default 60% if viewport is large enough, otherwise use the minimum needed
+    if (defaultPercent >= minGalleryPercent) {
+      setLeftPaneWidth(defaultPercent);
+    } else {
+      setLeftPaneWidth(Math.min(minGalleryPercent, 90));
+    }
+    setInitialWidthSet(true);
+  }, [maxGalleryItemWidth, calculateMinGalleryPercent, initialWidthSet]);
+
+  // Ensure gallery width always respects the minimum on window resize
+  useEffect(() => {
+    if (!containerRef.current || maxGalleryItemWidth === 0) return;
+
+    const checkAndAdjustWidth = () => {
+      if (!containerRef.current) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const minGalleryPercent = calculateMinGalleryPercent(containerRect.width);
+      const effectiveMin = Math.max(10, minGalleryPercent);
+
+      // If current width is less than minimum, adjust it
+      setLeftPaneWidth(prev => {
+        if (prev < effectiveMin) {
+          return Math.min(effectiveMin, 90);
+        }
+        return prev;
+      });
+    };
+
+    // Check on window resize
+    window.addEventListener('resize', checkAndAdjustWidth);
+    return () => window.removeEventListener('resize', checkAndAdjustWidth);
+  }, [maxGalleryItemWidth, calculateMinGalleryPercent]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
@@ -138,8 +191,10 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     let newWidth = 100 - blogWidthPercent;
 
     // Calculate minimum gallery width based on max image cardWidth
-    // Add some padding (40px for grid padding + some margin)
-    const minGalleryWidthPx = maxGalleryItemWidth + 60;
+    // Grid has padding-left: 40px, add buffer for box model differences and scrollbar
+    const gridPaddingLeft = 40;
+    const safetyBuffer = 20; // Extra buffer for potential scrollbar, rounding, etc.
+    const minGalleryWidthPx = maxGalleryItemWidth + gridPaddingLeft + safetyBuffer;
     const minGalleryPercent = (minGalleryWidthPx / availableWidth) * 100;
 
     // Limits: min based on max image width (or 10%), max 90%
@@ -386,7 +441,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     }
   };
 
-  // Keyboard navigation
+  // Keyboard and scroll navigation for lightbox
   useEffect(() => {
     if (!lightboxOpen) return;
 
@@ -396,8 +451,35 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       if (e.key === 'ArrowLeft') prevItem();
     };
 
+    // Scroll navigation: scroll down = next, scroll up = previous
+    let scrollTimeout: NodeJS.Timeout | null = null;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+
+      // Debounce to prevent rapid scrolling
+      if (scrollTimeout) return;
+
+      if (e.deltaY > 0) {
+        // Scroll down - next image
+        nextItem();
+      } else if (e.deltaY < 0) {
+        // Scroll up - previous image
+        prevItem();
+      }
+
+      scrollTimeout = setTimeout(() => {
+        scrollTimeout = null;
+      }, 300); // 300ms debounce
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('wheel', handleWheel);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
   }, [lightboxOpen, nextItem, prevItem]);
 
   // Admin Functions
@@ -690,7 +772,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       <div
         ref={blogSectionRef}
         className={styles.infoColumn}
-        style={{ width: isDesktop ? `${100 - leftPaneWidth}%` : '100%', flexShrink: 0 }}
+        style={{ width: isDesktop ? `calc(${100 - leftPaneWidth}% - 81px)` : '100%', flexShrink: 0 }}
       >
         {/* Project Navigation with Edit Button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -775,7 +857,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       <div
         ref={gallerySectionRef}
         className={styles.imageColumn}
-        style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 1, position: 'relative' }}
+        style={{ width: isDesktop ? `${leftPaneWidth}%` : '100%', flexGrow: 0, flexShrink: 0, position: 'relative' }}
       >
         {isAdmin && adminMode && uploading && !isModalOpen && (
             <div className={styles.progressBar}>

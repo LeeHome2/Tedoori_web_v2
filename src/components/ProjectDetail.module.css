@@ -22,6 +22,7 @@
   padding-top: 150px; /* Top spacing for header clearance */
   height: 100%;
   overflow-y: auto; /* Enable independent scroll */
+  overflow-x: hidden; /* Hide horizontal overflow - resizer minimum ensures no clipping */
   background: transparent;
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
