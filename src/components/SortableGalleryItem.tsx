@@ -132,7 +132,6 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const hasCustomSize = !!dimensions.width;
   const hasTitle = item.showTitle && item.title;
-  const totalHeight = hasCustomSize && dimensions.height ? dimensions.height + paddingBottom : undefined;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -141,8 +140,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     position: 'relative' as const,
     // Card width follows image width
     width: hasCustomSize ? `${dimensions.width}px` : undefined,
-    // Card height = image height + padding bottom (+ title if shown)
-    height: hasTitle ? 'auto' : (totalHeight ? `${totalHeight}px` : undefined),
+    // Card height = auto to fit content naturally
+    height: 'auto',
     maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
@@ -300,7 +299,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   return (
     <div ref={setRefs} style={style} className={`${styles.imageWrapper} ${item.type === 'text' ? styles.textWrapper : ''} ${isResizing ? styles.resizing : ''}`} {...attributes}>
         {item.type === 'image' || item.type === 'video' ? (
-             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: hasTitle ? 'auto' : '100%' }}>
+             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: 'auto', justifyContent: 'flex-start' }}>
                <div
                   onClick={(e) => {
                       if (!isResizing) {
@@ -316,9 +315,10 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                   style={{
                       position: 'relative',
                       width: '100%',
-                      height: hasTitle && hasCustomSize ? `${dimensions.height}px` : (hasTitle ? 'auto' : '100%'),
+                      height: hasCustomSize ? `${dimensions.height}px` : 'auto',
                       cursor: 'pointer',
-                      minHeight: 0
+                      minHeight: 0,
+                      flexShrink: 0
                   }}
                >
                   {item.src ? (
@@ -450,15 +450,15 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                       </div>
                   )}
                </div>
-               {/* Padding space below image (only when title is shown) */}
-               {hasTitle && hasCustomSize && paddingBottom > 0 && (
-                   <div style={{ height: `${paddingBottom}px`, flexShrink: 0 }} />
-               )}
                {/* Title display below image/video */}
                {hasTitle && (
-                   <div className={styles.galleryTitle}>
+                   <div className={styles.galleryTitle} style={{ flexShrink: 0 }}>
                        {item.title}
                    </div>
+               )}
+               {/* Padding space below content */}
+               {hasCustomSize && paddingBottom > 0 && (
+                   <div style={{ height: `${paddingBottom}px`, flexShrink: 0 }} />
                )}
              </div>
         ) : (

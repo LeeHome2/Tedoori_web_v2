@@ -490,6 +490,8 @@
   width: 100%;
   overflow-wrap: break-word;
   font-weight: normal;
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
 .imageWrapper:hover .galleryTitle {
@@ -522,9 +524,10 @@
 .resizeHandleSE { bottom: -6px; right: -6px; cursor: se-resize; }
 
 .resizeOverlay {
-    position: fixed;
-    top: 100px;
-    left: 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateY(-100%) translateY(-10px);
     background: white;
     padding: 12px;
     border-radius: 0;
