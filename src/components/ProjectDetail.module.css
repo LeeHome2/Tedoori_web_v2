@@ -56,7 +56,7 @@
     flex-direction: row; /* Desktop: Row layout (Split Pane) */
     align-items: stretch;
     margin-left: 0; /* Reset margin */
-    padding-right: 200px;
+    padding-right: 0; /* No right padding - allow gallery to extend fully */
     padding-bottom: 20px;
   }
 
@@ -73,7 +73,7 @@
 /* Tablet (iPad) */
 @media (min-width: 769px) and (max-width: 1024px) {
   .container {
-    padding-right: 30px;
+    padding-right: 0;
   }
 
   .infoColumn {

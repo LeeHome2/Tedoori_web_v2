@@ -117,9 +117,13 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     return Math.max(...project.galleryImages.map(item => item.cardWidth || 0));
   }, [project.galleryImages]);
 
+  // Minimum blog width in pixels
+  const minBlogWidth = 500;
+  const resizerWidth = 81;
+
   // Calculate minimum gallery percentage based on max image width
   const calculateMinGalleryPercent = useCallback((containerWidth: number) => {
-    const paddingRight = 200;
+    const paddingRight = 0;
     const gridPaddingLeft = 40;
     const safetyBuffer = 20;
     const availableWidth = containerWidth - paddingRight;
@@ -127,24 +131,46 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     return (minGalleryWidthPx / availableWidth) * 100;
   }, [maxGalleryItemWidth]);
 
+  // Calculate maximum gallery percentage based on minimum blog width (300px)
+  const calculateMaxGalleryPercent = useCallback((containerWidth: number) => {
+    const paddingRight = 0;
+    const availableWidth = containerWidth - paddingRight;
+    // Blog needs at least minBlogWidth, plus resizer takes resizerWidth
+    // So gallery can take at most: availableWidth - minBlogWidth - resizerWidth
+    const maxGalleryWidthPx = availableWidth - minBlogWidth - resizerWidth;
+    return (maxGalleryWidthPx / availableWidth) * 100;
+  }, []);
+
   // Set initial gallery width on mount - use 60% if viewport is large enough, otherwise use minimum
   useEffect(() => {
     if (!containerRef.current || maxGalleryItemWidth === 0 || initialWidthSet) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const minGalleryPercent = calculateMinGalleryPercent(containerRect.width);
+    const maxGalleryPercent = calculateMaxGalleryPercent(containerRect.width);
     const defaultPercent = 60; // Default 4:6 ratio
 
-    // Use default 60% if viewport is large enough, otherwise use the minimum needed
-    if (defaultPercent >= minGalleryPercent) {
-      setLeftPaneWidth(defaultPercent);
-    } else {
-      setLeftPaneWidth(Math.min(minGalleryPercent, 90));
-    }
-    setInitialWidthSet(true);
-  }, [maxGalleryItemWidth, calculateMinGalleryPercent, initialWidthSet]);
+    // Clamp gallery percentage between min (for image) and max (for blog)
+    let targetPercent = defaultPercent;
 
-  // Ensure gallery width always respects the minimum on window resize
+    // If default is less than min needed for image, increase it
+    if (targetPercent < minGalleryPercent) {
+      targetPercent = minGalleryPercent;
+    }
+
+    // But don't exceed max (to keep blog at least 300px)
+    if (targetPercent > maxGalleryPercent) {
+      targetPercent = maxGalleryPercent;
+    }
+
+    // Final bounds check
+    targetPercent = Math.max(10, Math.min(90, targetPercent));
+
+    setLeftPaneWidth(targetPercent);
+    setInitialWidthSet(true);
+  }, [maxGalleryItemWidth, calculateMinGalleryPercent, calculateMaxGalleryPercent, initialWidthSet]);
+
+  // Ensure gallery width always respects the limits on window resize
   useEffect(() => {
     if (!containerRef.current || maxGalleryItemWidth === 0) return;
 
@@ -153,30 +179,41 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
       const containerRect = containerRef.current.getBoundingClientRect();
       const minGalleryPercent = calculateMinGalleryPercent(containerRect.width);
-      const effectiveMin = Math.max(10, minGalleryPercent);
+      const maxGalleryPercent = calculateMaxGalleryPercent(containerRect.width);
 
-      // If current width is less than minimum, adjust it
       setLeftPaneWidth(prev => {
-        if (prev < effectiveMin) {
-          return Math.min(effectiveMin, 90);
+        let adjusted = prev;
+
+        // Ensure gallery is at least min (for image visibility)
+        if (adjusted < minGalleryPercent) {
+          adjusted = minGalleryPercent;
         }
-        return prev;
+
+        // But don't exceed max (to keep blog at least 300px)
+        if (adjusted > maxGalleryPercent) {
+          adjusted = maxGalleryPercent;
+        }
+
+        // Final bounds
+        adjusted = Math.max(10, Math.min(90, adjusted));
+
+        return adjusted;
       });
     };
 
     // Check on window resize
     window.addEventListener('resize', checkAndAdjustWidth);
     return () => window.removeEventListener('resize', checkAndAdjustWidth);
-  }, [maxGalleryItemWidth, calculateMinGalleryPercent]);
+  }, [maxGalleryItemWidth, calculateMinGalleryPercent, calculateMaxGalleryPercent]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
 
-    // Layout: [blog: (100-leftPaneWidth)%] [resizer margin: 80px] [gallery: leftPaneWidth%] [padding-right: 200px]
+    // Layout: [blog: (100-leftPaneWidth)%] [resizer margin: 80px] [gallery: leftPaneWidth%]
     const resizerMargin = 80;
-    const paddingRight = 200;
+    const paddingRight = 0;
 
     // Available width for percentage calculation (excluding padding-right)
     const availableWidth = containerRect.width - paddingRight;
@@ -191,16 +228,20 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     let newWidth = 100 - blogWidthPercent;
 
     // Calculate minimum gallery width based on max image cardWidth
-    // Grid has padding-left: 40px, add buffer for box model differences and scrollbar
     const gridPaddingLeft = 40;
-    const safetyBuffer = 20; // Extra buffer for potential scrollbar, rounding, etc.
+    const safetyBuffer = 20;
     const minGalleryWidthPx = maxGalleryItemWidth + gridPaddingLeft + safetyBuffer;
     const minGalleryPercent = (minGalleryWidthPx / availableWidth) * 100;
 
-    // Limits: min based on max image width (or 10%), max 90%
+    // Calculate maximum gallery width based on minimum blog width (300px)
+    const maxGalleryWidthPx = availableWidth - minBlogWidth - resizerWidth;
+    const maxGalleryPercent = (maxGalleryWidthPx / availableWidth) * 100;
+
+    // Limits: min based on max image width, max based on min blog width
     const effectiveMin = Math.max(10, minGalleryPercent);
+    const effectiveMax = Math.min(90, maxGalleryPercent);
     if (newWidth < effectiveMin) newWidth = effectiveMin;
-    if (newWidth > 90) newWidth = 90;
+    if (newWidth > effectiveMax) newWidth = effectiveMax;
 
     // Round to pixel-aligned percentage to prevent subpixel rendering issues
     // Calculate pixel width, round it, then convert back to percentage
