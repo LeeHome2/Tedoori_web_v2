@@ -110,6 +110,12 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const gallerySectionRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
 
+  // Calculate the maximum cardWidth from gallery images to limit resizer
+  const maxGalleryItemWidth = useMemo(() => {
+    if (!project.galleryImages || project.galleryImages.length === 0) return 0;
+    return Math.max(...project.galleryImages.map(item => item.cardWidth || 0));
+  }, [project.galleryImages]);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
 
@@ -131,8 +137,14 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     // Gallery area percentage (leftPaneWidth stores gallery width)
     let newWidth = 100 - blogWidthPercent;
 
-    // Limits (min 10%, max 90%)
-    if (newWidth < 10) newWidth = 10;
+    // Calculate minimum gallery width based on max image cardWidth
+    // Add some padding (40px for grid padding + some margin)
+    const minGalleryWidthPx = maxGalleryItemWidth + 60;
+    const minGalleryPercent = (minGalleryWidthPx / availableWidth) * 100;
+
+    // Limits: min based on max image width (or 10%), max 90%
+    const effectiveMin = Math.max(10, minGalleryPercent);
+    if (newWidth < effectiveMin) newWidth = effectiveMin;
     if (newWidth > 90) newWidth = 90;
 
     // Round to pixel-aligned percentage to prevent subpixel rendering issues
@@ -141,7 +153,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     newWidth = (galleryWidthPx / availableWidth) * 100;
 
     setLeftPaneWidth(newWidth);
-  }, []);
+  }, [maxGalleryItemWidth]);
 
   // Stop resizing (no save - saving happens when Done button is clicked)
   const stopResizing = useCallback(() => {
