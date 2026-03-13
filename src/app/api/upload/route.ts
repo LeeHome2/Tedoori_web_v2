@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     // Validation: Check file magic bytes (first few bytes to verify actual file type)
     const magicBytes = buffer.slice(0, 4).toString('hex');
     const validMagicBytes: { [key: string]: string[] } = {
-      'image/jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'],
+      'image/jpeg': ['ffd8ff'],
       'image/png': ['89504e47'],
       'image/gif': ['47494638'],
       'image/webp': ['52494646'] // RIFF header
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     );
 
     if (!isValidMagicByte) {
-      return NextResponse.json({ error: 'File content does not match declared type' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid file: content does not match type' }, { status: 400 });
     }
 
     // Generate secure filename using timestamp and random string

@@ -589,7 +589,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               showTitle: showTitle,
               style: memoStyle,
               cardWidth: 250,  // Default card width for memo
-              cardHeight: 200  // Default card height for memo
+              cardHeight: 200,  // Default card height for memo
+              cardPaddingBottom: 30  // Default padding
           };
       } else if (projectType === 'video') {
           if (!youtubeId) {
@@ -607,7 +608,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               width: 1200, // Default width
               height: 800,  // Default height
               cardWidth: 400,  // Default card width for video
-              cardHeight: 300  // Default card height for video
+              cardHeight: 300,  // Default card height for video
+              cardPaddingBottom: 30  // Default padding
           };
       } else {
           // Image
@@ -625,7 +627,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               width: 1200, // Default/Placeholder
               height: 800,
               cardWidth: 400,  // Default card width for image
-              cardHeight: 300  // Default card height for image
+              cardHeight: 300,  // Default card height for image
+              cardPaddingBottom: 30  // Default padding
           };
           // Preserve existing dimensions if editing
           if (editingItemIndex !== null && project.galleryImages) {
