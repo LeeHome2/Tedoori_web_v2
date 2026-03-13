@@ -24,6 +24,7 @@ export interface ProjectRow {
 export interface ProjectDetails {
   cardWidth?: number;
   cardHeight?: number;
+  cardPaddingBottom?: number;
   lockedAspectRatio?: boolean;
   galleryWidthRatio?: number;
   type?: 'project' | 'memo' | 'video';
@@ -60,6 +61,7 @@ export interface Project {
   isVisible: boolean;
   cardWidth?: number;
   cardHeight?: number;
+  cardPaddingBottom?: number;
   lockedAspectRatio?: boolean;
   galleryWidthRatio?: number;
   type?: 'project' | 'memo' | 'video';

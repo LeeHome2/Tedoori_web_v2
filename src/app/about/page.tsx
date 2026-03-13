@@ -159,7 +159,7 @@ export default function AboutPage() {
       const data = await res.json();
       setBlocks(prev => [...prev, data]);
       setIsAddingNew(false);
-      setFormData({ content: '' });
+      setFormData({ content: '', fontFamily: 'sans' });
     } catch (error) {
       console.error('Failed to add block', error);
       alert('Failed to add block');
@@ -286,6 +286,7 @@ export default function AboutPage() {
 
         // Add image HTML to content
         setFormData(prev => ({
+          ...prev,
           content: prev.content + '\n' + generateImageHtml(url) + '\n'
         }));
       } catch (error: unknown) {
@@ -309,6 +310,7 @@ export default function AboutPage() {
     }
 
     setFormData(prev => ({
+      ...prev,
       content: prev.content + '\n' + iframe + '\n'
     }));
   };
