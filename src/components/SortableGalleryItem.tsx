@@ -140,20 +140,6 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   const hasTitle = item.showTitle && item.title;
   const isTextType = item.type === 'text';
 
-  // For text items, get horizontal alignment from style.textAlign
-  const textAlign = isTextType && item.style?.textAlign;
-  const getMarginStyle = () => {
-    if (!isTextType || !hasCustomSize) return {};
-    switch (textAlign) {
-      case 'center':
-        return { marginLeft: 'auto', marginRight: 'auto' };
-      case 'right':
-        return { marginLeft: 'auto', marginRight: '0' };
-      default: // 'left' or undefined
-        return { marginLeft: '0', marginRight: 'auto' };
-    }
-  };
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
@@ -167,8 +153,6 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
     zIndex: isResizing || isEditingText ? 100 : 'auto',
-    // Apply horizontal alignment for text items
-    ...getMarginStyle(),
   };
 
   // Image style for controlling displayed image size
@@ -514,55 +498,67 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                     }}
                 />
             ) : (
-                <div
-                    className={styles.textItem}
-                    onClick={handleTextClick}
-                    style={{
-                        ...(item.visibility === 'private' ? { opacity: 0.5 } : {}),
-                        width: hasCustomSize ? `${dimensions.width}px` : '100%',
-                        height: hasCustomSize ? `${dimensions.height}px` : '200px',
-                        minHeight: 'unset',
-                        fontFamily: item.style?.fontFamily,
-                        fontSize: item.style?.fontSize,
-                        backgroundColor: item.style?.backgroundColor || '#ffffff',
-                        color: item.style?.color,
-                        textAlign: item.style?.textAlign as any,
-                        padding: '20px',
-                        boxSizing: 'border-box',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: item.style?.textAlign === 'center' ? 'center' : 'flex-start',
-                        justifyContent: item.style?.textAlign === 'center' ? 'center' : (item.style?.textAlign === 'right' ? 'flex-end' : 'flex-start'),
-                        whiteSpace: 'pre-wrap', // Preserve line breaks
-                        cursor: isAdmin && adminMode ? 'text' : 'pointer'
-                    }}
-                >
-                    {item.content}
-                    {/* Admin Overlay - text 타입 내부에 배치 */}
-                    {isAdmin && adminMode && !isResizing && !isEditingText && (
-                        <div className={styles.adminOverlay}
-                             onClick={(e) => e.stopPropagation()}
-                             onPointerDown={(e) => e.stopPropagation()}
-                             onMouseDown={(e) => e.stopPropagation()}
-                        >
-                            <div className={styles.dragHandle}
-                                 ref={setActivatorNodeRef}
-                                 {...listeners}
-                                 style={{ cursor: 'grab', touchAction: 'none' }}
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: 'auto' }}>
+                    <div
+                        className={styles.textItem}
+                        onClick={handleTextClick}
+                        style={{
+                            ...(item.visibility === 'private' ? { opacity: 0.5 } : {}),
+                            width: hasCustomSize ? `${dimensions.width}px` : '100%',
+                            height: hasCustomSize ? `${dimensions.height}px` : '200px',
+                            minHeight: 'unset',
+                            fontFamily: item.style?.fontFamily,
+                            fontSize: item.style?.fontSize,
+                            backgroundColor: item.style?.backgroundColor || '#ffffff',
+                            color: item.style?.color,
+                            textAlign: item.style?.textAlign as any,
+                            padding: '20px',
+                            boxSizing: 'border-box',
+                            overflow: 'hidden',
+                            display: 'block',
+                            whiteSpace: 'pre-wrap', // Preserve line breaks
+                            cursor: isAdmin && adminMode ? 'text' : 'pointer',
+                            position: 'relative',
+                            flexShrink: 0
+                        }}
+                    >
+                        {item.content}
+                        {/* Admin Overlay - text 타입 내부에 배치 */}
+                        {isAdmin && adminMode && !isResizing && !isEditingText && (
+                            <div className={styles.adminOverlay}
+                                 onClick={(e) => e.stopPropagation()}
+                                 onPointerDown={(e) => e.stopPropagation()}
+                                 onMouseDown={(e) => e.stopPropagation()}
                             >
-                              :::
+                                <div className={styles.dragHandle}
+                                     ref={setActivatorNodeRef}
+                                     {...listeners}
+                                     style={{ cursor: 'grab', touchAction: 'none' }}
+                                >
+                                  :::
+                                </div>
+                                <button onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (originalImageRef.current) {
+                                    aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+                                  } else if (dimensions.width && dimensions.height) {
+                                    aspectRatioRef.current = dimensions.width / dimensions.height;
+                                  }
+                                  setIsResizing(true);
+                              }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                                <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
                             </div>
-                            <button onClick={(e) => {
-                              e.stopPropagation();
-                              if (originalImageRef.current) {
-                                aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
-                              } else if (dimensions.width && dimensions.height) {
-                                aspectRatioRef.current = dimensions.width / dimensions.height;
-                              }
-                              setIsResizing(true);
-                          }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
-                            <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
+                        )}
+                    </div>
+                    {/* Title display below text/memo */}
+                    {hasTitle && (
+                        <div className={styles.galleryTitle} style={{ flexShrink: 0 }}>
+                            {item.title}
                         </div>
+                    )}
+                    {/* Padding space below content */}
+                    {hasCustomSize && paddingBottom > 0 && (
+                        <div style={{ height: `${paddingBottom}px`, flexShrink: 0 }} />
                     )}
                 </div>
             )
