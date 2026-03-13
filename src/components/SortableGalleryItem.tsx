@@ -140,6 +140,20 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   const hasTitle = item.showTitle && item.title;
   const isTextType = item.type === 'text';
 
+  // For text items, get horizontal alignment from style.textAlign
+  const textAlign = isTextType && item.style?.textAlign;
+  const getMarginStyle = () => {
+    if (!isTextType || !hasCustomSize) return {};
+    switch (textAlign) {
+      case 'center':
+        return { marginLeft: 'auto', marginRight: 'auto' };
+      case 'right':
+        return { marginLeft: 'auto', marginRight: '0' };
+      default: // 'left' or undefined
+        return { marginLeft: '0', marginRight: 'auto' };
+    }
+  };
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
@@ -153,6 +167,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
     zIndex: isResizing || isEditingText ? 100 : 'auto',
+    // Apply horizontal alignment for text items
+    ...getMarginStyle(),
   };
 
   // Image style for controlling displayed image size
