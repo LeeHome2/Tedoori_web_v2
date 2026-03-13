@@ -440,7 +440,40 @@
   }
 
   .imageWrapper {
-    height: auto;
+    height: auto !important;
+    /* Override custom width on mobile - fill container width */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+  }
+
+  /* Override all inline heights inside imageWrapper */
+  .imageWrapper > div {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .imageWrapper > div > div {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .imageWrapper .image {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Hide padding spacer on mobile */
+  .imageWrapper > div > div:last-child:not(.galleryTitle):not(:first-child) {
+    display: none !important;
+  }
+
+  .textItem {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 150px !important;
   }
 }
 

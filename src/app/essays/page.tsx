@@ -101,7 +101,7 @@ export default function EssaysPage() {
     <main>
       <Header />
 
-      <div style={{ display: 'flex', marginTop: '150px', marginBottom: '100px', minHeight: '60vh' }}>
+      <div className={contentStyles.pageContainer}>
         {/* Left: Content list */}
         <div className={contentStyles.contentWrapper} style={{ marginTop: 0, marginBottom: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

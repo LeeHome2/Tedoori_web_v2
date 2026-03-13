@@ -16,6 +16,28 @@
   .card {
     margin-bottom: 0;
     padding-bottom: 10px;
+    /* Override custom width on mobile - fill container width */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+    height: auto !important;
+  }
+
+  .card .image {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .imageWrapper {
+    width: 100%;
+  }
+
+  .memoContent {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 200px;
+    aspect-ratio: 3 / 2;
   }
 }
 
