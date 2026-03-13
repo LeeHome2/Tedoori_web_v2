@@ -5,10 +5,16 @@
   min-height: 60vh;
 }
 
-.contentWrapper {
-  width: calc(40vw - 145px);
+/* When contentWrapper is inside pageContainer, remove its own margins */
+.pageContainer .contentWrapper {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+.contentWrapper {
+  width: calc(40vw - 145px);
+  margin-top: 150px;
+  margin-bottom: 100px;
   margin-left: 165px;
   padding-left: 0;
   padding-right: 20px;
@@ -112,9 +118,15 @@
     width: auto;
     margin-left: 20px;
     margin-right: 20px;
-    margin-top: 0;
+    margin-top: 100px;
+    margin-bottom: 50px;
     padding-left: 0;
     padding-right: 0;
+  }
+
+  .pageContainer .contentWrapper {
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .contentTitle {
