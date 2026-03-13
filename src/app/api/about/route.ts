@@ -38,7 +38,13 @@ export async function GET() {
     return NextResponse.json([]);
   }
 
-  const response = NextResponse.json(data || []);
+  // Convert font_family to fontFamily for frontend consistency
+  const normalizedData = (data || []).map(block => ({
+    ...block,
+    fontFamily: block.font_family || 'sans'
+  }));
+
+  const response = NextResponse.json(normalizedData);
   response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
   return response;
 }
@@ -77,7 +83,11 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
-    return NextResponse.json(data);
+    // Return with fontFamily for frontend consistency
+    return NextResponse.json({
+      ...data,
+      fontFamily: data.font_family || 'sans'
+    });
   } catch (error: unknown) {
     console.error('Failed to create block:', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
@@ -95,14 +105,19 @@ export async function PUT(request: Request) {
 
     // Batch update for reordering
     if (Array.isArray(body)) {
-      const updates = body.map(item =>
-        supabase
+      const updatePromises = body.map(async (item) => {
+        const { error } = await supabase
           .from('about_blocks')
-          .update({ order_index: item.order_index })
-          .eq('id', item.id)
-      );
+          .update({
+            order_index: item.order_index,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', item.id);
 
-      await Promise.all(updates);
+        if (error) throw error;
+      });
+
+      await Promise.all(updatePromises);
       return NextResponse.json({ success: true });
     }
 
@@ -123,7 +138,11 @@ export async function PUT(request: Request) {
 
     if (error) throw error;
 
-    return NextResponse.json(data);
+    // Return with fontFamily for frontend consistency
+    return NextResponse.json({
+      ...data,
+      fontFamily: data.font_family || 'sans'
+    });
   } catch (error: unknown) {
     console.error('Failed to update block:', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });

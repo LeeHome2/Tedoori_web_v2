@@ -15,8 +15,7 @@ interface AboutBlock {
   id: string;
   type: 'text' | 'image' | 'map';
   content: string;
-  fontFamily?: 'sans' | 'serif';
-  font_family?: 'sans' | 'serif';  // Database column name
+  fontFamily: 'sans' | 'serif';  // API now returns fontFamily consistently
   order_index: number;
 }
 
@@ -25,18 +24,21 @@ const DEFAULT_BLOCKS: AboutBlock[] = [
     id: 'intro-block',
     type: 'text',
     content: `Tedoori is an architectural practice based in Seoul.\n\nWe focus on the essential qualities of space and structure, exploring the relationship between form and function.`,
+    fontFamily: 'sans',
     order_index: 0
   },
   {
     id: 'contact-block',
     type: 'text',
     content: `Email: info@tedoori.com\nTel: +82 2 1234 5678\nAddress: 123, Sejong-daero, Jongno-gu, Seoul, Republic of Korea`,
+    fontFamily: 'sans',
     order_index: 1
   },
   {
     id: 'map-block',
     type: 'map',
     content: '',
+    fontFamily: 'sans',
     order_index: 2
   }
 ];
@@ -211,21 +213,29 @@ export default function AboutPage() {
     const newBlocks = [...blocks];
     [newBlocks[index - 1], newBlocks[index]] = [newBlocks[index], newBlocks[index - 1]];
 
-    const updates = newBlocks.map((item, idx) => ({
-      id: item.id,
+    // Update order_index in local state
+    const updatedBlocks = newBlocks.map((item, idx) => ({
+      ...item,
       order_index: idx
     }));
 
-    setBlocks(newBlocks);
+    const updates = updatedBlocks.map(item => ({
+      id: item.id,
+      order_index: item.order_index
+    }));
+
+    setBlocks(updatedBlocks);
 
     try {
-      await fetch('/api/about', {
+      const res = await fetch('/api/about', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
+      if (!res.ok) throw new Error('Failed to update order');
     } catch (error) {
       console.error('Failed to update order:', error);
+      alert('Failed to update order. Refreshing...');
       await fetchBlocks();
     }
   };
@@ -237,21 +247,29 @@ export default function AboutPage() {
     const newBlocks = [...blocks];
     [newBlocks[index], newBlocks[index + 1]] = [newBlocks[index + 1], newBlocks[index]];
 
-    const updates = newBlocks.map((item, idx) => ({
-      id: item.id,
+    // Update order_index in local state
+    const updatedBlocks = newBlocks.map((item, idx) => ({
+      ...item,
       order_index: idx
     }));
 
-    setBlocks(newBlocks);
+    const updates = updatedBlocks.map(item => ({
+      id: item.id,
+      order_index: item.order_index
+    }));
+
+    setBlocks(updatedBlocks);
 
     try {
-      await fetch('/api/about', {
+      const res = await fetch('/api/about', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
+      if (!res.ok) throw new Error('Failed to update order');
     } catch (error) {
       console.error('Failed to update order:', error);
+      alert('Failed to update order. Refreshing...');
       await fetchBlocks();
     }
   };
