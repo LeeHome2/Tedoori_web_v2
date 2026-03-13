@@ -28,6 +28,7 @@ export type GalleryItem =
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
+      cardPaddingBottom?: number;
       lockedAspectRatio?: boolean;
     }
   | {
@@ -40,6 +41,7 @@ export type GalleryItem =
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
+      cardPaddingBottom?: number;
       lockedAspectRatio?: boolean;
     }
   | {
@@ -55,6 +57,7 @@ export type GalleryItem =
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
+      cardPaddingBottom?: number;
       lockedAspectRatio?: boolean;
   };
 

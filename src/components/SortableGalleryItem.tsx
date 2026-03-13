@@ -22,12 +22,13 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   
   // Resize State
   const [isResizing, setIsResizing] = useState(false);
-  const [lockedRatio, setLockedRatio] = useState(!!item.lockedAspectRatio);
-  const [dimensions, setDimensions] = useState({ 
-      width: item.cardWidth, 
-      height: item.cardHeight 
+  const [lockedRatio, setLockedRatio] = useState(true); // Default to locked
+  const [dimensions, setDimensions] = useState({
+      width: item.cardWidth,
+      height: item.cardHeight
   });
-  
+  const [paddingBottom, setPaddingBottom] = useState(item.cardPaddingBottom ?? 50);
+
   // Text Edit State
   const [isEditingText, setIsEditingText] = useState(false);
   const [textContent, setTextContent] = useState(item.type === 'text' ? item.content : '');
@@ -36,25 +37,88 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   const [isPlaying, setIsPlaying] = useState(false);
 
   const itemRef = useRef<HTMLDivElement>(null);
-  const resizeStartRef = useRef<{x: number, y: number, w: number, h: number} | null>(null);
+  const resizeStartRef = useRef<{x: number, y: number, w: number, h: number, padding: number} | null>(null);
+  const originalImageRef = useRef<{width: number, height: number} | null>(null);
+  const aspectRatioRef = useRef<number>(1);
+
+  // Refs to always have latest values for save
+  const dimensionsRef = useRef(dimensions);
+  const paddingBottomRef = useRef(paddingBottom);
+  const lockedRatioRef = useRef(lockedRatio);
+
+  useEffect(() => { dimensionsRef.current = dimensions; }, [dimensions]);
+  useEffect(() => { paddingBottomRef.current = paddingBottom; }, [paddingBottom]);
+  useEffect(() => { lockedRatioRef.current = lockedRatio; }, [lockedRatio]);
+
+  // Load original image dimensions
+  useEffect(() => {
+    if (item.type === 'image' && item.src) {
+      const img = new window.Image();
+      img.onload = () => {
+        originalImageRef.current = { width: img.naturalWidth, height: img.naturalHeight };
+        if (!aspectRatioRef.current || aspectRatioRef.current === 1) {
+          aspectRatioRef.current = img.naturalWidth / img.naturalHeight;
+        }
+      };
+      img.src = item.src;
+    } else if (item.type === 'video' && item.width && item.height) {
+      originalImageRef.current = { width: item.width, height: item.height };
+      aspectRatioRef.current = item.width / item.height;
+    }
+  }, [item]);
+
+  // Handle width input change
+  const handleWidthChange = (newWidth: number) => {
+    if (lockedRatio && newWidth > 0 && aspectRatioRef.current) {
+      const newHeight = Math.round(newWidth / aspectRatioRef.current);
+      setDimensions({ width: newWidth, height: newHeight });
+    } else {
+      setDimensions(p => ({ ...p, width: newWidth }));
+    }
+  };
+
+  // Handle height input change
+  const handleHeightChange = (newHeight: number) => {
+    if (lockedRatio && newHeight > 0 && aspectRatioRef.current) {
+      const newWidth = Math.round(newHeight * aspectRatioRef.current);
+      setDimensions({ width: newWidth, height: newHeight });
+    } else {
+      setDimensions(p => ({ ...p, height: newHeight }));
+    }
+  };
+
+  // Reset to original image size
+  const handleReset = () => {
+    if (originalImageRef.current) {
+      setDimensions({
+        width: originalImageRef.current.width,
+        height: originalImageRef.current.height
+      });
+      aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+      setPaddingBottom(50);
+    }
+  };
 
   // Sync dimensions and content
   useEffect(() => {
       if (!isResizing) {
-          // eslint-disable-next-line react-hooks/exhaustive-deps
           setDimensions(prev => {
               if (prev.width !== item.cardWidth || prev.height !== item.cardHeight) {
                   return { width: item.cardWidth, height: item.cardHeight };
               }
               return prev;
           });
-          setLockedRatio(prev => prev !== !!item.lockedAspectRatio ? !!item.lockedAspectRatio : prev);
+          setPaddingBottom(item.cardPaddingBottom ?? 50);
+          // Keep lockedRatio as true by default, only change if explicitly set to false
+          if (item.lockedAspectRatio === false) {
+              setLockedRatio(false);
+          }
       }
       if (item.type === 'text' && !isEditingText) {
           setTextContent(prev => prev !== item.content ? item.content : prev);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.cardWidth, item.cardHeight, item.lockedAspectRatio, 'content' in item ? item.content : undefined, item.type, isResizing, isEditingText]);
+  }, [item.cardWidth, item.cardHeight, item.cardPaddingBottom, item.lockedAspectRatio, 'content' in item ? item.content : undefined, item.type, isResizing, isEditingText]);
 
   const {
     attributes,
@@ -68,20 +132,29 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const hasCustomSize = !!dimensions.width;
   const hasTitle = item.showTitle && item.title;
+  const totalHeight = hasCustomSize && dimensions.height ? dimensions.height + paddingBottom : undefined;
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as const,
+    // Card width follows image width
     width: hasCustomSize ? `${dimensions.width}px` : undefined,
-    // height를 auto로 변경하여 title이 표시될 수 있도록 함
-    height: hasTitle ? 'auto' : (hasCustomSize ? `${dimensions.height}px` : undefined),
+    // Card height = image height + padding bottom (+ title if shown)
+    height: hasTitle ? 'auto' : (totalHeight ? `${totalHeight}px` : undefined),
     maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
-    zIndex: isResizing || isEditingText ? 100 : 'auto', // Ensure editing text is on top
+    zIndex: isResizing || isEditingText ? 100 : 'auto',
   };
+
+  // Image style for controlling displayed image size
+  const imageStyle = hasCustomSize ? {
+    width: `${dimensions.width}px`,
+    height: `${dimensions.height}px`,
+    objectFit: 'cover' as const,
+  } : undefined;
 
   const handleVisibilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       e.stopPropagation();
@@ -107,63 +180,78 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   const startResize = (e: React.MouseEvent | React.TouchEvent, direction: string) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-      
+
       if (!itemRef.current) return;
       const rect = itemRef.current.getBoundingClientRect();
-      
+
+      // Get current image dimensions or use rect
+      const currentWidth = dimensions.width || rect.width;
+      const currentHeight = dimensions.height || (rect.height - paddingBottom);
+
       resizeStartRef.current = {
           x: clientX,
           y: clientY,
-          w: rect.width,
-          h: rect.height
+          w: currentWidth,
+          h: currentHeight,
+          padding: paddingBottom
       };
-      
+
+      // Initialize dimensions if they were undefined (auto)
       if (!dimensions.width || !dimensions.height) {
-          setDimensions({ width: rect.width, height: rect.height });
+          setDimensions({ width: currentWidth, height: currentHeight });
+          if (currentWidth && currentHeight) {
+              aspectRatioRef.current = currentWidth / currentHeight;
+          }
       }
 
       const onMove = (moveEvent: MouseEvent | TouchEvent) => {
           if (!resizeStartRef.current) return;
-          
+
           const moveX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : (moveEvent as MouseEvent).clientX;
           const moveY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : (moveEvent as MouseEvent).clientY;
-          
+
           const deltaX = moveX - resizeStartRef.current.x;
           const deltaY = moveY - resizeStartRef.current.y;
-          
-          let newWidth = resizeStartRef.current.w;
-          let newHeight = resizeStartRef.current.h;
-          
-          if (direction.includes('E')) newWidth += deltaX;
-          if (direction.includes('W')) newWidth -= deltaX;
-          if (direction.includes('S')) newHeight += deltaY;
-          if (direction.includes('N')) newHeight -= deltaY;
-          
-          newWidth = Math.max(100, Math.min(newWidth, 1600));
-          newHeight = Math.max(100, Math.min(newHeight, 1600));
-          
-          if (lockedRatio) {
-              const ratio = resizeStartRef.current.w / resizeStartRef.current.h;
-              if (direction.includes('E') || direction.includes('W')) {
-                  newHeight = newWidth / ratio;
+
+          // Horizontal drag: change image width (and height if locked)
+          if (direction.includes('E') || direction.includes('W')) {
+              let newWidth = resizeStartRef.current.w;
+              if (direction.includes('E')) newWidth += deltaX;
+              if (direction.includes('W')) newWidth -= deltaX;
+
+              // Constraints
+              newWidth = Math.max(100, Math.min(newWidth, 1600));
+
+              if (lockedRatio && aspectRatioRef.current) {
+                  const newHeight = Math.round(newWidth / aspectRatioRef.current);
+                  setDimensions({ width: Math.round(newWidth), height: newHeight });
               } else {
-                  newWidth = newHeight * ratio;
+                  setDimensions(prev => ({ ...prev, width: Math.round(newWidth) }));
               }
           }
-          
-          setDimensions({ width: Math.round(newWidth), height: Math.round(newHeight) });
+
+          // Vertical drag: change card padding bottom
+          if (direction.includes('S') || direction.includes('N')) {
+              let newPadding = resizeStartRef.current.padding;
+              if (direction.includes('S')) newPadding += deltaY;
+              if (direction.includes('N')) newPadding -= deltaY;
+
+              // Constraints (0 - 500px)
+              newPadding = Math.max(0, Math.min(newPadding, 500));
+              setPaddingBottom(Math.round(newPadding));
+          }
       };
-      
+
       const onUp = () => {
           window.removeEventListener('mousemove', onMove);
           window.removeEventListener('touchmove', onMove);
           window.removeEventListener('mouseup', onUp);
           window.removeEventListener('touchend', onUp);
       };
-      
+
       window.addEventListener('mousemove', onMove);
       window.addEventListener('touchmove', onMove, { passive: false });
       window.addEventListener('mouseup', onUp);
@@ -172,11 +260,13 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const handleResizeSave = () => {
       if (onUpdate && confirm("Save new size settings?")) {
-          onUpdate(index, { 
-              ...item, 
-              cardWidth: dimensions.width, 
-              cardHeight: dimensions.height,
-              lockedAspectRatio: lockedRatio
+          // Use refs to ensure we get the latest values
+          onUpdate(index, {
+              ...item,
+              cardWidth: dimensionsRef.current.width,
+              cardHeight: dimensionsRef.current.height,
+              cardPaddingBottom: paddingBottomRef.current,
+              lockedAspectRatio: lockedRatioRef.current
           });
           setIsResizing(false);
       }
@@ -184,6 +274,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const handleResizeCancel = () => {
       setDimensions({ width: item.cardWidth, height: item.cardHeight });
+      setPaddingBottom(item.cardPaddingBottom ?? 50);
+      setLockedRatio(item.lockedAspectRatio !== false);
       setIsResizing(false);
   };
 
@@ -297,17 +389,17 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                                   <Image
                                       src={item.src}
                                       alt={item.alt || `Item ${index + 1}`}
-                                      width={item.type === 'video' ? 0 : item.width}
-                                      height={item.type === 'video' ? 0 : item.height}
-                                      fill={item.type === 'video'}
-                                      sizes={item.type === 'video' ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" : undefined}
+                                      width={dimensions.width || (item.type === 'video' ? 0 : item.width)}
+                                      height={dimensions.height || (item.type === 'video' ? 0 : item.height)}
+                                      fill={item.type === 'video' && !hasCustomSize}
+                                      sizes={hasCustomSize ? `${dimensions.width}px` : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
                                       className={styles.image}
                                       unoptimized
                                       loading="lazy"
                                       style={
                                           item.visibility === 'private'
-                                              ? { opacity: 0.5, filter: 'grayscale(100%)', objectFit: 'cover' }
-                                              : { objectFit: 'cover' }
+                                              ? { ...imageStyle, opacity: 0.5, filter: 'grayscale(100%)' }
+                                              : imageStyle
                                       }
                                   />
                                   {item.type === 'video' && !isPlaying && (
@@ -345,13 +437,25 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                           >
                             :::
                           </div>
-                          <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                          <button onClick={(e) => {
+                              e.stopPropagation();
+                              if (originalImageRef.current) {
+                                aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+                              } else if (dimensions.width && dimensions.height) {
+                                aspectRatioRef.current = dimensions.width / dimensions.height;
+                              }
+                              setIsResizing(true);
+                          }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
                           <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
                       </div>
                   )}
                </div>
+               {/* Padding space below image (only when title is shown) */}
+               {hasTitle && hasCustomSize && paddingBottom > 0 && (
+                   <div style={{ height: `${paddingBottom}px`, flexShrink: 0 }} />
+               )}
                {/* Title display below image/video */}
-               {item.showTitle && item.title && (
+               {hasTitle && (
                    <div className={styles.galleryTitle}>
                        {item.title}
                    </div>
@@ -425,7 +529,15 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                             >
                               :::
                             </div>
-                            <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                            <button onClick={(e) => {
+                              e.stopPropagation();
+                              if (originalImageRef.current) {
+                                aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+                              } else if (dimensions.width && dimensions.height) {
+                                aspectRatioRef.current = dimensions.width / dimensions.height;
+                              }
+                              setIsResizing(true);
+                          }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
                             <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
                         </div>
                     )}
@@ -444,28 +556,39 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                 <div className={styles.resizeControlsRow}>
                     <div className={styles.resizeInputGroup}>
                         <span className={styles.resizeLabel}>W</span>
-                        <input 
+                        <input
                             className={styles.resizeInput}
-                            type="number" 
-                            value={dimensions.width || ''} 
-                            onChange={(e) => setDimensions(p => ({ ...p, width: parseInt(e.target.value) || 0 }))}
+                            type="number"
+                            value={dimensions.width || ''}
+                            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 0)}
                         />
                     </div>
                     <div className={styles.resizeInputGroup}>
                         <span className={styles.resizeLabel}>H</span>
-                        <input 
+                        <input
                             className={styles.resizeInput}
-                            type="number" 
-                            value={dimensions.height || ''} 
-                            onChange={(e) => setDimensions(p => ({ ...p, height: parseInt(e.target.value) || 0 }))}
+                            type="number"
+                            value={dimensions.height || ''}
+                            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 0)}
                         />
                     </div>
                 </div>
                 <div className={styles.resizeControlsRow}>
                     <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
                         <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
-                        Lock Ratio
+                        Lock
                     </label>
+                    <button className={styles.resetLink} onClick={handleReset} title="Reset to original image size">Reset</button>
+                    <div className={styles.resizeInputGroup}>
+                        <span className={styles.resizeLabel}>Pad</span>
+                        <input
+                            className={styles.resizeInput}
+                            type="number"
+                            value={paddingBottom}
+                            onChange={(e) => setPaddingBottom(parseInt(e.target.value) || 0)}
+                            style={{ width: '50px' }}
+                        />
+                    </div>
                 </div>
                 <div className={styles.resizeControlsRow}>
                     <button className={styles.resizeBtn} onClick={handleResizeSave}>Save</button>
