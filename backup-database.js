@@ -28,7 +28,7 @@ async function backupDatabase() {
     fs.mkdirSync(backupDir, { recursive: true })
   }
 
-  const tables = ['projects'] // 필요한 테이블 추가
+  const tables = ['projects', 'about_blocks', 'essays', 'news'] // 필요한 테이블 추가
 
   for (const table of tables) {
     try {

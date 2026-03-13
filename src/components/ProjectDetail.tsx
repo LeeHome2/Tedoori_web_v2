@@ -71,13 +71,11 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const saveBlogContent = async () => {
       setIsSavingBlog(true);
       try {
-        console.log('[Save] Saving galleryWidthRatio:', leftPaneWidth);
         console.log('[Save] blogHtml:', blogHtml);
 
         await updateProject({
           ...project,
           content: blogHtml, // Save to project.content as well
-          galleryWidthRatio: leftPaneWidth, // Save resizer ratio
           details: {
             year: project.details?.year || '',
             location: project.details?.location || '',
@@ -93,10 +91,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
             photographer: project.details?.photographer || '',
             ...project.details,
             content: blogHtml, // Save to project.details.content as well
-            galleryWidthRatio: leftPaneWidth // Save to details as well
           }
         });
-        console.log('[Save] Blog content and resizer ratio saved successfully');
+        console.log('[Save] Blog content saved successfully');
       } catch (error) {
         console.error('[Save] Failed to save blog content:', error);
         alert('Failed to save blog content. Please try again.');
@@ -106,22 +103,12 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       }
   };
 
-  // Resizable Pane State
-  const [leftPaneWidth, setLeftPaneWidth] = useState(() => {
-    // Always start with DB default or fallback to 60 (4:6 ratio)
-    console.log('[Resizer Init] project.galleryWidthRatio:', project.galleryWidthRatio);
-    return project.galleryWidthRatio || 60;
-  });
+  // Resizable Pane State - Always start with fixed 4:6 ratio (60% gallery)
+  const [leftPaneWidth, setLeftPaneWidth] = useState(60);
   const containerRef = useRef<HTMLDivElement>(null);
   const blogSectionRef = useRef<HTMLDivElement>(null);
   const gallerySectionRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
-
-  // Always use DB default on mount and when project changes
-  useEffect(() => {
-    console.log('[Resizer Update] project.galleryWidthRatio:', project.galleryWidthRatio);
-    setLeftPaneWidth(project.galleryWidthRatio || 60);
-  }, [project.galleryWidthRatio]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
