@@ -478,7 +478,22 @@
 }
 
 .imageWrapper:hover .image {
-  opacity: 0.9;
+  opacity: 1;
+}
+
+.galleryTitle {
+  color: black;
+  font-size: 13px;
+  line-height: 1.2;
+  margin-top: 8px;
+  display: block;
+  width: 100%;
+  overflow-wrap: break-word;
+  font-weight: normal;
+}
+
+.imageWrapper:hover .galleryTitle {
+  text-decoration: underline;
 }
 
 /* Resize Styles */
@@ -765,8 +780,14 @@
   right: 20px;
   cursor: pointer;
   z-index: 3001;
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.closeBtn:hover {
+  opacity: 1;
 }
 
 .prevBtn,
@@ -784,11 +805,12 @@
   justify-content: center;
   background: transparent;
   transition: opacity 0.2s ease;
+  opacity: 0.4;
 }
 
 .prevBtn:hover,
 .nextBtn:hover {
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .prevBtn:active,
@@ -808,10 +830,10 @@
 .arrowLeft,
 .arrowRight {
     display: block;
-    width: 25px; /* Match closeBtn inner span width proportion */
-    height: 25px;
-    border-top: 1px solid black;
-    border-left: 1px solid black;
+    width: 42px;
+    height: 42px;
+    border-top: 2px solid black;
+    border-left: 2px solid black;
 }
 
 .arrowLeft {
@@ -840,13 +862,12 @@
     height: 50px;
     width: auto;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 1;
     transition: opacity 0.2s;
 }
 
 .thumbnail.active {
     opacity: 1;
-    border: 2px solid black;
 }
 
 /* Upload UI */

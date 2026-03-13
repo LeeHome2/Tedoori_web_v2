@@ -11,6 +11,7 @@ export interface AboutBlock {
   id: string;
   type: 'text' | 'image' | 'map';
   content: string;
+  fontFamily?: 'sans' | 'serif';
   order_index: number;
   created_at?: string;
   updated_at?: string;
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
         id: block.id,
         type: block.type,
         content: block.content || '',
+        font_family: block.fontFamily || 'sans',
         order_index: nextOrder,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -112,6 +114,7 @@ export async function PUT(request: Request) {
         id: block.id,
         type: block.type,
         content: block.content,
+        font_family: block.fontFamily || 'sans',
         order_index: block.order_index,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' })

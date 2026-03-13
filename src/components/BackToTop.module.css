@@ -2,8 +2,8 @@
   position: fixed;
   bottom: 30px;
   right: 30px;
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
   background-color: transparent;
   color: #000;
   border: none;
@@ -37,15 +37,15 @@
 
 .arrowIcon {
   display: block;
-  width: 25px; /* Match ProjectDetail arrow size */
-  height: 25px;
+  width: 42px;
+  height: 42px;
 }
 
 @media (max-width: 768px) {
   .backToTop {
     bottom: 20px;
     right: 20px;
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
   }
 }

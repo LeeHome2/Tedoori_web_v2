@@ -38,13 +38,71 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
 
   // Resize State
   const [isResizing, setIsResizing] = useState(false);
-  const [lockedRatio, setLockedRatio] = useState(!!project.lockedAspectRatio);
-  const [dimensions, setDimensions] = useState({ 
-      width: project.cardWidth, 
-      height: project.cardHeight 
+  const [lockedRatio, setLockedRatio] = useState(true); // Default to locked
+  const [dimensions, setDimensions] = useState({
+      width: project.cardWidth,
+      height: project.cardHeight
   });
+  const [paddingBottom, setPaddingBottom] = useState(project.cardPaddingBottom ?? 50);
   const cardRef = useRef<HTMLDivElement>(null);
-  const resizeStartRef = useRef<{x: number, y: number, w: number, h: number} | null>(null);
+  const resizeStartRef = useRef<{x: number, y: number, w: number, h: number, padding: number} | null>(null);
+  const originalImageRef = useRef<{width: number, height: number} | null>(null);
+  const aspectRatioRef = useRef<number>(1);
+
+  // Refs to always have latest values for save
+  const dimensionsRef = useRef(dimensions);
+  const paddingBottomRef = useRef(paddingBottom);
+  const lockedRatioRef = useRef(lockedRatio);
+
+  useEffect(() => { dimensionsRef.current = dimensions; }, [dimensions]);
+  useEffect(() => { paddingBottomRef.current = paddingBottom; }, [paddingBottom]);
+  useEffect(() => { lockedRatioRef.current = lockedRatio; }, [lockedRatio]);
+
+  // Load original image dimensions
+  useEffect(() => {
+    if (project.imageUrl) {
+      const img = new window.Image();
+      img.onload = () => {
+        originalImageRef.current = { width: img.naturalWidth, height: img.naturalHeight };
+        if (!aspectRatioRef.current || aspectRatioRef.current === 1) {
+          aspectRatioRef.current = img.naturalWidth / img.naturalHeight;
+        }
+      };
+      img.src = project.imageUrl;
+    }
+  }, [project.imageUrl]);
+
+  // Handle width input change
+  const handleWidthChange = (newWidth: number) => {
+    if (lockedRatio && newWidth > 0 && aspectRatioRef.current) {
+      const newHeight = Math.round(newWidth / aspectRatioRef.current);
+      setDimensions({ width: newWidth, height: newHeight });
+    } else {
+      setDimensions(p => ({ ...p, width: newWidth }));
+    }
+  };
+
+  // Handle height input change
+  const handleHeightChange = (newHeight: number) => {
+    if (lockedRatio && newHeight > 0 && aspectRatioRef.current) {
+      const newWidth = Math.round(newHeight * aspectRatioRef.current);
+      setDimensions({ width: newWidth, height: newHeight });
+    } else {
+      setDimensions(p => ({ ...p, height: newHeight }));
+    }
+  };
+
+  // Reset to original image size
+  const handleReset = () => {
+    if (originalImageRef.current) {
+      setDimensions({
+        width: originalImageRef.current.width,
+        height: originalImageRef.current.height
+      });
+      aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+      setPaddingBottom(50);
+    }
+  };
 
   // Sync dimensions when project updates or resize mode ends
   useEffect(() => {
@@ -55,9 +113,13 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
             }
             return prev;
           });
-          setLockedRatio(prev => prev !== !!project.lockedAspectRatio ? !!project.lockedAspectRatio : prev);
+          setPaddingBottom(project.cardPaddingBottom ?? 50);
+          // Keep lockedRatio as true by default, only change if explicitly set to false
+          if (project.lockedAspectRatio === false) {
+              setLockedRatio(false);
+          }
       }
-  }, [project.cardWidth, project.cardHeight, project.lockedAspectRatio, isResizing]);
+  }, [project.cardWidth, project.cardHeight, project.cardPaddingBottom, project.lockedAspectRatio, isResizing]);
   
   const {
     attributes,
@@ -70,41 +132,33 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
   } = useSortable({ id: project.id, disabled: !isAdmin || !adminMode || isResizing }); // Disable drag if resizing
 
   const hasCustomSize = !!dimensions.width;
+  const totalHeight = hasCustomSize && dimensions.height ? dimensions.height + paddingBottom : undefined;
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    // If resizing, disable transition to prevent lag. 
-    // Otherwise, combine dnd transition with our width/height transition logic (or let CSS handle it if dnd transition is null)
-    // Note: dnd transition is usually for transform. 
-    // If we simply set 'none', we kill width transition too.
-    // If we set `transition` (string), it overrides CSS.
-    // So we need to be careful.
-    // Ideally: transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined)
-    // If undefined, CSS applies.
     transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
-    
+
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as const,
-    
+
+    // Card width follows image width
     width: hasCustomSize ? `${dimensions.width}px` : undefined,
-    height: hasCustomSize ? `${dimensions.height}px` : undefined,
-    
-    // Logic discussed:
-    // resizing -> none (allow expansion)
-    // custom size -> 100% (limit to parent width)
-    // default -> undefined (fallback to CSS max-width: 400px - actually 100% now)
+    // Card height = image height + padding bottom
+    height: totalHeight ? `${totalHeight}px` : undefined,
+
     maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
-    
-    // Logic discussed:
-    // custom size -> 0 0 auto (respect width/height, don't grow/shrink)
-    // default -> undefined (fallback to CSS flex: 1 1 220px)
     flex: hasCustomSize ? '0 0 auto' : undefined,
-    
-    // Override CSS min-width (280px) if custom size is set, to allow resizing down to 200px
     minWidth: hasCustomSize ? '0' : undefined,
 
     zIndex: isResizing ? 100 : 'auto',
   };
+
+  // Image style for controlling displayed image size
+  const imageStyle = hasCustomSize ? {
+    width: `${dimensions.width}px`,
+    height: `${dimensions.height}px`,
+    objectFit: 'cover' as const,
+  } : undefined;
 
   // Combine refs
   const setRefs = (node: HTMLDivElement | null) => {
@@ -122,65 +176,78 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
   const startResize = (e: React.MouseEvent | React.TouchEvent, direction: string) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-      
+
       if (!cardRef.current) return;
       const rect = cardRef.current.getBoundingClientRect();
-      
+
+      // Get current image dimensions or use card rect
+      const currentWidth = dimensions.width || rect.width;
+      const currentHeight = dimensions.height || (rect.height - paddingBottom);
+
       resizeStartRef.current = {
           x: clientX,
           y: clientY,
-          w: rect.width,
-          h: rect.height
+          w: currentWidth,
+          h: currentHeight,
+          padding: paddingBottom
       };
-      
+
       // Initialize dimensions if they were undefined (auto)
       if (!dimensions.width || !dimensions.height) {
-          setDimensions({ width: rect.width, height: rect.height });
+          setDimensions({ width: currentWidth, height: currentHeight });
+          if (currentWidth && currentHeight) {
+              aspectRatioRef.current = currentWidth / currentHeight;
+          }
       }
 
       const onMove = (moveEvent: MouseEvent | TouchEvent) => {
           if (!resizeStartRef.current) return;
-          
+
           const moveX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : (moveEvent as MouseEvent).clientX;
           const moveY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : (moveEvent as MouseEvent).clientY;
-          
+
           const deltaX = moveX - resizeStartRef.current.x;
           const deltaY = moveY - resizeStartRef.current.y;
-          
-          let newWidth = resizeStartRef.current.w;
-          let newHeight = resizeStartRef.current.h;
-          
-          if (direction.includes('E')) newWidth += deltaX;
-          if (direction.includes('W')) newWidth -= deltaX;
-          if (direction.includes('S')) newHeight += deltaY;
-          if (direction.includes('N')) newHeight -= deltaY;
-          
-          // Constraints (200px - 800px)
-          newWidth = Math.max(200, Math.min(newWidth, 1200)); // Allow larger width for desktop
-          newHeight = Math.max(200, Math.min(newHeight, 1200));
-          
-          if (lockedRatio) {
-              const ratio = resizeStartRef.current.w / resizeStartRef.current.h;
-              if (direction.includes('E') || direction.includes('W')) {
-                  newHeight = newWidth / ratio;
+
+          // Horizontal drag: change image width (and height if locked)
+          if (direction.includes('E') || direction.includes('W')) {
+              let newWidth = resizeStartRef.current.w;
+              if (direction.includes('E')) newWidth += deltaX;
+              if (direction.includes('W')) newWidth -= deltaX;
+
+              // Constraints
+              newWidth = Math.max(100, Math.min(newWidth, 1200));
+
+              if (lockedRatio && aspectRatioRef.current) {
+                  const newHeight = Math.round(newWidth / aspectRatioRef.current);
+                  setDimensions({ width: Math.round(newWidth), height: newHeight });
               } else {
-                  newWidth = newHeight * ratio;
+                  setDimensions(prev => ({ ...prev, width: Math.round(newWidth) }));
               }
           }
-          
-          setDimensions({ width: Math.round(newWidth), height: Math.round(newHeight) });
+
+          // Vertical drag: change card padding bottom
+          if (direction.includes('S') || direction.includes('N')) {
+              let newPadding = resizeStartRef.current.padding;
+              if (direction.includes('S')) newPadding += deltaY;
+              if (direction.includes('N')) newPadding -= deltaY;
+
+              // Constraints (0 - 500px)
+              newPadding = Math.max(0, Math.min(newPadding, 500));
+              setPaddingBottom(Math.round(newPadding));
+          }
       };
-      
+
       const onUp = () => {
           window.removeEventListener('mousemove', onMove);
           window.removeEventListener('touchmove', onMove);
           window.removeEventListener('mouseup', onUp);
           window.removeEventListener('touchend', onUp);
       };
-      
+
       window.addEventListener('mousemove', onMove);
       window.addEventListener('touchmove', onMove, { passive: false });
       window.addEventListener('mouseup', onUp);
@@ -189,11 +256,13 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
 
   const handleResizeSave = async () => {
       if (confirm("Save new size settings?")) {
+          // Use refs to ensure we get the latest values
           await updateProject({
               ...project,
-              cardWidth: dimensions.width,
-              cardHeight: dimensions.height,
-              lockedAspectRatio: lockedRatio
+              cardWidth: dimensionsRef.current.width,
+              cardHeight: dimensionsRef.current.height,
+              cardPaddingBottom: paddingBottomRef.current,
+              lockedAspectRatio: lockedRatioRef.current
           });
           setIsResizing(false);
           // Refresh to get latest data from server and bypass cache
@@ -203,6 +272,8 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
 
   const handleResizeCancel = () => {
       setDimensions({ width: project.cardWidth, height: project.cardHeight });
+      setPaddingBottom(project.cardPaddingBottom ?? 50);
+      setLockedRatio(project.lockedAspectRatio !== false);
       setIsResizing(false);
   };
 
@@ -319,22 +390,23 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
               <Image
                   src={project.imageUrl}
                   alt={project.title}
-                  width={600}
-                  height={400}
+                  width={dimensions.width || 600}
+                  height={dimensions.height || 400}
                   className={styles.image}
                   loading={priority ? "eager" : "lazy"}
                   priority={priority}
                   quality={priority ? 90 : 80}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes={hasCustomSize ? `${dimensions.width}px` : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
                   placeholder="empty"
+                  style={imageStyle}
+                  unoptimized={hasCustomSize}
               />
           ) : (
-              <div className={styles.imagePlaceholder} style={{ width: 600, height: 400, background: '#f0f0f0' }} />
+              <div className={styles.imagePlaceholder} style={{ width: dimensions.width || 600, height: dimensions.height || 400, background: '#f0f0f0' }} />
           )}
 
           <div className={styles.overlayInfo} aria-hidden="true">
-              {showId && <span className={styles.number}>{project.id}</span>}
-              {showTitle && <span className={styles.title}>{project.title}</span>}
+              {showId && <span className={styles.number}>{project.id}</span>}{showId && showTitle && ' '}{showTitle && <span className={styles.title}>{project.title}</span>}
           </div>
       </>
   );
@@ -403,13 +475,12 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
         {/* Overlay Info for Memo Type - Moved outside to ensure consistent positioning */}
         {isMemo && (
             <div className={styles.overlayInfo}>
-                {showId && <span className={styles.number}>{project.id}</span>}
-                {showTitle && <span className={styles.title}>{project.title}</span>}
+                {showId && <span className={styles.number}>{project.id}</span>}{showId && showTitle && ' '}{showTitle && <span className={styles.title}>{project.title}</span>}
             </div>
         )}
         
         {isAdmin && adminMode && !isResizing && (
-            <div className={styles.adminOverlay} 
+            <div className={`${styles.adminOverlay} ${!showId && !showTitle ? styles.noOverlayInfo : ''}`}
                  onPointerDown={(e) => e.stopPropagation()}
                  onMouseDown={(e) => e.stopPropagation()}
                  onClick={(e) => e.stopPropagation()}
@@ -423,7 +494,16 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                   :::
                 </div>
 
-                <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                <button onClick={(e) => {
+                  e.stopPropagation();
+                  // Use original image aspect ratio if available, otherwise use current dimensions
+                  if (originalImageRef.current) {
+                    aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+                  } else if (dimensions.width && dimensions.height) {
+                    aspectRatioRef.current = dimensions.width / dimensions.height;
+                  }
+                  setIsResizing(true);
+                }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
                 <button onClick={handleEdit} className={styles.editBtn}>Edit</button>
             </div>
         )}
@@ -442,28 +522,39 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                 <div className={styles.resizeControlsRow}>
                     <div className={styles.resizeInputGroup}>
                         <span className={styles.resizeLabel}>W</span>
-                        <input 
+                        <input
                             className={styles.resizeInput}
-                            type="number" 
-                            value={dimensions.width || ''} 
-                            onChange={(e) => setDimensions(p => ({ ...p, width: parseInt(e.target.value) || 0 }))}
+                            type="number"
+                            value={dimensions.width || ''}
+                            onChange={(e) => handleWidthChange(parseInt(e.target.value) || 0)}
                         />
                     </div>
                     <div className={styles.resizeInputGroup}>
                         <span className={styles.resizeLabel}>H</span>
-                        <input 
+                        <input
                             className={styles.resizeInput}
-                            type="number" 
-                            value={dimensions.height || ''} 
-                            onChange={(e) => setDimensions(p => ({ ...p, height: parseInt(e.target.value) || 0 }))}
+                            type="number"
+                            value={dimensions.height || ''}
+                            onChange={(e) => handleHeightChange(parseInt(e.target.value) || 0)}
                         />
                     </div>
                 </div>
                 <div className={styles.resizeControlsRow}>
                     <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
                         <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
-                        Lock Ratio
+                        Lock
                     </label>
+                    <button className={styles.resetLink} onClick={handleReset} title="Reset to original image size">Reset</button>
+                    <div className={styles.resizeInputGroup}>
+                        <span className={styles.resizeLabel}>Pad</span>
+                        <input
+                            className={styles.resizeInput}
+                            type="number"
+                            value={paddingBottom}
+                            onChange={(e) => setPaddingBottom(parseInt(e.target.value) || 0)}
+                            style={{ width: '50px' }}
+                        />
+                    </div>
                 </div>
                 <div className={styles.resizeControlsRow}>
                     <button className={styles.resizeBtn} onClick={handleResizeSave}>Save</button>

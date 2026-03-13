@@ -67,6 +67,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   } = useSortable({ id: item.id, disabled: !isAdmin || !adminMode || isResizing || isEditingText });
 
   const hasCustomSize = !!dimensions.width;
+  const hasTitle = item.showTitle && item.title;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -74,7 +75,8 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as const,
     width: hasCustomSize ? `${dimensions.width}px` : undefined,
-    height: hasCustomSize ? `${dimensions.height}px` : undefined,
+    // height를 auto로 변경하여 title이 표시될 수 있도록 함
+    height: hasTitle ? 'auto' : (hasCustomSize ? `${dimensions.height}px` : undefined),
     maxWidth: isResizing ? 'none' : (hasCustomSize ? '100%' : undefined),
     flex: hasCustomSize ? '0 0 auto' : undefined,
     minWidth: hasCustomSize ? '0' : undefined,
@@ -206,122 +208,154 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   return (
     <div ref={setRefs} style={style} className={`${styles.imageWrapper} ${item.type === 'text' ? styles.textWrapper : ''} ${isResizing ? styles.resizing : ''}`} {...attributes}>
         {item.type === 'image' || item.type === 'video' ? (
-             <div
-                onClick={(e) => {
-                    if (!isResizing) {
-                        if (item.type === 'video') {
-                            // Video: play in place instead of opening lightbox
-                            setIsPlaying(true);
-                        } else {
-                            // Image: open lightbox
-                            onClick(index);
-                        }
-                    }
-                }}
-                style={{ position: 'relative', width: '100%', height: '100%', cursor: 'pointer' }}
-             >
-                {item.src ? (
-                    <>
-                        {item.type === 'video' && isPlaying ? (
-                            // Show YouTube iframe when playing
-                            (() => {
-                                const embedUrl = getYouTubeEmbedUrl();
-                                return embedUrl ? (
-                                    <>
-                                        <iframe
-                                            src={embedUrl}
-                                            style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
-                                                height: '100%',
-                                                border: 'none'
-                                            }}
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        />
-                                        {/* Close button to stop video */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsPlaying(false);
-                                            }}
-                                            style={{
-                                                position: 'absolute',
-                                                top: '10px',
-                                                right: '10px',
-                                                width: '32px',
-                                                height: '32px',
-                                                background: 'rgba(0, 0, 0, 0.7)',
-                                                border: 'none',
-                                                borderRadius: '50%',
-                                                color: 'white',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '18px',
-                                                zIndex: 10
-                                            }}
-                                            title="Close video"
-                                        >
-                                            ×
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: '#f0f0f0',
-                                        color: '#666'
-                                    }}>
-                                        Invalid YouTube URL
-                                    </div>
-                                );
-                            })()
-                        ) : (
-                            <>
-                                <Image
-                                    src={item.src}
-                                    alt={item.alt || `Item ${index + 1}`}
-                                    width={item.type === 'video' ? 0 : item.width}
-                                    height={item.type === 'video' ? 0 : item.height}
-                                    fill={item.type === 'video'}
-                                    sizes={item.type === 'video' ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" : undefined}
-                                    className={styles.image}
-                                    unoptimized
-                                    loading="lazy"
-                                    style={
-                                        item.visibility === 'private'
-                                            ? { opacity: 0.5, filter: 'grayscale(100%)', objectFit: 'cover' }
-                                            : { objectFit: 'cover' }
-                                    }
-                                />
-                                {item.type === 'video' && !isPlaying && (
-                                    <div style={{
-                                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                                        width: '40px', height: '40px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
-                                    }}>
-                                        <div style={{
-                                            width: 0, height: 0,
-                                            borderTop: '8px solid transparent', borderBottom: '8px solid transparent',
-                                            borderLeft: '14px solid white', marginLeft: '3px'
-                                        }} />
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </>
-                ) : (
-                    <div style={{ width: '100%', height: '100%', minHeight: '200px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        Image Missing
-                    </div>
-                )}
+             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: hasTitle ? 'auto' : '100%' }}>
+               <div
+                  onClick={(e) => {
+                      if (!isResizing) {
+                          if (item.type === 'video') {
+                              // Video: play in place instead of opening lightbox
+                              setIsPlaying(true);
+                          } else {
+                              // Image: open lightbox
+                              onClick(index);
+                          }
+                      }
+                  }}
+                  style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: hasTitle && hasCustomSize ? `${dimensions.height}px` : (hasTitle ? 'auto' : '100%'),
+                      cursor: 'pointer',
+                      minHeight: 0
+                  }}
+               >
+                  {item.src ? (
+                      <>
+                          {item.type === 'video' && isPlaying ? (
+                              // Show YouTube iframe when playing
+                              (() => {
+                                  const embedUrl = getYouTubeEmbedUrl();
+                                  return embedUrl ? (
+                                      <>
+                                          <iframe
+                                              src={embedUrl}
+                                              style={{
+                                                  position: 'absolute',
+                                                  top: 0,
+                                                  left: 0,
+                                                  width: '100%',
+                                                  height: '100%',
+                                                  border: 'none'
+                                              }}
+                                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                              allowFullScreen
+                                          />
+                                          {/* Close button to stop video */}
+                                          <button
+                                              onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setIsPlaying(false);
+                                              }}
+                                              style={{
+                                                  position: 'absolute',
+                                                  top: '10px',
+                                                  right: '10px',
+                                                  width: '32px',
+                                                  height: '32px',
+                                                  background: 'rgba(0, 0, 0, 0.7)',
+                                                  border: 'none',
+                                                  borderRadius: '50%',
+                                                  color: 'white',
+                                                  cursor: 'pointer',
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  fontSize: '18px',
+                                                  zIndex: 10
+                                              }}
+                                              title="Close video"
+                                          >
+                                              ×
+                                          </button>
+                                      </>
+                                  ) : (
+                                      <div style={{
+                                          width: '100%',
+                                          height: '100%',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          background: '#f0f0f0',
+                                          color: '#666'
+                                      }}>
+                                          Invalid YouTube URL
+                                      </div>
+                                  );
+                              })()
+                          ) : (
+                              <>
+                                  <Image
+                                      src={item.src}
+                                      alt={item.alt || `Item ${index + 1}`}
+                                      width={item.type === 'video' ? 0 : item.width}
+                                      height={item.type === 'video' ? 0 : item.height}
+                                      fill={item.type === 'video'}
+                                      sizes={item.type === 'video' ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" : undefined}
+                                      className={styles.image}
+                                      unoptimized
+                                      loading="lazy"
+                                      style={
+                                          item.visibility === 'private'
+                                              ? { opacity: 0.5, filter: 'grayscale(100%)', objectFit: 'cover' }
+                                              : { objectFit: 'cover' }
+                                      }
+                                  />
+                                  {item.type === 'video' && !isPlaying && (
+                                      <div style={{
+                                          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                                          width: '40px', height: '40px', background: 'rgba(0,0,0,0.6)', borderRadius: '50%',
+                                          display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none'
+                                      }}>
+                                          <div style={{
+                                              width: 0, height: 0,
+                                              borderTop: '8px solid transparent', borderBottom: '8px solid transparent',
+                                              borderLeft: '14px solid white', marginLeft: '3px'
+                                          }} />
+                                      </div>
+                                  )}
+                              </>
+                          )}
+                      </>
+                  ) : (
+                      <div style={{ width: '100%', height: '100%', minHeight: '200px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          Image Missing
+                      </div>
+                  )}
+                  {/* Admin Overlay - 이미지 영역 내부에 배치 */}
+                  {isAdmin && adminMode && !isResizing && !isEditingText && !isPlaying && (
+                      <div className={styles.adminOverlay}
+                           onClick={(e) => e.stopPropagation()}
+                           onPointerDown={(e) => e.stopPropagation()}
+                           onMouseDown={(e) => e.stopPropagation()}
+                      >
+                          <div className={styles.dragHandle}
+                               ref={setActivatorNodeRef}
+                               {...listeners}
+                               style={{ cursor: 'grab', touchAction: 'none' }}
+                          >
+                            :::
+                          </div>
+                          <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                          <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
+                      </div>
+                  )}
+               </div>
+               {/* Title display below image/video */}
+               {item.showTitle && item.title && (
+                   <div className={styles.galleryTitle}>
+                       {item.title}
+                   </div>
+               )}
              </div>
         ) : (
             isEditingText ? (
@@ -377,27 +411,27 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                     }}
                 >
                     {item.content}
+                    {/* Admin Overlay - text 타입 내부에 배치 */}
+                    {isAdmin && adminMode && !isResizing && !isEditingText && (
+                        <div className={styles.adminOverlay}
+                             onClick={(e) => e.stopPropagation()}
+                             onPointerDown={(e) => e.stopPropagation()}
+                             onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <div className={styles.dragHandle}
+                                 ref={setActivatorNodeRef}
+                                 {...listeners}
+                                 style={{ cursor: 'grab', touchAction: 'none' }}
+                            >
+                              :::
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
+                            <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
+                        </div>
+                    )}
                 </div>
             )
         )}
-      
-      {isAdmin && adminMode && !isResizing && !isEditingText && !isPlaying && (
-          <div className={styles.adminOverlay}
-               onClick={(e) => e.stopPropagation()}
-               onPointerDown={(e) => e.stopPropagation()}
-               onMouseDown={(e) => e.stopPropagation()}
-          >
-              <div className={styles.dragHandle}
-                   ref={setActivatorNodeRef}
-                   {...listeners}
-                   style={{ cursor: 'grab', touchAction: 'none' }}
-              >
-                :::
-              </div>
-              <button onClick={(e) => { e.stopPropagation(); setIsResizing(true); }} className={styles.resizeToggleBtn} title="Resize">⤡</button>
-              <button onClick={handleEditClick} className={styles.editBtn}>Edit</button>
-          </div>
-      )}
 
       {isResizing && (
         <>

@@ -68,7 +68,8 @@ export default function NewsPage() {
     defaultFormData: {
       title: '',
       content: '',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      fontFamily: 'sans'
     },
   });
 
@@ -106,7 +107,7 @@ export default function NewsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* New news form */}
             {isAddingNew && (
-              <article style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+              <article style={{ paddingBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
                   <div style={{ flex: 1 }}>
                     <input
@@ -130,7 +131,7 @@ export default function NewsPage() {
                         rows={10}
                         style={{ width: '100%', color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical' }}
                       />
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '5px', alignItems: 'center' }}>
                         <button
                           onClick={handleAddImage}
                           disabled={isUploading}
@@ -144,6 +145,15 @@ export default function NewsPage() {
                         >
                           +add youtube
                         </button>
+                        <span style={{ marginLeft: '10px', fontSize: '11px', color: '#666' }}>font:</span>
+                        <select
+                          value={formData.fontFamily || 'sans'}
+                          onChange={(e) => setFormData({ ...formData, fontFamily: e.target.value })}
+                          style={{ fontSize: '11px', padding: '2px 4px', border: '1px solid #ccc' }}
+                        >
+                          <option value="sans">Noto Sans</option>
+                          <option value="serif">Noto Serif</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -171,7 +181,7 @@ export default function NewsPage() {
               const { text } = separateContent(newsItem.content || '');
 
               return (
-                <article key={newsItem.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+                <article key={newsItem.id} style={{ paddingBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
                     <div style={{ flex: 1 }}>
                       {isEditing ? (
@@ -195,7 +205,7 @@ export default function NewsPage() {
                               rows={10}
                               style={{ width: '100%', color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical' }}
                             />
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '5px', alignItems: 'center' }}>
                               <button
                                 onClick={handleAddImage}
                                 disabled={isUploading}
@@ -209,6 +219,15 @@ export default function NewsPage() {
                               >
                                 +add youtube
                               </button>
+                              <span style={{ marginLeft: '10px', fontSize: '11px', color: '#666' }}>font:</span>
+                              <select
+                                value={formData.fontFamily || 'sans'}
+                                onChange={(e) => setFormData({ ...formData, fontFamily: e.target.value })}
+                                style={{ fontSize: '11px', padding: '2px 4px', border: '1px solid #ccc' }}
+                              >
+                                <option value="sans">Noto Sans</option>
+                                <option value="serif">Noto Serif</option>
+                              </select>
                             </div>
                           </div>
                         </>
@@ -231,7 +250,7 @@ export default function NewsPage() {
                             }}
                           >
                             <div
-                              style={{ color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap' }}
+                              style={{ color: '#666', marginTop: '15px', whiteSpace: 'pre-wrap', fontFamily: (newsItem.fontFamily || newsItem.font_family) === 'serif' ? '"Noto Serif KR", serif' : '"Noto Sans KR", sans-serif' }}
                               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text) }}
                             />
                           </div>

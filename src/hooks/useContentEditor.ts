@@ -12,6 +12,8 @@ export interface ContentItem {
   title?: string;
   content: string;
   date?: string;
+  fontFamily?: 'sans' | 'serif';
+  font_family?: 'sans' | 'serif';  // Database column name
   order_index?: number;
   created_at?: string;
   updated_at?: string;
@@ -226,6 +228,7 @@ export function useContentEditor({
     setEditingId(item.id);
     setFormData({
       ...item,
+      fontFamily: item.fontFamily || item.font_family || 'sans',
     });
   };
 

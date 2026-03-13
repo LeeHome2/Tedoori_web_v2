@@ -15,24 +15,28 @@ export interface ProjectDetail {
   galleryWidthRatio?: number;
 }
 
-export type GalleryItem = 
-  | { 
-      type: 'image'; 
-      id: string; 
-      src: string; 
-      width: number; 
-      height: number; 
-      alt: string; 
+export type GalleryItem =
+  | {
+      type: 'image';
+      id: string;
+      src: string;
+      width: number;
+      height: number;
+      alt: string;
+      title?: string;
+      showTitle?: boolean;
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
       lockedAspectRatio?: boolean;
     }
-  | { 
-      type: 'text'; 
-      id: string; 
-      content: string; 
-      style?: MemoStyle; 
+  | {
+      type: 'text';
+      id: string;
+      content: string;
+      title?: string;
+      showTitle?: boolean;
+      style?: MemoStyle;
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
@@ -46,6 +50,8 @@ export type GalleryItem =
       width?: number;
       height?: number;
       alt?: string;
+      title?: string;
+      showTitle?: boolean;
       visibility?: 'public' | 'team' | 'private';
       cardWidth?: number;
       cardHeight?: number;
@@ -85,8 +91,9 @@ export interface Project {
   descriptionBlocks?: ContentBlock[];
   galleryImages?: GalleryItem[];
   isVisible?: 'public' | 'team' | 'private' | boolean; // Allow boolean for backward compatibility but prefer string
-  cardWidth?: number;
-  cardHeight?: number;
+  cardWidth?: number;  // Image display width
+  cardHeight?: number; // Image display height
+  cardPaddingBottom?: number; // Extra padding below image
   lockedAspectRatio?: boolean;
   galleryWidthRatio?: number; // Added to store gallery width ratio (0-100)
 }

@@ -5,10 +5,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import styles from "./ProjectDetailHeader.module.css";
+import { Project } from "@/data/projects";
 import { useAdmin } from "@/context/AdminContext";
 import LoginModal from "./LoginModal";
 
-export default function ProjectDetailHeader() {
+interface ProjectDetailHeaderProps {
+  currentProject: Project;
+  prevProject: Project | null;
+  nextProject: Project | null;
+}
+
+export default function ProjectDetailHeader({
+  currentProject,
+  prevProject,
+  nextProject,
+}: ProjectDetailHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const { isAdmin, logout, adminMode, toggleAdminMode } = useAdmin();
@@ -22,6 +33,10 @@ export default function ProjectDetailHeader() {
       e.preventDefault();
       setIsLoginModalOpen(true);
       setIsOpen(false); // Close menu when opening modal
+  };
+
+  const getProjectHref = (project: Project) => {
+    return project.link || `/projet/${project.id}`;
   };
 
   return (
@@ -42,6 +57,29 @@ export default function ProjectDetailHeader() {
                     </Link>
                 </div>
                 
+                <div className={styles.projectNav}>
+                    {prevProject ? (
+                        <Link href={getProjectHref(prevProject)} className={styles.navArrow} title={`Projet précédent: ${prevProject.title}`}>
+                            <span className={styles.arrowLeftSmall}></span>
+                        </Link>
+                    ) : (
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>
+                            <span className={styles.arrowLeftSmall}></span>
+                        </span>
+                    )}
+                    
+                    <span className={styles.projectId}>{currentProject.id}</span>
+                    
+                    {nextProject ? (
+                        <Link href={getProjectHref(nextProject)} className={styles.navArrow} title={`Projet suivant: ${nextProject.title}`}>
+                            <span className={styles.arrowRightSmall}></span>
+                        </Link>
+                    ) : (
+                        <span className={`${styles.navArrow} ${styles.disabled}`}>
+                            <span className={styles.arrowRightSmall}></span>
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className={styles.rightGroup}>

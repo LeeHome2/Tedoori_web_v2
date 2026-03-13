@@ -79,14 +79,16 @@
   margin-bottom: 10px;
   cursor: pointer;
   font-weight: normal;
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
+  display: inline;
+}
+
+.contentTitle:hover {
+  text-decoration: underline;
 }
 
 .contentDate {
-  flex-shrink: 0;
   white-space: nowrap;
+  padding-right: 20px;
 }
 
 .contentTitleText {
@@ -105,10 +107,10 @@
 
   .contentTitle {
     font-size: 14px;
-    gap: 10px;
   }
 
   .contentDate {
     font-size: 12px;
+    padding-right: 10px;
   }
 }

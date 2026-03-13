@@ -1,7 +1,7 @@
 .editorContainer {
   width: 100%;
   border: 1px solid #eee;
-  border-radius: 8px;
+  border-radius: 0;
   background: white;
   display: flex;
   flex-direction: column;
@@ -14,7 +14,7 @@
   padding: 10px;
   border-bottom: 1px solid #eee;
   background: #f9f9f9;
-  border-radius: 8px 8px 0 0;
+  border-radius: 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -25,7 +25,7 @@
   padding: 6px;
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -44,7 +44,7 @@
 
 .select {
   padding: 5px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid #ccc;
   font-size: 12px;
   background: white;
@@ -89,7 +89,7 @@
   display: block;
   margin-top: 10px;
   margin-bottom: 10px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: grab;
 }
 

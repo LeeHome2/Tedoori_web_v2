@@ -56,11 +56,14 @@
 
 .number {
   font-weight: bold;
-  margin-right: 5px;
 }
 
 .title {
   font-weight: normal;
+}
+
+.card:hover .overlayInfo {
+  text-decoration: underline;
 }
 
 .adminOverlay {
@@ -74,6 +77,10 @@
     flex-wrap: wrap;
     background: transparent;
     padding: 6px;
+}
+
+.adminOverlay.noOverlayInfo {
+    bottom: 0; /* Align to image bottom when no title/id displayed */
     border-radius: 0;
     right: auto;
 }
@@ -229,6 +236,10 @@
     overflow: visible !important;
 }
 
+.resizing .imageWrapper {
+    overflow: visible !important;
+}
+
 .resizeHandle {
     position: absolute;
     width: 12px;
@@ -244,15 +255,14 @@
 .resizeHandleSE { bottom: -6px; right: -6px; cursor: se-resize; }
 
 .resizeOverlay {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
+    top: 100px;
+    left: 20px;
     background: white;
     padding: 12px;
     border-radius: 0;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    z-index: 1000;
+    z-index: 9999;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -302,6 +312,20 @@
     background: #eee;
     color: black;
     border: 1px solid #ccc;
+}
+
+.resetLink {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    color: #333;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.resetLink:hover {
+    color: #000;
 }
 
 /* Video Styles */

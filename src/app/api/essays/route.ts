@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { title, content, date } = body;
+    const { title, content, date, fontFamily } = body;
 
     if (!title || !date) {
       return NextResponse.json({ error: 'Title and date are required' }, { status: 400 });
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('essays')
-      .insert([{ title, content: content || '', date }])
+      .insert([{ title, content: content || '', date, font_family: fontFamily || 'sans' }])
       .select()
       .single();
 
@@ -84,7 +84,7 @@ export async function PUT(request: Request) {
     }
 
     // Single item update
-    const { id, title, content, date } = body;
+    const { id, title, content, date, fontFamily } = body;
 
     if (!id || !title || !date) {
       return NextResponse.json({ error: 'ID, title and date are required' }, { status: 400 });
@@ -93,7 +93,7 @@ export async function PUT(request: Request) {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('essays')
-      .update({ title, content: content || '', date })
+      .update({ title, content: content || '', date, font_family: fontFamily || 'sans' })
       .eq('id', id)
       .select()
       .single();

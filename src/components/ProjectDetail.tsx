@@ -197,6 +197,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   // Image/Video Form State
   const [imageUrl, setImageUrl] = useState('');
   const [imageAlt, setImageAlt] = useState('');
+  const [itemTitle, setItemTitle] = useState('');
+  const [showTitle, setShowTitle] = useState(false);
   
   // Video State
   const [isYoutube, setIsYoutube] = useState(false);
@@ -431,6 +433,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       setProjectType('project');
       setImageUrl('');
       setImageAlt('');
+      setItemTitle('');
+      setShowTitle(false);
       setUploadProgress(0);
       setError(null);
       setIsYoutube(false);
@@ -457,6 +461,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
           setProjectType('memo');
           setMemoContent(item.content);
           setMemoStyle(item.style || {});
+          setItemTitle(item.title || '');
+          setShowTitle(item.showTitle || false);
       } else if (item.type === 'video') {
           setProjectType('video');
           setIsYoutube(true);
@@ -464,10 +470,14 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
           setImageUrl(item.src);
           setVideoLink(`https://www.youtube.com/watch?v=${item.videoId}`);
           setImageAlt(item.alt || '');
+          setItemTitle(item.title || '');
+          setShowTitle(item.showTitle || false);
       } else {
           setProjectType('project'); // Maps to Image
           setImageUrl(item.src);
           setImageAlt(item.alt || '');
+          setItemTitle(item.title || '');
+          setShowTitle(item.showTitle || false);
           setIsYoutube(false);
           setYoutubeId('');
       }
@@ -588,6 +598,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               type: 'text',
               id: newId,
               content: memoContent,
+              title: itemTitle || undefined,
+              showTitle: showTitle,
               style: memoStyle,
               cardWidth: 250,  // Default card width for memo
               cardHeight: 200  // Default card height for memo
@@ -603,6 +615,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               src: imageUrl,
               videoId: youtubeId,
               alt: imageAlt,
+              title: itemTitle || undefined,
+              showTitle: showTitle,
               width: 1200, // Default width
               height: 800,  // Default height
               cardWidth: 400,  // Default card width for video
@@ -619,6 +633,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
               id: newId,
               src: imageUrl,
               alt: imageAlt,
+              title: itemTitle || undefined,
+              showTitle: showTitle,
               width: 1200, // Default/Placeholder
               height: 800,
               cardWidth: 400,  // Default card width for image
@@ -642,6 +658,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
           newItem.cardHeight = oldItem.cardHeight;
           newItem.lockedAspectRatio = oldItem.lockedAspectRatio;
           newItem.visibility = oldItem.visibility;
+          // Title is set from itemTitle state, not preserved from old item
       }
 
       let newItems = [...(project.galleryImages || [])];
@@ -806,9 +823,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
         aria-label="Image Gallery"
       >
         <div className={styles.closeBtn} onClick={closeLightbox} role="button" aria-label="Close gallery">
-             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(45deg)' }}></span>
-                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 1, background: 'black', transform: 'rotate(-45deg)' }}></span>
+             <div style={{ position: 'relative', width: 42, height: 42 }}>
+                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(45deg)' }}></span>
+                <span style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: 2, background: 'black', transform: 'rotate(-45deg)' }}></span>
              </div>
         </div>
 
@@ -953,10 +970,10 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
         <div className={styles.thumbnailStrip} onClick={(e) => e.stopPropagation()}>
              {project.galleryImages?.map((item, index) => (
-                 <div 
-                    key={item.id} 
+                 <div
+                    key={item.id}
                     className={`${styles.thumbnail} ${currentItemIndex === index ? styles.active : ""}`}
-                    onClick={() => {
+                    onMouseEnter={() => {
                         setCurrentItemIndex(index);
                         setZoomLevel(1);
                     }}
@@ -1054,7 +1071,28 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                   </div>
 
                   <form onSubmit={handleSaveItem} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                      
+
+                      {/* Title Input - Common for all types */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                              <span style={{fontWeight: 'bold', minWidth: '80px'}}>Title:</span>
+                              <input
+                                value={itemTitle}
+                                onChange={(e) => setItemTitle(e.target.value)}
+                                placeholder="Enter title (optional)"
+                                style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0' }}
+                              />
+                          </label>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '90px', cursor: 'pointer', fontSize: '12px' }}>
+                              <input
+                                  type="checkbox"
+                                  checked={showTitle}
+                                  onChange={(e) => setShowTitle(e.target.checked)}
+                              />
+                              <span>Show title</span>
+                          </label>
+                      </div>
+
                       {projectType !== 'memo' && (
                           <>
                             {/* Image Upload Section */}

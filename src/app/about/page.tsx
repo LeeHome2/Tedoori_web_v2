@@ -15,6 +15,8 @@ interface AboutBlock {
   id: string;
   type: 'text' | 'image' | 'map';
   content: string;
+  fontFamily?: 'sans' | 'serif';
+  font_family?: 'sans' | 'serif';  // Database column name
   order_index: number;
 }
 
@@ -48,7 +50,8 @@ export default function AboutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
-    content: ''
+    content: '',
+    fontFamily: 'sans' as 'sans' | 'serif'
   });
 
   const fetchBlocks = useCallback(async () => {
@@ -123,12 +126,12 @@ export default function AboutPage() {
 
   const startAddingNew = useCallback(() => {
     setIsAddingNew(true);
-    setFormData({ content: '' });
+    setFormData({ content: '', fontFamily: 'sans' });
   }, []);
 
   const cancelAddingNew = useCallback(() => {
     setIsAddingNew(false);
-    setFormData({ content: '' });
+    setFormData({ content: '', fontFamily: 'sans' });
   }, []);
 
   const handleSaveNew = async () => {
@@ -136,6 +139,7 @@ export default function AboutPage() {
       id: `block-${Date.now()}`,
       type: 'text',
       content: formData.content || 'New text block',
+      fontFamily: formData.fontFamily,
       order_index: blocks.length
     };
 
@@ -170,7 +174,7 @@ export default function AboutPage() {
       const res = await fetch('/api/about', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...block, content: formData.content })
+        body: JSON.stringify({ ...block, content: formData.content, fontFamily: formData.fontFamily })
       });
 
       if (!res.ok) {
@@ -255,14 +259,16 @@ export default function AboutPage() {
   const startEditing = (block: AboutBlock) => {
     setEditingId(block.id);
     setFormData({
-      content: block.content
+      content: block.content,
+      fontFamily: block.fontFamily || (block as any).font_family || 'sans'
     });
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setFormData({
-      content: ''
+      content: '',
+      fontFamily: 'sans'
     });
   };
 
@@ -322,18 +328,18 @@ export default function AboutPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* New block form */}
           {isAddingNew && (
-            <article style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+            <article style={{ paddingBottom: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ position: 'relative' }}>
                     <textarea
                       value={formData.content}
-                      onChange={(e) => setFormData({ content: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                       placeholder="Enter content..."
                       rows={10}
                       style={{ width: '100%', color: '#666', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical', fontSize: '14px' }}
                     />
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '5px', alignItems: 'center' }}>
                       <button
                         onClick={handleAddImage}
                         disabled={isUploading}
@@ -347,6 +353,15 @@ export default function AboutPage() {
                       >
                         +add youtube
                       </button>
+                      <span style={{ marginLeft: '10px', fontSize: '11px', color: '#666' }}>font:</span>
+                      <select
+                        value={formData.fontFamily}
+                        onChange={(e) => setFormData({ ...formData, fontFamily: e.target.value as 'sans' | 'serif' })}
+                        style={{ fontSize: '11px', padding: '2px 4px', border: '1px solid #ccc' }}
+                      >
+                        <option value="sans">Noto Sans</option>
+                        <option value="serif">Noto Serif</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -373,7 +388,7 @@ export default function AboutPage() {
 
             if (block.type === 'map') {
               return (
-                <div key={block.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '20px', position: 'relative' }}>
+                <div key={block.id} style={{ paddingBottom: '20px', position: 'relative' }}>
                   <OfficeMap />
                   {isAdmin && adminMode && (
                     <div style={{ position: 'absolute', top: '10px', right: '60px', display: 'flex', gap: '10px', zIndex: 1000 }}>
@@ -398,18 +413,18 @@ export default function AboutPage() {
             }
 
             return (
-              <article key={block.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+              <article key={block.id} style={{ paddingBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
                   <div style={{ flex: 1 }}>
                     {isEditing ? (
                       <div style={{ position: 'relative' }}>
                         <textarea
                           value={formData.content}
-                          onChange={(e) => setFormData({ content: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                           rows={10}
                           style={{ width: '100%', color: '#666', whiteSpace: 'pre-wrap', fontFamily: 'Consolas, monospace', border: '1px solid #ccc', padding: '8px', resize: 'vertical', fontSize: '14px' }}
                         />
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '5px' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '5px', alignItems: 'center' }}>
                           <button
                             onClick={handleAddImage}
                             disabled={isUploading}
@@ -423,11 +438,20 @@ export default function AboutPage() {
                           >
                             +add youtube
                           </button>
+                          <span style={{ marginLeft: '10px', fontSize: '11px', color: '#666' }}>font:</span>
+                          <select
+                            value={formData.fontFamily}
+                            onChange={(e) => setFormData({ ...formData, fontFamily: e.target.value as 'sans' | 'serif' })}
+                            style={{ fontSize: '11px', padding: '2px 4px', border: '1px solid #ccc' }}
+                          >
+                            <option value="sans">Noto Sans</option>
+                            <option value="serif">Noto Serif</option>
+                          </select>
                         </div>
                       </div>
                     ) : (
                       <div
-                        style={{ color: '#000', whiteSpace: 'pre-wrap' }}
+                        style={{ color: '#000', whiteSpace: 'pre-wrap', fontFamily: (block.fontFamily || (block as any).font_family) === 'serif' ? '"Noto Serif KR", serif' : '"Noto Sans KR", sans-serif' }}
                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.content.replace(/\n/g, '<br>'), { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
                       />
                     )}
