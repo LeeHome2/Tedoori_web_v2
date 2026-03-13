@@ -52,6 +52,7 @@ export default function OfficeMap({ apiKey }: OfficeMapProps) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: apiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    language: 'ko',  // Korean language for map labels
   });
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
