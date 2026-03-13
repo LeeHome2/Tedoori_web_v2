@@ -43,7 +43,7 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
       width: project.cardWidth,
       height: project.cardHeight
   });
-  const [paddingBottom, setPaddingBottom] = useState(project.cardPaddingBottom ?? 50);
+  const [paddingBottom, setPaddingBottom] = useState(project.cardPaddingBottom ?? 30);
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeStartRef = useRef<{x: number, y: number, w: number, h: number, padding: number} | null>(null);
   const originalImageRef = useRef<{width: number, height: number} | null>(null);
@@ -113,7 +113,7 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
             }
             return prev;
           });
-          setPaddingBottom(project.cardPaddingBottom ?? 50);
+          setPaddingBottom(project.cardPaddingBottom ?? 30);
           // Keep lockedRatio as true by default, only change if explicitly set to false
           if (project.lockedAspectRatio === false) {
               setLockedRatio(false);
@@ -272,7 +272,7 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
 
   const handleResizeCancel = () => {
       setDimensions({ width: project.cardWidth, height: project.cardHeight });
-      setPaddingBottom(project.cardPaddingBottom ?? 50);
+      setPaddingBottom(project.cardPaddingBottom ?? 30);
       setLockedRatio(project.lockedAspectRatio !== false);
       setIsResizing(false);
   };
@@ -538,13 +538,6 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                             onChange={(e) => handleHeightChange(parseInt(e.target.value) || 0)}
                         />
                     </div>
-                </div>
-                <div className={styles.resizeControlsRow}>
-                    <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
-                        <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
-                        Lock
-                    </label>
-                    <button className={styles.resetLink} onClick={handleReset} title="Reset to original image size">Reset</button>
                     <div className={styles.resizeInputGroup}>
                         <span className={styles.resizeLabel}>Pad</span>
                         <input
@@ -552,13 +545,21 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                             type="number"
                             value={paddingBottom}
                             onChange={(e) => setPaddingBottom(parseInt(e.target.value) || 0)}
-                            style={{ width: '50px' }}
                         />
                     </div>
                 </div>
                 <div className={styles.resizeControlsRow}>
-                    <button className={styles.resizeBtn} onClick={handleResizeSave}>Save</button>
-                    <button className={`${styles.resizeBtn} ${styles.cancel}`} onClick={handleResizeCancel}>Cancel</button>
+                    <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
+                        <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
+                        Lock
+                    </label>
+                </div>
+                <div className={styles.resizeControlsRow}>
+                    <button className={styles.resetLink} onClick={handleReset} title="Reset to original image size">Reset</button>
+                    <div style={{display: 'flex', gap: '10px', marginLeft: 'auto'}}>
+                        <button className={styles.resetLink} onClick={handleResizeSave}>Save</button>
+                        <button className={styles.resetLink} onClick={handleResizeCancel}>Cancel</button>
+                    </div>
                 </div>
             </div>
         </>

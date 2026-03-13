@@ -27,7 +27,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
       width: item.cardWidth,
       height: item.cardHeight
   });
-  const [paddingBottom, setPaddingBottom] = useState(item.cardPaddingBottom ?? 50);
+  const [paddingBottom, setPaddingBottom] = useState(item.cardPaddingBottom ?? 30);
 
   // Text Edit State
   const [isEditingText, setIsEditingText] = useState(false);
@@ -114,7 +114,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
               }
               return prev;
           });
-          setPaddingBottom(item.cardPaddingBottom ?? 50);
+          setPaddingBottom(item.cardPaddingBottom ?? 30);
           // Keep lockedRatio as true by default, only change if explicitly set to false
           if (item.lockedAspectRatio === false) {
               setLockedRatio(false);
@@ -280,7 +280,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
 
   const handleResizeCancel = () => {
       setDimensions({ width: item.cardWidth, height: item.cardHeight });
-      setPaddingBottom(item.cardPaddingBottom ?? 50);
+      setPaddingBottom(item.cardPaddingBottom ?? 30);
       setLockedRatio(item.lockedAspectRatio !== false);
       setIsResizing(false);
   };
@@ -591,13 +591,6 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                             onChange={(e) => handleHeightChange(parseInt(e.target.value) || 0)}
                         />
                     </div>
-                </div>
-                <div className={styles.resizeControlsRow}>
-                    <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
-                        <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
-                        Lock
-                    </label>
-                    <button className={styles.resetLink} onClick={handleReset} title="Reset to original image size">Reset</button>
                     <div className={styles.resizeInputGroup}>
                         <span className={styles.resizeLabel}>Pad</span>
                         <input
@@ -605,13 +598,21 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                             type="number"
                             value={paddingBottom}
                             onChange={(e) => setPaddingBottom(parseInt(e.target.value) || 0)}
-                            style={{ width: '50px' }}
                         />
                     </div>
                 </div>
                 <div className={styles.resizeControlsRow}>
-                    <button className={styles.resizeBtn} onClick={handleResizeSave}>Save</button>
-                    <button className={`${styles.resizeBtn} ${styles.cancel}`} onClick={handleResizeCancel}>Cancel</button>
+                    <label className={styles.resizeLabel} style={{display:'flex', alignItems:'center', gap: '5px', cursor:'pointer'}}>
+                        <input type="checkbox" checked={lockedRatio} onChange={(e) => setLockedRatio(e.target.checked)} />
+                        Lock
+                    </label>
+                </div>
+                <div className={styles.resizeControlsRow}>
+                    <button className={styles.resetLink} onClick={handleReset} title="Reset to original image size">Reset</button>
+                    <div style={{display: 'flex', gap: '10px', marginLeft: 'auto'}}>
+                        <button className={styles.resetLink} onClick={handleResizeSave}>Save</button>
+                        <button className={styles.resetLink} onClick={handleResizeCancel}>Cancel</button>
+                    </div>
                 </div>
             </div>
         </>

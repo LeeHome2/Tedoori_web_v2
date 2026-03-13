@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
+import FitTitle from "@/components/FitTitle";
 import { useAdmin } from "@/context/AdminContext";
 import { useAddAction } from "@/context/AddActionContext";
 import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
@@ -233,13 +234,11 @@ export default function EssaysPage() {
                         </>
                       ) : (
                         <>
-                          <h2
-                            className={contentStyles.contentTitle}
+                          <FitTitle
+                            date={essay.date ? new Date(essay.date).toLocaleDateString('sv-SE').replace(/-/g, '.') : ''}
+                            title={essay.title || ''}
                             onClick={() => setExpandedId(isExpanded ? null : essay.id)}
-                          >
-                            <span className={contentStyles.contentDate}>{essay.date && new Date(essay.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}</span>
-                            <span className={contentStyles.contentTitleText}>{essay.title}</span>
-                          </h2>
+                          />
                           <div
                             style={{
                               maxHeight: isExpanded ? '2000px' : '0',

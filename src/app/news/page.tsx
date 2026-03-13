@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
+import FitTitle from "@/components/FitTitle";
 import { useAdmin } from "@/context/AdminContext";
 import { useAddAction } from "@/context/AddActionContext";
 import { useContentEditor, type ContentItem } from "@/hooks/useContentEditor";
@@ -233,13 +234,11 @@ export default function NewsPage() {
                         </>
                       ) : (
                         <>
-                          <h2
-                            className={contentStyles.contentTitle}
+                          <FitTitle
+                            date={newsItem.date ? new Date(newsItem.date).toLocaleDateString('sv-SE').replace(/-/g, '.') : ''}
+                            title={newsItem.title || ''}
                             onClick={() => setExpandedId(isExpanded ? null : newsItem.id)}
-                          >
-                            <span className={contentStyles.contentDate}>{newsItem.date && new Date(newsItem.date).toLocaleDateString('sv-SE').replace(/-/g, '.')}</span>
-                            <span className={contentStyles.contentTitleText}>{newsItem.title}</span>
-                          </h2>
+                          />
                           <div
                             style={{
                               maxHeight: isExpanded ? '2000px' : '0',
