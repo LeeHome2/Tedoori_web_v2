@@ -1,12 +1,12 @@
 .header {
   position: fixed;
-  top: 10px; /* Matched with ProjectDetailHeader */
+  top: 10px;
   left: 20px;
   width: 100%;
   z-index: 2000;
   background-color: transparent;
   padding: 30px;
-  padding-right: 50px; /* Consistent padding */
+  padding-right: 50px;
   font-size: 18px;
   pointer-events: none;
 }
@@ -19,7 +19,6 @@
   position: relative;
 }
 
-/* Container for Logo */
 .leftGroup {
   display: flex;
   align-items: flex-end;
@@ -60,7 +59,6 @@
   text-decoration: underline;
 }
 
-
 .brand {
   font-weight: bold;
   text-transform: uppercase;
@@ -70,14 +68,14 @@
 }
 
 .logoImage {
-  width: 80px; /* Mobile default */
+  width: 80px;
   height: auto;
   display: block;
 }
 
 @media (min-width: 768px) {
   .logoImage {
-    width: 120px; /* Desktop */
+    width: 120px;
   }
 }
 
@@ -97,7 +95,7 @@
 
 .menuNav.open {
   opacity: 1;
-  transform: translate(0, 0); /* Reset transform */
+  transform: translate(0, 0);
   pointer-events: auto;
 }
 
@@ -114,9 +112,9 @@
 }
 
 .menuText {
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 12pt;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 12pt;
 }
 
 .menuTrigger:hover {
@@ -128,9 +126,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  margin-right: 0; /* Reset margin since container is aligned */
-
-  font-size: 12pt; /* Match menuText */
+  margin-right: 0;
+  font-size: 12pt;
   font-weight: 500;
 }
 
@@ -173,11 +170,32 @@
   color: #666;
 }
 
+/* Tablet (iPad) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .header {
+    left: 0;
+    padding: 30px;
+    padding-right: 30px;
+  }
+
+  .leftGroup {
+    margin-left: 0;
+  }
+
+  .rightGroup {
+    margin-right: 0;
+  }
+
+  .brand {
+    margin-left: 0;
+  }
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .header {
     padding: 20px;
-    padding-right: 10px; /* Match visual right margin */
+    padding-right: 10px;
     top: 5px;
     left: 0;
   }
@@ -195,11 +213,11 @@
   }
 
   .menuTrigger {
-    margin-top: 9px; /* Align bottom with logo bottom (logo height ~29px - trigger height 20px) */
+    margin-top: 9px;
   }
 
   .addBtn {
-    margin-top: 13px; /* Align bottom with logo bottom */
+    margin-top: 13px;
   }
 
   .menuNav {
