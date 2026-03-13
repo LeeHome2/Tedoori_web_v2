@@ -69,6 +69,17 @@
   }
 }
 
+/* Tablet (iPad) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding-right: 30px;
+  }
+
+  .infoColumn {
+    padding-left: 30px;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     margin-left: 0;

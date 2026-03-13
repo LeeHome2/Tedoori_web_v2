@@ -28,6 +28,20 @@
   align-items: center;
 }
 
+/* Tablet (iPad) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid {
+    margin-left: 0;
+    padding: 150px 30px 20px 30px; /* 30px padding on both sides */
+    column-gap: 30px;
+    row-gap: 40px;
+  }
+
+  .addButton {
+    left: 30px;
+  }
+}
+
 @media (max-width: 768px) {
   .grid {
     margin-left: 0;

@@ -117,6 +117,20 @@
   text-overflow: ellipsis;
 }
 
+/* Tablet (iPad) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .contentWrapper {
+    margin-left: 30px;
+    margin-right: 30px;
+    width: calc(50vw - 60px);
+  }
+
+  .galleryArea {
+    right: 30px;
+    width: calc(50vw - 60px);
+  }
+}
+
 @media (max-width: 768px) {
   .pageContainer {
     flex-direction: column;
