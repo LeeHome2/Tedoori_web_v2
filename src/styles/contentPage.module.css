@@ -155,17 +155,23 @@
   .contentTitle {
     font-size: 14px;
     width: 100%;
+    display: flex;
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .contentDate {
     font-size: 12px;
     padding-right: 10px;
+    flex-shrink: 0;
   }
 
   .contentTitleText {
     font-size: 14px !important;
     min-width: 0;
     flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* Gallery area - inline below content on mobile */
