@@ -23,12 +23,20 @@ export default function Header() {
     setIsTedooriOpen(false);
   };
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    // On main page, scroll to top instead of navigating
+    if (pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <>
       <header className={styles.header}>
         <div className={styles.inner}>
           <div className={styles.leftGroup}>
-            <Link href="/" className={styles.brand}>
+            <Link href="/" className={styles.brand} onClick={handleLogoClick}>
               <Image
                 src="/logo.png"
                 alt="NP2F Logo"
