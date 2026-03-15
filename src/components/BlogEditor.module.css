@@ -116,5 +116,5 @@
 }
 
 .editorContent :global(.ProseMirror img.ProseMirror-selectednode) {
-  outline: 2px solid #000;
+  outline: 2px solid #2a2a2a;
 }

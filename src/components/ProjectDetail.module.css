@@ -157,9 +157,9 @@
 }
 
 .headerBtn.active {
-    background: black;
+    background: #2a2a2a;
     color: white;
-    border-color: black;
+    border-color: #2a2a2a;
 }
 
 /* Blog Section */
@@ -302,7 +302,7 @@
 }
 
 .blockBtn:hover {
-  color: black;
+  color: #2a2a2a;
   background: #f0f0f0;
   border-radius: 0;
 }
@@ -319,7 +319,7 @@
 .addBtn {
     padding: 0;
     background: transparent;
-    color: black;
+    color: #2a2a2a;
     border: none;
     cursor: pointer;
     width: 36px;
@@ -337,7 +337,7 @@
 .addBtn::after {
     content: '';
     position: absolute;
-    background-color: black;
+    background-color: #2a2a2a;
 }
 
 .addBtn::before {
@@ -426,7 +426,7 @@
 
 .resizer:hover,
 .resizer:active {
-  background-color: #000;
+  background-color: #2a2a2a;
 }
 
 
@@ -527,7 +527,7 @@
 }
 
 .galleryTitle {
-  color: black;
+  color: #2a2a2a;
   font-size: 13px;
   line-height: 1.2;
   margin-top: 8px;
@@ -545,7 +545,7 @@
 
 /* Resize Styles */
 .resizing {
-    outline: 2px dashed #000;
+    outline: 2px dashed #2a2a2a;
     z-index: 50;
     overflow: visible !important;
 }
@@ -613,7 +613,7 @@
 
 .resizeBtn {
     padding: 6px 12px;
-    background: black;
+    background: #2a2a2a;
     color: white;
     border: none;
     border-radius: 0;
@@ -624,7 +624,7 @@
 
 .resizeBtn.cancel {
     background: #eee;
-    color: black;
+    color: #2a2a2a;
     border: 1px solid #ccc;
 }
 
@@ -639,7 +639,7 @@
 }
 
 .resetLink:hover {
-    color: #000;
+    color: #2a2a2a;
 }
 
 /* Updated Text Item Styling */
@@ -946,7 +946,7 @@
 
 .progressFill {
     height: 100%;
-    background: black;
+    background: #2a2a2a;
     transition: width 0.3s ease;
 }
 
@@ -1019,7 +1019,7 @@
 }
 
 .saveBtn {
-    background: black;
+    background: #2a2a2a;
     color: white;
 }
 
@@ -1033,7 +1033,7 @@
 
 .navArrow {
     text-decoration: none;
-    color: black;
+    color: #2a2a2a;
     font-size: 15pt;
 }
 

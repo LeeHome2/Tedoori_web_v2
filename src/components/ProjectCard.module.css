@@ -65,7 +65,7 @@
 
 .overlayInfo {
   /* Ensure visibility below image */
-  color: black; 
+  color: #2a2a2a; 
   font-size: 13px;
   line-height: 1.2;
   margin-top: 8px; /* Spacing from image */
@@ -253,7 +253,7 @@
 
 /* Resize Styles */
 .resizing {
-    outline: 2px dashed #000;
+    outline: 2px dashed #2a2a2a;
     z-index: 50;
     overflow: visible !important;
 }
@@ -320,7 +320,7 @@
 
 .resizeBtn {
     padding: 6px 12px;
-    background: black;
+    background: #2a2a2a;
     color: white;
     border: none;
     border-radius: 0;
@@ -331,7 +331,7 @@
 
 .resizeBtn.cancel {
     background: #eee;
-    color: black;
+    color: #2a2a2a;
     border: 1px solid #ccc;
 }
 
@@ -346,7 +346,7 @@
 }
 
 .resetLink:hover {
-    color: #000;
+    color: #2a2a2a;
 }
 
 /* Video Styles */
@@ -388,7 +388,7 @@
     width: 90%;
     max-width: 1000px;
     aspect-ratio: 16 / 9;
-    background: black;
+    background: #2a2a2a;
 }
 
 .closeVideo {

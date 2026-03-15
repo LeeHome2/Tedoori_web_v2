@@ -26,8 +26,8 @@ const notoSerifKr = Noto_Serif_KR({
 
 export const metadata: Metadata = {
   title: "Tedoori Architects",
-  description: "테두리 건축사사무소는 공간의 본질을 탐구하며 건축, 인테리어, 도시설계 프로젝트를 수행합니다. Tedoori architectes creates meaningful spaces through architecture, interior design, and urban planning.",
-  keywords: ["테두리", "테두리 건축", "테두리 건축사사무소", "건축사사무소", "건축", "인테리어", "도시설계", "Tedoori", "architectes", "architecture"],
+  description: "테두리는 성과를 향한 이야기의 얼개를 만들고, 지금 여기서 가능한 형체의 윤곽을 의심하며, 작업의 범위를 스스로 확장하고 새롭게 규정한다.",
+  keywords: ["테두리", "테두리 건축", "테두리 건축사사무소", "건축사사무소", "건축", "인테리어", "도시설계", "Tedoori", "architectes", "architecture", "서울 건축사사무소", "양재동 건축"],
   authors: [{ name: "Tedoori" }],
   creator: "Tedoori",
   publisher: "Tedoori",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Tedoori Architects",
-    description: "테두리 건축사사무소는 공간의 본질을 탐구하며 건축, 인테리어, 도시설계 프로젝트를 수행합니다.",
+    description: "테두리는 성과를 향한 이야기의 얼개를 만들고, 지금 여기서 가능한 형체의 윤곽을 의심하며, 작업의 범위를 스스로 확장하고 새롭게 규정한다.",
     url: "https://tedoori.net",
     siteName: "Tedoori",
     locale: "ko_KR",

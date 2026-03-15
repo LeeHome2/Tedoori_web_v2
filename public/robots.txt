@@ -1,0 +1,14 @@
+# Robots.txt for tedoori.net
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://tedoori.net/sitemap.xml
+
+# Naver
+User-agent: Yeti
+Allow: /
+
+# Google
+User-agent: Googlebot
+Allow: /

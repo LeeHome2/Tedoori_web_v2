@@ -52,7 +52,7 @@
   text-transform: uppercase;
   margin-top: 33px;
   padding: 0;
-  color: black;
+  color: #2a2a2a;
 }
 
 .addBtn:hover {
@@ -137,7 +137,7 @@
 
 .menuList a {
   text-decoration: none;
-  color: black;
+  color: #2a2a2a;
   text-transform: capitalize;
   font-weight: 500;
 }
