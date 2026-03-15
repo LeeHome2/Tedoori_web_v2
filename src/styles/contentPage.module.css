@@ -154,11 +154,18 @@
 
   .contentTitle {
     font-size: 14px;
+    width: 100%;
   }
 
   .contentDate {
     font-size: 12px;
     padding-right: 10px;
+  }
+
+  .contentTitleText {
+    font-size: 14px !important;
+    min-width: 0;
+    flex: 1;
   }
 
   /* Gallery area - inline below content on mobile */
