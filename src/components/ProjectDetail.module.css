@@ -650,7 +650,7 @@
   font-size: 16px;
   line-height: 1.5;
   background-color: #ffffff; /* Changed to white */
-  padding: 20px;
+  padding: 0;
   min-height: 200px; /* Ensure visibility */
   border-radius: 0; /* Square corners */
   border: none;
