@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
@@ -41,7 +41,7 @@ function separateContent(htmlContent: string): { text: string; media: string[] }
   };
 }
 
-export default function EssaysPage() {
+function EssaysPageContent() {
   const { isAdmin, adminMode } = useAdmin();
   const { setAddAction } = useAddAction();
   const searchParams = useSearchParams();
@@ -373,5 +373,13 @@ export default function EssaysPage() {
 
       <BackToTop />
     </main>
+  );
+}
+
+export default function EssaysPage() {
+  return (
+    <Suspense fallback={<div />}>
+      <EssaysPageContent />
+    </Suspense>
   );
 }
