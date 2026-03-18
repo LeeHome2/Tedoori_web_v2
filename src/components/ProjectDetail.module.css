@@ -432,6 +432,7 @@
 /* Scrollbar Indicator on Resizer */
 .scrollbarIndicator {
   position: absolute;
+  left: 50%;
   height: 16px;
   background-color: #e0e0e0;
   cursor: grab;
@@ -440,27 +441,21 @@
 
 /* Blog scrollbar indicator - left half (default) */
 .scrollbarIndicatorBlog {
-  left: 50%;
-  transform: translateX(-100%);
   width: 4px;
+  margin-left: -4px;
 }
 
 /* Gallery scrollbar indicator - right half (default) */
 .scrollbarIndicatorGallery {
-  left: 50%;
-  transform: translateX(0);
   width: 4px;
+  margin-left: 0;
 }
 
 /* When only one indicator exists, it takes full width */
-.scrollbarIndicatorBlog.scrollbarIndicatorFull {
-  transform: translateX(-50%);
-  width: 8px;
-}
-
+.scrollbarIndicatorBlog.scrollbarIndicatorFull,
 .scrollbarIndicatorGallery.scrollbarIndicatorFull {
-  transform: translateX(-50%);
   width: 8px;
+  margin-left: -4px;
 }
 
 .resizer:hover .scrollbarIndicator,
