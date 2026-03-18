@@ -31,6 +31,8 @@ export interface ProjectDetails {
   videoId?: string;
   content?: string;
   memoStyle?: Record<string, string>;
+  linkedPage?: 'news' | 'essays' | null;
+  linkedItemId?: string;
   showId?: boolean;
   showTitle?: boolean;
   hasDetailLink?: boolean;
