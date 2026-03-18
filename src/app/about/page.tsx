@@ -681,7 +681,6 @@ export default function AboutPage() {
         {/* Right: Gallery area */}
         <div
           className={`${contentStyles.galleryArea} ${isEditingGallery ? contentStyles.editMode : ''}`}
-          style={{ position: 'relative' }}
         >
           {/* Edit button for gallery */}
           {isAdmin && adminMode && (
