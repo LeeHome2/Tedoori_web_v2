@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
+import CustomScrollbar from "@/components/CustomScrollbar";
 import { useAdmin } from "@/context/AdminContext";
 import { useAddAction } from "@/context/AddActionContext";
 import OfficeMap from '@/components/OfficeMap';
@@ -611,7 +612,7 @@ export default function AboutPage() {
   }, [setAddAction, startAddingNew]);
 
   return (
-    <main>
+    <main className="hide-scrollbar">
       <Header />
 
       <div className={contentStyles.pageContainer}>
@@ -814,7 +815,7 @@ export default function AboutPage() {
         >
           {/* Edit/Done button at top right */}
           {isAdmin && adminMode && (
-            <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
               {isEditingGallery ? (
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
@@ -843,7 +844,7 @@ export default function AboutPage() {
           )}
 
           {/* Gallery images */}
-          <div style={{ marginTop: isAdmin && adminMode ? '30px' : 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {galleryImages.map((image) => {
               const isCurrentlyResizing = resizingId === image.id;
               const displayWidth = isCurrentlyResizing ? resizeDimensions.width : image.width;
@@ -1058,6 +1059,7 @@ export default function AboutPage() {
       </div>
 
       <BackToTop />
+      <CustomScrollbar useWindow={true} />
     </main>
   );
 }

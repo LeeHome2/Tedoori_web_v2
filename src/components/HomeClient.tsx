@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Header from "@/components/Header";
 import ProjectGrid from "@/components/ProjectGrid";
 import BackToTop from "@/components/BackToTop";
+import CustomScrollbar from "@/components/CustomScrollbar";
 import { ProjectProvider, useProjects } from "@/context/ProjectContext";
 import { Project } from "@/data/projects";
 import { useAdmin } from "@/context/AdminContext";
@@ -24,10 +25,11 @@ function HomeContent() {
   }, [adminMode, refreshProjects]);
 
   return (
-    <main>
+    <main className="hide-scrollbar">
       <Header />
       <ProjectGrid />
       <BackToTop />
+      <CustomScrollbar useWindow={true} />
     </main>
   );
 }

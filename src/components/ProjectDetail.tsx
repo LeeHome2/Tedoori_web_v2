@@ -206,6 +206,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     return () => window.removeEventListener('resize', checkAndAdjustWidth);
   }, [maxGalleryItemWidth, calculateMinGalleryPercent, calculateMaxGalleryPercent]);
 
+  // Store initial offset when resizing starts
+  const resizeOffsetRef = useRef<number>(0);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing.current || !containerRef.current) return;
 
@@ -218,8 +221,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     // Available width for percentage calculation (excluding padding-right)
     const availableWidth = containerRect.width - paddingRight;
 
-    // Blog area width in pixels (from container.left to mouse, excluding resizer margin)
-    const blogWidthPx = e.clientX - containerRect.left - resizerMargin;
+    // Blog area width in pixels (from container.left to mouse, excluding resizer margin and initial offset)
+    const blogWidthPx = e.clientX - containerRect.left - resizerMargin - resizeOffsetRef.current;
 
     // Blog area percentage
     const blogWidthPercent = (blogWidthPx / availableWidth) * 100;
@@ -260,17 +263,190 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       document.body.style.userSelect = "";
   }, [handleMouseMove]);
 
-  const startResizing = useCallback(() => {
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+
+    // Calculate the initial offset from mouse position to current resizer position
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const resizerMargin = 80;
+    const availableWidth = containerRect.width;
+    const currentBlogWidthPx = (100 - leftPaneWidth) / 100 * availableWidth;
+    const currentResizerX = containerRect.left + currentBlogWidthPx + resizerMargin;
+    resizeOffsetRef.current = e.clientX - currentResizerX;
+
     isResizing.current = true;
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", stopResizing);
     document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
-  }, [stopResizing, handleMouseMove]);
+  }, [stopResizing, handleMouseMove, leftPaneWidth]);
 
   // Removed Block Resize Logic since BlogEditor handles images differently
   // If we need resizing in BlogEditor, it's done via Tiptap extensions or NodeView
 
+
+  // Custom scrollbar state for blog section
+  const [blogScrollPercent, setBlogScrollPercent] = useState(0);
+  const [isDraggingBlogScrollbar, setIsDraggingBlogScrollbar] = useState(false);
+  const [blogHasScroll, setBlogHasScroll] = useState(false);
+  const scrollbarTrackRef = useRef<HTMLDivElement>(null);
+
+  // Custom scrollbar state for gallery section
+  const [galleryScrollPercent, setGalleryScrollPercent] = useState(0);
+  const [isDraggingGalleryScrollbar, setIsDraggingGalleryScrollbar] = useState(false);
+  const [galleryHasScroll, setGalleryHasScroll] = useState(false);
+
+  // Track blog section scroll position
+  useEffect(() => {
+    const blogSection = blogSectionRef.current;
+    if (!blogSection) return;
+
+    const handleScroll = () => {
+      if (isDraggingBlogScrollbar) return; // Don't update while dragging
+      const { scrollTop, scrollHeight, clientHeight } = blogSection;
+      const maxScroll = scrollHeight - clientHeight;
+      setBlogHasScroll(maxScroll > 0);
+      if (maxScroll > 0) {
+        setBlogScrollPercent(scrollTop / maxScroll);
+      } else {
+        setBlogScrollPercent(0);
+      }
+    };
+
+    blogSection.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial calculation
+
+    // Watch for content height changes
+    const resizeObserver = new ResizeObserver(() => {
+      handleScroll();
+    });
+    resizeObserver.observe(blogSection);
+
+    return () => {
+      blogSection.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, [isDraggingBlogScrollbar]);
+
+  // Track gallery section scroll position
+  useEffect(() => {
+    const gallerySection = gallerySectionRef.current;
+    if (!gallerySection) return;
+
+    const handleScroll = () => {
+      if (isDraggingGalleryScrollbar) return; // Don't update while dragging
+      const { scrollTop, scrollHeight, clientHeight } = gallerySection;
+      const maxScroll = scrollHeight - clientHeight;
+      setGalleryHasScroll(maxScroll > 0);
+      if (maxScroll > 0) {
+        setGalleryScrollPercent(scrollTop / maxScroll);
+      } else {
+        setGalleryScrollPercent(0);
+      }
+    };
+
+    gallerySection.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial calculation
+
+    // Watch for content height changes
+    const resizeObserver = new ResizeObserver(() => {
+      handleScroll();
+    });
+    resizeObserver.observe(gallerySection);
+
+    return () => {
+      gallerySection.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, [isDraggingGalleryScrollbar]);
+
+  // Handle blog scrollbar drag
+  const handleBlogScrollbarMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingBlogScrollbar(true);
+
+    const track = scrollbarTrackRef.current;
+    const blogSection = blogSectionRef.current;
+    if (!track || !blogSection) return;
+
+    const rect = track.getBoundingClientRect();
+    const trackTop = 150;
+    const trackBottom = rect.height - 20;
+    const trackHeight = trackBottom - trackTop - 16; // Account for indicator height
+
+    // Calculate initial offset from indicator center to mouse position
+    const indicatorTop = trackTop + blogScrollPercent * trackHeight;
+    const initialOffset = e.clientY - rect.top - indicatorTop - 8;
+
+    const updateScroll = (clientY: number) => {
+      const currentRect = track.getBoundingClientRect();
+      const relativeY = Math.max(0, Math.min(clientY - currentRect.top - trackTop - 8 - initialOffset, trackHeight));
+      const percent = trackHeight > 0 ? relativeY / trackHeight : 0;
+
+      const { scrollHeight, clientHeight } = blogSection;
+      const maxScroll = scrollHeight - clientHeight;
+      blogSection.scrollTop = percent * maxScroll;
+      setBlogScrollPercent(Math.max(0, Math.min(1, percent)));
+    };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      updateScroll(moveEvent.clientY);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingBlogScrollbar(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, [blogScrollPercent]);
+
+  // Handle gallery scrollbar drag
+  const handleGalleryScrollbarMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingGalleryScrollbar(true);
+
+    const track = scrollbarTrackRef.current;
+    const gallerySection = gallerySectionRef.current;
+    if (!track || !gallerySection) return;
+
+    const rect = track.getBoundingClientRect();
+    const trackTop = 150;
+    const trackBottom = rect.height - 20;
+    const trackHeight = trackBottom - trackTop - 16; // Account for indicator height
+
+    // Calculate initial offset from indicator center to mouse position
+    const indicatorTop = trackTop + galleryScrollPercent * trackHeight;
+    const initialOffset = e.clientY - rect.top - indicatorTop - 8;
+
+    const updateScroll = (clientY: number) => {
+      const currentRect = track.getBoundingClientRect();
+      const relativeY = Math.max(0, Math.min(clientY - currentRect.top - trackTop - 8 - initialOffset, trackHeight));
+      const percent = trackHeight > 0 ? relativeY / trackHeight : 0;
+
+      const { scrollHeight, clientHeight } = gallerySection;
+      const maxScroll = scrollHeight - clientHeight;
+      gallerySection.scrollTop = percent * maxScroll;
+      setGalleryScrollPercent(Math.max(0, Math.min(1, percent)));
+    };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      updateScroll(moveEvent.clientY);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingGalleryScrollbar(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, [galleryScrollPercent]);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -883,14 +1059,49 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
         <SectionScrollTop containerRef={blogSectionRef} position="left" galleryWidthPercent={leftPaneWidth} />
       </div>
 
-      {/* Resizer Handle */}
+      {/* Resizer Handle - also acts as scrollbar track */}
       <div
+        ref={scrollbarTrackRef}
         className={styles.resizer}
         style={{ cursor: 'ew-resize' }}
         onMouseDown={(e) => {
-            startResizing();
+            const target = e.target as HTMLElement;
+            // If clicking on the scrollbar indicators, handle scroll drag
+            if (target.closest(`.${styles.scrollbarIndicatorBlog}`) || target.closest(`.${styles.scrollbarIndicatorGallery}`)) {
+              // Handled by individual indicator onMouseDown
+              return;
+            } else {
+              // Otherwise, start resizing
+              startResizing(e);
+            }
         }}
       >
+        {/* Blog Scrollbar Indicator (left half, or full if gallery has no scroll) */}
+        {isDesktop && blogHasScroll && (
+          <div
+            className={`${styles.scrollbarIndicator} ${styles.scrollbarIndicatorBlog} ${!galleryHasScroll ? styles.scrollbarIndicatorFull : ''}`}
+            style={{
+              top: `calc(150px + (100vh - 170px - 16px) * ${blogScrollPercent})`,
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleBlogScrollbarMouseDown(e);
+            }}
+          />
+        )}
+        {/* Gallery Scrollbar Indicator (right half, or full if blog has no scroll) */}
+        {isDesktop && galleryHasScroll && (
+          <div
+            className={`${styles.scrollbarIndicator} ${styles.scrollbarIndicatorGallery} ${!blogHasScroll ? styles.scrollbarIndicatorFull : ''}`}
+            style={{
+              top: `calc(150px + (100vh - 170px - 16px) * ${galleryScrollPercent})`,
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleGalleryScrollbarMouseDown(e);
+            }}
+          />
+        )}
         <div className={styles.resizerHandleIcon} />
       </div>
 
