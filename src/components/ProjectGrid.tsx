@@ -24,6 +24,29 @@ export default function ProjectGrid() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Fetch news and essays for memo link selection
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const [newsRes, essaysRes] = await Promise.all([
+          fetch('/api/news'),
+          fetch('/api/essays')
+        ]);
+        if (newsRes.ok) {
+          const newsData = await newsRes.json();
+          setNewsItems(newsData.map((item: {id: string; title: string}) => ({ id: item.id, title: item.title })));
+        }
+        if (essaysRes.ok) {
+          const essaysData = await essaysRes.json();
+          setEssayItems(essaysData.map((item: {id: string; title: string}) => ({ id: item.id, title: item.title })));
+        }
+      } catch (err) {
+        console.error('Failed to fetch news/essays:', err);
+      }
+    };
+    fetchItems();
+  }, []);
   
   // Upload State
   const [imageUrl, setImageUrl] = useState('');
@@ -40,6 +63,12 @@ export default function ProjectGrid() {
   const [projectType, setProjectType] = useState<'project' | 'video' | 'memo'>('project');
   const [memoContent, setMemoContent] = useState('');
   const [memoStyle, setMemoStyle] = useState<MemoStyle>({});
+
+  // Memo Link State
+  const [linkedPage, setLinkedPage] = useState<'news' | 'essays' | null>(null);
+  const [linkedItemId, setLinkedItemId] = useState<string>('');
+  const [newsItems, setNewsItems] = useState<Array<{id: string; title: string}>>([]);
+  const [essayItems, setEssayItems] = useState<Array<{id: string; title: string}>>([]);
 
   // Form State
   const [formId, setFormId] = useState('');
@@ -78,6 +107,8 @@ export default function ProjectGrid() {
       setProjectType('project');
       setMemoContent('');
       setMemoStyle({});
+      setLinkedPage(null);
+      setLinkedItemId('');
       setFormId('');
       setFormTitle('');
       setShowId(true);
@@ -103,6 +134,8 @@ export default function ProjectGrid() {
       setProjectType(project.type || 'project');
       setMemoContent(project.content || '');
       setMemoStyle(project.memoStyle || {});
+      setLinkedPage(project.linkedPage || null);
+      setLinkedItemId(project.linkedItemId || '');
       setFormId(project.id);
       setFormTitle(project.title);
       setShowId(project.showId !== undefined ? project.showId : true);
@@ -122,6 +155,8 @@ export default function ProjectGrid() {
       setProjectType('project');
       setMemoContent('');
       setMemoStyle({});
+      setLinkedPage(null);
+      setLinkedItemId('');
       setFormId('');
       setFormTitle('');
       setShowId(true);
@@ -259,6 +294,8 @@ export default function ProjectGrid() {
           videoId: projectType === 'video' ? youtubeId : undefined,
           content: projectType === 'memo' ? memoContent : undefined,
           memoStyle: projectType === 'memo' ? memoStyle : undefined,
+          linkedPage: projectType === 'memo' ? linkedPage : undefined,
+          linkedItemId: projectType === 'memo' && linkedPage ? linkedItemId : undefined,
           showId,
           showTitle,
           hasDetailLink,
@@ -585,6 +622,36 @@ export default function ProjectGrid() {
                                   <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
                                       {memoContent.length} / 2000
                                   </div>
+                              </label>
+
+                              {/* Link Settings for Memo */}
+                              <label style={{display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap'}}>
+                                  <span style={{fontWeight: 'bold', minWidth: '80px'}}>Link:</span>
+                                  <select
+                                      value={linkedPage || ''}
+                                      onChange={(e) => {
+                                          const value = e.target.value as 'news' | 'essays' | '';
+                                          setLinkedPage(value ? value : null);
+                                          setLinkedItemId('');
+                                      }}
+                                      style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '0', minWidth: '100px' }}
+                                  >
+                                      <option value="">No Link</option>
+                                      <option value="news">News</option>
+                                      <option value="essays">Essays</option>
+                                  </select>
+                                  {linkedPage && (
+                                      <select
+                                          value={linkedItemId}
+                                          onChange={(e) => setLinkedItemId(e.target.value)}
+                                          style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '0', minWidth: '150px', maxWidth: '100%' }}
+                                      >
+                                          <option value="">Select item...</option>
+                                          {(linkedPage === 'news' ? newsItems : essayItems).map(item => (
+                                              <option key={item.id} value={item.id}>{item.title || `ID: ${item.id}`}</option>
+                                          ))}
+                                      </select>
+                                  )}
                               </label>
                           </>
                       )}

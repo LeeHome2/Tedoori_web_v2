@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
 import FitTitle from "@/components/FitTitle";
@@ -43,7 +44,10 @@ function separateContent(htmlContent: string): { text: string; media: string[] }
 export default function NewsPage() {
   const { isAdmin, adminMode } = useAdmin();
   const { setAddAction } = useAddAction();
+  const searchParams = useSearchParams();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const articleRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const initialScrollDone = useRef(false);
 
   // Use the custom hook for content management
   const {
@@ -85,6 +89,28 @@ export default function NewsPage() {
     setAddAction(startAddingNew);
     return () => setAddAction(null);
   }, [setAddAction, startAddingNew]);
+
+  // URL 파라미터로 아이템 자동 펼침 및 스크롤
+  useEffect(() => {
+    const itemId = searchParams.get('item');
+    if (itemId && newsItems.length > 0 && !initialScrollDone.current) {
+      // 해당 아이템이 존재하는지 확인
+      const targetItem = newsItems.find(item => item.id === itemId);
+      if (targetItem) {
+        // 아이템 펼치기
+        setExpandedId(itemId);
+        initialScrollDone.current = true;
+
+        // 약간의 딜레이 후 스크롤 (렌더링 완료 후)
+        setTimeout(() => {
+          const articleElement = articleRefs.current.get(itemId);
+          if (articleElement) {
+            articleElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    }
+  }, [searchParams, newsItems]);
 
   // Check if currently editing the expanded item
   const isEditingExpanded = editingId && editingId === expandedId;
@@ -182,7 +208,13 @@ export default function NewsPage() {
               const { text } = separateContent(newsItem.content || '');
 
               return (
-                <article key={newsItem.id} style={{ paddingBottom: '20px' }}>
+                <article
+                  key={newsItem.id}
+                  ref={(el) => {
+                    if (el) articleRefs.current.set(newsItem.id, el);
+                  }}
+                  style={{ paddingBottom: '20px' }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
                     <div style={{ flex: 1 }}>
                       {isEditing ? (

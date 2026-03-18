@@ -366,6 +366,11 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
           e.preventDefault();
           e.stopPropagation();
           setIsEditingMemo(true);
+      } else if (project.linkedPage && project.linkedItemId) {
+          // 링크가 설정된 경우 해당 페이지로 이동
+          e.preventDefault();
+          e.stopPropagation();
+          router.push(`/${project.linkedPage}?item=${project.linkedItemId}`);
       }
   };
 
@@ -416,11 +421,12 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
     <div ref={setRefs} style={style} className={`${styles.card} ${currentVisibility !== 'public' ? styles.hidden : ''} ${isResizing ? styles.resizing : ''} ${isMemo ? styles.memoCard : ''}`} {...attributes}>
       <div className={styles.imageWrapper}>
         {isMemo ? (
-            <div 
-                className={styles.memoContent} 
+            <div
+                className={styles.memoContent}
                 onClick={handleMemoClick}
                 style={{
                     backgroundColor: project.memoStyle?.backgroundColor,
+                    cursor: (!isAdmin || !adminMode) && project.linkedPage && project.linkedItemId ? 'pointer' : undefined,
                 }}
             >
                 {isEditingMemo ? (

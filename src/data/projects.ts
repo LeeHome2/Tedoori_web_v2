@@ -90,6 +90,8 @@ export interface Project {
   videoId?: string;
   content?: string;
   memoStyle?: MemoStyle;
+  linkedPage?: 'news' | 'essays' | null;  // 메모 카드 링크 대상 페이지
+  linkedItemId?: string;  // 링크된 뉴스/에세이 아이템 ID
   details?: ProjectDetail;
   descriptionBlocks?: ContentBlock[];
   galleryImages?: GalleryItem[];
