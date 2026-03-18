@@ -9,7 +9,8 @@ export const fetchCache = 'force-no-store';
 export interface GalleryImage {
   id: string;
   url: string;
-  width?: number;  // percentage or px
+  width?: number;   // pixels
+  height?: number;  // pixels
   order_index: number;
 }
 
@@ -65,7 +66,8 @@ export async function POST(request: Request) {
       .insert({
         id: image.id || `img-${Date.now()}`,
         url: image.url,
-        width: image.width || 100,
+        width: image.width || 400,
+        height: image.height || 300,
         order_index: nextOrder,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -91,7 +93,7 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json();
 
-    // Batch update for reordering or width changes
+    // Batch update for reordering or size changes
     if (Array.isArray(body)) {
       const updatePromises = body.map(async (item: GalleryImage) => {
         const { error } = await supabase
@@ -99,6 +101,7 @@ export async function PUT(request: Request) {
           .update({
             order_index: item.order_index,
             width: item.width,
+            height: item.height,
             updated_at: new Date().toISOString()
           })
           .eq('id', item.id);
@@ -117,6 +120,7 @@ export async function PUT(request: Request) {
       .update({
         url: image.url,
         width: image.width,
+        height: image.height,
         order_index: image.order_index,
         updated_at: new Date().toISOString()
       })

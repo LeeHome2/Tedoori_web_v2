@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
@@ -23,7 +23,8 @@ interface AboutBlock {
 interface GalleryImage {
   id: string;
   url: string;
-  width: number;  // percentage
+  width: number;   // pixels
+  height: number;  // pixels
   order_index: number;
 }
 
@@ -68,6 +69,15 @@ export default function AboutPage() {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [isEditingGallery, setIsEditingGallery] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
+  // Drag resize state (ProjectCard style)
+  const [resizingId, setResizingId] = useState<string | null>(null);
+  const [lockedRatio, setLockedRatio] = useState(true);
+  const [resizeDimensions, setResizeDimensions] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const resizeStartRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+  const originalImageRef = useRef<{ width: number; height: number } | null>(null);
+  const aspectRatioRef = useRef<number>(1);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchBlocks = useCallback(async () => {
     try {
@@ -372,7 +382,8 @@ export default function AboutPage() {
         const newImage: GalleryImage = {
           id: `img-${Date.now()}`,
           url,
-          width: 100,
+          width: 400,
+          height: 300,
           order_index: galleryImages.length
         };
 
@@ -401,23 +412,6 @@ export default function AboutPage() {
       setGalleryImages(prev => prev.filter(img => img.id !== id));
     } catch (error) {
       console.error('Failed to delete image:', error);
-    }
-  };
-
-  const handleUpdateImageWidth = async (id: string, width: number) => {
-    const updatedImages = galleryImages.map(img =>
-      img.id === id ? { ...img, width } : img
-    );
-    setGalleryImages(updatedImages);
-
-    try {
-      await fetch('/api/about/gallery', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedImages)
-      });
-    } catch (error) {
-      console.error('Failed to update image width:', error);
     }
   };
 
@@ -471,8 +465,143 @@ export default function AboutPage() {
     }
   };
 
-  const saveGalleryChanges = () => {
-    setIsEditingGallery(false);
+  // Start resize mode for an image (ProjectCard style)
+  const startResizeMode = (imageId: string, currentWidth: number, currentHeight: number) => {
+    setResizingId(imageId);
+    setResizeDimensions({ width: currentWidth, height: currentHeight });
+    aspectRatioRef.current = currentWidth / currentHeight;
+    setLockedRatio(true);
+
+    // Load original image dimensions
+    const image = galleryImages.find(img => img.id === imageId);
+    if (image) {
+      const img = new window.Image();
+      img.onload = () => {
+        originalImageRef.current = { width: img.naturalWidth, height: img.naturalHeight };
+      };
+      img.src = image.url;
+    }
+  };
+
+  // Handle width input change with aspect ratio lock
+  const handleWidthChange = (newWidth: number) => {
+    if (lockedRatio && newWidth > 0 && aspectRatioRef.current) {
+      const newHeight = Math.round(newWidth / aspectRatioRef.current);
+      setResizeDimensions({ width: newWidth, height: newHeight });
+    } else {
+      setResizeDimensions(prev => ({ ...prev, width: newWidth }));
+    }
+  };
+
+  // Handle height input change with aspect ratio lock
+  const handleHeightChange = (newHeight: number) => {
+    if (lockedRatio && newHeight > 0 && aspectRatioRef.current) {
+      const newWidth = Math.round(newHeight * aspectRatioRef.current);
+      setResizeDimensions({ width: newWidth, height: newHeight });
+    } else {
+      setResizeDimensions(prev => ({ ...prev, height: newHeight }));
+    }
+  };
+
+  // Reset to original image size
+  const handleResetSize = () => {
+    if (originalImageRef.current) {
+      setResizeDimensions({
+        width: originalImageRef.current.width,
+        height: originalImageRef.current.height
+      });
+      aspectRatioRef.current = originalImageRef.current.width / originalImageRef.current.height;
+    }
+  };
+
+  // Save resize changes
+  const handleResizeSave = async () => {
+    if (!resizingId) return;
+
+    const updatedImages = galleryImages.map(img =>
+      img.id === resizingId
+        ? { ...img, width: resizeDimensions.width, height: resizeDimensions.height }
+        : img
+    );
+    setGalleryImages(updatedImages);
+
+    try {
+      await fetch('/api/about/gallery', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedImages)
+      });
+    } catch (error) {
+      console.error('Failed to save image size:', error);
+    }
+
+    setResizingId(null);
+  };
+
+  // Cancel resize
+  const handleResizeCancel = () => {
+    setResizingId(null);
+    setResizeDimensions({ width: 0, height: 0 });
+  };
+
+  // Corner drag resize handler (ProjectCard style)
+  const startCornerResize = (e: React.MouseEvent | React.TouchEvent, direction: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+
+    resizeStartRef.current = {
+      x: clientX,
+      y: clientY,
+      w: resizeDimensions.width,
+      h: resizeDimensions.height
+    };
+
+    const onMove = (moveEvent: MouseEvent | TouchEvent) => {
+      if (!resizeStartRef.current) return;
+
+      const moveX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : (moveEvent as MouseEvent).clientX;
+      const moveY = 'touches' in moveEvent ? moveEvent.touches[0].clientY : (moveEvent as MouseEvent).clientY;
+
+      const deltaX = moveX - resizeStartRef.current.x;
+      const deltaY = moveY - resizeStartRef.current.y;
+
+      let newWidth = resizeStartRef.current.w;
+      let newHeight = resizeStartRef.current.h;
+
+      // Handle horizontal direction
+      if (direction.includes('E')) newWidth += deltaX;
+      if (direction.includes('W')) newWidth -= deltaX;
+
+      // Handle vertical direction
+      if (direction.includes('S')) newHeight += deltaY;
+      if (direction.includes('N')) newHeight -= deltaY;
+
+      // Constraints
+      newWidth = Math.max(50, Math.min(newWidth, 1200));
+      newHeight = Math.max(50, Math.min(newHeight, 1200));
+
+      if (lockedRatio && aspectRatioRef.current) {
+        // Keep aspect ratio based on width change
+        newHeight = Math.round(newWidth / aspectRatioRef.current);
+      }
+
+      setResizeDimensions({ width: Math.round(newWidth), height: Math.round(newHeight) });
+    };
+
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchend', onUp);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
   };
 
   // Register add action for header
@@ -680,9 +809,10 @@ export default function AboutPage() {
 
         {/* Right: Gallery area */}
         <div
-          className={`${contentStyles.galleryArea} ${isEditingGallery ? contentStyles.editMode : ''}`}
+          ref={containerRef}
+          className={`${contentStyles.galleryArea} ${resizingId ? contentStyles.editMode : ''}`}
         >
-          {/* Edit button for gallery */}
+          {/* Edit/Done button at top right */}
           {isAdmin && adminMode && (
             <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 10 }}>
               {isEditingGallery ? (
@@ -695,7 +825,7 @@ export default function AboutPage() {
                     {isUploadingGallery ? 'uploading...' : '+add image'}
                   </button>
                   <button
-                    onClick={saveGalleryChanges}
+                    onClick={() => setIsEditingGallery(false)}
                     style={{ padding: '4px 8px', fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: 'black' }}
                   >
                     done
@@ -714,80 +844,216 @@ export default function AboutPage() {
 
           {/* Gallery images */}
           <div style={{ marginTop: isAdmin && adminMode ? '30px' : 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {galleryImages.map((image) => (
-              <div
-                key={image.id}
-                style={{
-                  width: `${image.width}%`,
-                  position: 'relative',
-                }}
-              >
-                <div style={{ position: 'relative', width: '100%' }}>
-                  <Image
-                    src={image.url}
-                    alt=""
-                    width={800}
-                    height={600}
-                    style={{
-                      width: '100%',
-                      height: 'auto',
-                      objectFit: 'contain',
-                    }}
-                    unoptimized
-                  />
-                </div>
+            {galleryImages.map((image) => {
+              const isCurrentlyResizing = resizingId === image.id;
+              const displayWidth = isCurrentlyResizing ? resizeDimensions.width : image.width;
+              const displayHeight = isCurrentlyResizing ? resizeDimensions.height : image.height;
 
-                {/* Edit controls for each image */}
-                {isEditingGallery && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    marginTop: '8px',
-                    padding: '8px',
-                    background: '#f5f5f5',
-                  }}>
-                    <button
-                      onClick={() => handleMoveImageUp(image.id)}
-                      style={{ padding: '2px 6px', fontSize: '11px', cursor: 'pointer', background: 'white', border: '1px solid #ddd' }}
-                      title="Move up"
-                    >
-                      ∧
-                    </button>
-                    <button
-                      onClick={() => handleMoveImageDown(image.id)}
-                      style={{ padding: '2px 6px', fontSize: '11px', cursor: 'pointer', background: 'white', border: '1px solid #ddd' }}
-                      title="Move down"
-                    >
-                      ∨
-                    </button>
-                    <span style={{ fontSize: '11px', color: '#666' }}>Width:</span>
-                    <input
-                      type="range"
-                      min="20"
-                      max="100"
-                      value={image.width}
-                      onChange={(e) => handleUpdateImageWidth(image.id, parseInt(e.target.value))}
-                      style={{ width: '80px' }}
+              return (
+                <div
+                  key={image.id}
+                  style={{
+                    width: displayWidth ? `${displayWidth}px` : 'auto',
+                    maxWidth: '100%',
+                    position: 'relative',
+                    outline: isCurrentlyResizing ? '2px dashed #2a2a2a' : 'none',
+                    zIndex: isCurrentlyResizing ? 50 : 'auto',
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: displayWidth && displayHeight ? `${displayWidth} / ${displayHeight}` : 'auto' }}>
+                    <Image
+                      src={image.url}
+                      alt=""
+                      width={displayWidth || 400}
+                      height={displayHeight || 300}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                      unoptimized
                     />
-                    <span style={{ fontSize: '11px', color: '#666', minWidth: '35px' }}>{image.width}%</span>
-                    <button
-                      onClick={() => handleDeleteGalleryImage(image.id)}
-                      style={{ padding: '2px 6px', fontSize: '11px', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline', color: '#cc0000', marginLeft: 'auto' }}
-                    >
-                      delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
 
-            {galleryImages.length === 0 && isEditingGallery && (
+                    {/* Admin overlay (ProjectCard style) - visible when editing and not resizing */}
+                    {isAdmin && adminMode && isEditingGallery && !isCurrentlyResizing && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        display: 'flex',
+                        gap: '8px',
+                        zIndex: 10,
+                        padding: '6px',
+                        background: 'transparent',
+                      }}>
+                        {/* Drag Handle for reordering */}
+                        <div
+                          style={{
+                            padding: '3px 5px',
+                            background: '#f0f0f0',
+                            color: '#666',
+                            cursor: 'grab',
+                            border: '1px solid #ddd',
+                            fontSize: '11px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <span style={{ display: 'flex', gap: '2px' }}>
+                            <button
+                              onClick={() => handleMoveImageUp(image.id)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }}
+                              title="Move up"
+                            >∧</button>
+                            <button
+                              onClick={() => handleMoveImageDown(image.id)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', padding: '0 2px' }}
+                              title="Move down"
+                            >∨</button>
+                          </span>
+                        </div>
+                        {/* Resize toggle button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startResizeMode(image.id, image.width || 400, image.height || 300);
+                          }}
+                          style={{
+                            padding: '3px 6px',
+                            background: '#f0f0f0',
+                            color: '#333',
+                            border: '1px solid #ddd',
+                            cursor: 'pointer',
+                            fontSize: '10px',
+                          }}
+                          title="Resize"
+                        >⤡</button>
+                        {/* Delete button */}
+                        <button
+                          onClick={() => handleDeleteGalleryImage(image.id)}
+                          style={{
+                            padding: '3px 6px',
+                            background: '#fff5f5',
+                            color: '#cc0000',
+                            border: '1px solid #ffdada',
+                            cursor: 'pointer',
+                            fontSize: '10px',
+                          }}
+                          title="Delete"
+                        >×</button>
+                      </div>
+                    )}
+
+                    {/* Corner resize handles (ProjectCard style) - visible when resizing */}
+                    {isCurrentlyResizing && (
+                      <>
+                        <div
+                          onMouseDown={(e) => startCornerResize(e, 'NW')}
+                          onTouchStart={(e) => startCornerResize(e, 'NW')}
+                          style={{ position: 'absolute', top: -6, left: -6, width: 12, height: 12, background: 'white', border: '1px solid black', cursor: 'nw-resize', zIndex: 20 }}
+                        />
+                        <div
+                          onMouseDown={(e) => startCornerResize(e, 'NE')}
+                          onTouchStart={(e) => startCornerResize(e, 'NE')}
+                          style={{ position: 'absolute', top: -6, right: -6, width: 12, height: 12, background: 'white', border: '1px solid black', cursor: 'ne-resize', zIndex: 20 }}
+                        />
+                        <div
+                          onMouseDown={(e) => startCornerResize(e, 'SW')}
+                          onTouchStart={(e) => startCornerResize(e, 'SW')}
+                          style={{ position: 'absolute', bottom: -6, left: -6, width: 12, height: 12, background: 'white', border: '1px solid black', cursor: 'sw-resize', zIndex: 20 }}
+                        />
+                        <div
+                          onMouseDown={(e) => startCornerResize(e, 'SE')}
+                          onTouchStart={(e) => startCornerResize(e, 'SE')}
+                          style={{ position: 'absolute', bottom: -6, right: -6, width: 12, height: 12, background: 'white', border: '1px solid black', cursor: 'se-resize', zIndex: 20 }}
+                        />
+
+                        {/* Resize overlay panel - positioned at top-left of image */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            background: 'white',
+                            padding: 12,
+                            zIndex: 9999,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8,
+                            minWidth: 200,
+                            border: '1px solid black',
+                          }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <span style={{ fontSize: 11, fontWeight: 'bold', color: '#666' }}>W</span>
+                              <input
+                                type="number"
+                                value={resizeDimensions.width || ''}
+                                onChange={(e) => handleWidthChange(parseInt(e.target.value) || 0)}
+                                style={{ width: 50, padding: 4, border: '1px solid #ccc', fontSize: 12 }}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <span style={{ fontSize: 11, fontWeight: 'bold', color: '#666' }}>H</span>
+                              <input
+                                type="number"
+                                value={resizeDimensions.height || ''}
+                                onChange={(e) => handleHeightChange(parseInt(e.target.value) || 0)}
+                                style={{ width: 50, padding: 4, border: '1px solid #ccc', fontSize: 12 }}
+                              />
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <label style={{ fontSize: 11, fontWeight: 'bold', color: '#666', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={lockedRatio}
+                                onChange={(e) => setLockedRatio(e.target.checked)}
+                              />
+                              Lock
+                            </label>
+                          </div>
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
+                            <button
+                              onClick={handleResetSize}
+                              style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#333', textDecoration: 'underline', cursor: 'pointer' }}
+                              title="Reset to original image size"
+                            >
+                              Reset
+                            </button>
+                            <div style={{ display: 'flex', gap: 10, marginLeft: 'auto' }}>
+                              <button
+                                onClick={handleResizeSave}
+                                style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#333', textDecoration: 'underline', cursor: 'pointer' }}
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleResizeCancel}
+                                style={{ background: 'none', border: 'none', padding: 0, fontSize: 12, color: '#333', textDecoration: 'underline', cursor: 'pointer' }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {galleryImages.length === 0 && isAdmin && adminMode && isEditingGallery && (
               <p style={{ color: '#999', textAlign: 'center', padding: '40px 0' }}>
                 Click &quot;+add image&quot; to add images
               </p>
             )}
           </div>
+
         </div>
       </div>
 
