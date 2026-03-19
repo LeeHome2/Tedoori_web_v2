@@ -15,19 +15,6 @@
 html {
   max-width: 100vw;
   overflow-x: hidden;
-  overflow-y: scroll; /* Always show scrollbar gutter to prevent layout shift */
-  scrollbar-gutter: stable; /* Reserve space for scrollbar */
-}
-
-/* Hide scrollbar when using custom scrollbar */
-html:has(.hide-scrollbar) {
-  scrollbar-gutter: auto;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-html:has(.hide-scrollbar)::-webkit-scrollbar {
-  display: none;
 }
 
 body {

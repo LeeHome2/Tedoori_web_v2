@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
-import CustomScrollbar from "@/components/CustomScrollbar";
 import FitTitle from "@/components/FitTitle";
 import { useAdmin } from "@/context/AdminContext";
 import { useAddAction } from "@/context/AddActionContext";
@@ -373,7 +372,6 @@ function EssaysPageContent() {
       </div>
 
       <BackToTop />
-      <CustomScrollbar useWindow={true} />
     </main>
   );
 }

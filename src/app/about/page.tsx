@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Header from "@/components/Header";
 import BackToTop from "@/components/BackToTop";
-import CustomScrollbar from "@/components/CustomScrollbar";
 import { useAdmin } from "@/context/AdminContext";
 import { useAddAction } from "@/context/AddActionContext";
 import OfficeMap from '@/components/OfficeMap';
@@ -1059,7 +1058,6 @@ export default function AboutPage() {
       </div>
 
       <BackToTop />
-      <CustomScrollbar useWindow={true} />
     </main>
   );
 }
