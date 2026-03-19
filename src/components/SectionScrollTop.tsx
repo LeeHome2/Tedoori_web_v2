@@ -6,7 +6,7 @@ import styles from './SectionScrollTop.module.css';
 interface SectionScrollTopProps {
   containerRef: RefObject<HTMLDivElement | null>;
   position?: 'left' | 'right';
-  galleryWidthPercent?: number; // For positioning left button relative to resizer
+  galleryWidthPercent?: number;
 }
 
 export default function SectionScrollTop({ containerRef, position = 'right', galleryWidthPercent = 60 }: SectionScrollTopProps) {
@@ -45,9 +45,9 @@ export default function SectionScrollTop({ containerRef, position = 'right', gal
     });
   };
 
-  // Calculate position for left button (30px left of resizer)
+  // Calculate position for left button (relative to resizer)
   const leftButtonStyle = position === 'left' ? {
-    right: `calc(${galleryWidthPercent}% + 30px)`,
+    right: `calc(${galleryWidthPercent}% + 110px)`,
     left: 'auto'
   } : {};
 

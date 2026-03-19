@@ -119,7 +119,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   // Minimum blog width in pixels
   const minBlogWidth = 500;
-  const resizerWidth = 81;
+  const resizerWidth = 82; // margin-left 80px + width 2px
 
   // Calculate minimum gallery percentage based on max image width
   const calculateMinGalleryPercent = useCallback((containerWidth: number) => {
@@ -291,11 +291,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const [blogHasScroll, setBlogHasScroll] = useState(false);
   const scrollbarTrackRef = useRef<HTMLDivElement>(null);
 
-  // Custom scrollbar state for gallery section
-  const [galleryScrollPercent, setGalleryScrollPercent] = useState(0);
-  const [isDraggingGalleryScrollbar, setIsDraggingGalleryScrollbar] = useState(false);
-  const [galleryHasScroll, setGalleryHasScroll] = useState(false);
-
   // Track blog section scroll position
   useEffect(() => {
     const blogSection = blogSectionRef.current;
@@ -328,38 +323,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     };
   }, [isDraggingBlogScrollbar]);
 
-  // Track gallery section scroll position
-  useEffect(() => {
-    const gallerySection = gallerySectionRef.current;
-    if (!gallerySection) return;
-
-    const handleScroll = () => {
-      if (isDraggingGalleryScrollbar) return; // Don't update while dragging
-      const { scrollTop, scrollHeight, clientHeight } = gallerySection;
-      const maxScroll = scrollHeight - clientHeight;
-      setGalleryHasScroll(maxScroll > 0);
-      if (maxScroll > 0) {
-        setGalleryScrollPercent(scrollTop / maxScroll);
-      } else {
-        setGalleryScrollPercent(0);
-      }
-    };
-
-    gallerySection.addEventListener('scroll', handleScroll);
-    handleScroll(); // Initial calculation
-
-    // Watch for content height changes
-    const resizeObserver = new ResizeObserver(() => {
-      handleScroll();
-    });
-    resizeObserver.observe(gallerySection);
-
-    return () => {
-      gallerySection.removeEventListener('scroll', handleScroll);
-      resizeObserver.disconnect();
-    };
-  }, [isDraggingGalleryScrollbar]);
-
   // Handle blog scrollbar drag
   const handleBlogScrollbarMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -373,15 +336,15 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     const rect = track.getBoundingClientRect();
     const trackTop = 150;
     const trackBottom = rect.height - 20;
-    const trackHeight = trackBottom - trackTop - 16; // Account for indicator height
+    const trackHeight = trackBottom - trackTop - 64; // Account for indicator height
 
     // Calculate initial offset from indicator center to mouse position
     const indicatorTop = trackTop + blogScrollPercent * trackHeight;
-    const initialOffset = e.clientY - rect.top - indicatorTop - 8;
+    const initialOffset = e.clientY - rect.top - indicatorTop - 32;
 
     const updateScroll = (clientY: number) => {
       const currentRect = track.getBoundingClientRect();
-      const relativeY = Math.max(0, Math.min(clientY - currentRect.top - trackTop - 8 - initialOffset, trackHeight));
+      const relativeY = Math.max(0, Math.min(clientY - currentRect.top - trackTop - 32 - initialOffset, trackHeight));
       const percent = trackHeight > 0 ? relativeY / trackHeight : 0;
 
       const { scrollHeight, clientHeight } = blogSection;
@@ -403,50 +366,6 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
   }, [blogScrollPercent]);
-
-  // Handle gallery scrollbar drag
-  const handleGalleryScrollbarMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDraggingGalleryScrollbar(true);
-
-    const track = scrollbarTrackRef.current;
-    const gallerySection = gallerySectionRef.current;
-    if (!track || !gallerySection) return;
-
-    const rect = track.getBoundingClientRect();
-    const trackTop = 150;
-    const trackBottom = rect.height - 20;
-    const trackHeight = trackBottom - trackTop - 16; // Account for indicator height
-
-    // Calculate initial offset from indicator center to mouse position
-    const indicatorTop = trackTop + galleryScrollPercent * trackHeight;
-    const initialOffset = e.clientY - rect.top - indicatorTop - 8;
-
-    const updateScroll = (clientY: number) => {
-      const currentRect = track.getBoundingClientRect();
-      const relativeY = Math.max(0, Math.min(clientY - currentRect.top - trackTop - 8 - initialOffset, trackHeight));
-      const percent = trackHeight > 0 ? relativeY / trackHeight : 0;
-
-      const { scrollHeight, clientHeight } = gallerySection;
-      const maxScroll = scrollHeight - clientHeight;
-      gallerySection.scrollTop = percent * maxScroll;
-      setGalleryScrollPercent(Math.max(0, Math.min(1, percent)));
-    };
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      updateScroll(moveEvent.clientY);
-    };
-
-    const handleMouseUp = () => {
-      setIsDraggingGalleryScrollbar(false);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  }, [galleryScrollPercent]);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -989,7 +908,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       <div
         ref={blogSectionRef}
         className={styles.infoColumn}
-        style={{ width: isDesktop ? `calc(${100 - leftPaneWidth}% - 81px)` : '100%', flexShrink: 0 }}
+        style={{ width: isDesktop ? `calc(${100 - leftPaneWidth}% - 82px)` : '100%', flexShrink: 0 }}
       >
         {/* Project Navigation with Edit Button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1066,9 +985,9 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
         style={{ cursor: 'ew-resize' }}
         onMouseDown={(e) => {
             const target = e.target as HTMLElement;
-            // If clicking on the scrollbar indicators, handle scroll drag
-            if (target.closest(`.${styles.scrollbarIndicatorBlog}`) || target.closest(`.${styles.scrollbarIndicatorGallery}`)) {
-              // Handled by individual indicator onMouseDown
+            // If clicking on the scrollbar indicator, handle scroll drag
+            if (target.closest(`.${styles.scrollbarIndicator}`)) {
+              // Handled by indicator onMouseDown
               return;
             } else {
               // Otherwise, start resizing
@@ -1076,29 +995,16 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
             }
         }}
       >
-        {/* Blog Scrollbar Indicator (left half, or full if gallery has no scroll) */}
+        {/* Blog Scrollbar Indicator */}
         {isDesktop && blogHasScroll && (
           <div
-            className={`${styles.scrollbarIndicator} ${styles.scrollbarIndicatorBlog} ${!galleryHasScroll ? styles.scrollbarIndicatorFull : ''}`}
+            className={`${styles.scrollbarIndicator} ${styles.scrollbarIndicatorFull}`}
             style={{
-              top: `calc(150px + (100vh - 170px - 16px) * ${blogScrollPercent})`,
+              top: `calc(150px + (100vh - 170px - 64px) * ${blogScrollPercent})`,
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
               handleBlogScrollbarMouseDown(e);
-            }}
-          />
-        )}
-        {/* Gallery Scrollbar Indicator (right half, or full if blog has no scroll) */}
-        {isDesktop && galleryHasScroll && (
-          <div
-            className={`${styles.scrollbarIndicator} ${styles.scrollbarIndicatorGallery} ${!blogHasScroll ? styles.scrollbarIndicatorFull : ''}`}
-            style={{
-              top: `calc(150px + (100vh - 170px - 16px) * ${galleryScrollPercent})`,
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleGalleryScrollbarMouseDown(e);
             }}
           />
         )}
@@ -1147,7 +1053,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                 </div>
             </SortableContext>
         </DndContext>
-        <SectionScrollTop containerRef={gallerySectionRef} position="right" />
+        <SectionScrollTop containerRef={gallerySectionRef} />
       </div>
 
       {/* Lightbox Overlay */}

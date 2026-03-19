@@ -388,9 +388,9 @@
 
 /* Resizer Handle */
 .resizer {
-  width: 1px; /* Visual width */
-  min-width: 1px;
-  max-width: 1px;
+  width: 2px; /* Even pixel for subpixel alignment */
+  min-width: 2px;
+  max-width: 2px;
   background-color: #e0e0e0;
   /* cursor managed by inline style */
   position: relative;
@@ -424,47 +424,24 @@
   display: none;
 }
 
-.resizer:hover,
-.resizer:active {
-  background-color: #2a2a2a;
-}
 
-/* Scrollbar Indicator on Resizer */
+/* Scrollbar Indicator on Resizer (Blog section only) */
 .scrollbarIndicator {
   position: absolute;
   left: 50%;
-  height: 16px;
+  width: 4px;
+  height: 64px;
   background-color: #e0e0e0;
   cursor: grab;
   z-index: 20;
+  transform: translateX(-50%);
 }
 
-/* Blog scrollbar indicator - left half (default) */
-.scrollbarIndicatorBlog {
-  width: 4px;
-  margin-left: -4px;
-}
-
-/* Gallery scrollbar indicator - right half (default) */
-.scrollbarIndicatorGallery {
-  width: 4px;
-  margin-left: 0;
-}
-
-/* When only one indicator exists, it takes full width */
-.scrollbarIndicatorBlog.scrollbarIndicatorFull,
-.scrollbarIndicatorGallery.scrollbarIndicatorFull {
-  width: 8px;
-  margin-left: -4px;
-}
-
-.resizer:hover .scrollbarIndicator,
-.scrollbarIndicator:hover {
-  background-color: #2a2a2a;
+.scrollbarIndicatorFull {
+  /* Full width indicator - 4px centered on 2px resizer = 1px overhang each side */
 }
 
 .scrollbarIndicator:active {
-  background-color: #2a2a2a;
   cursor: grabbing;
 }
 
