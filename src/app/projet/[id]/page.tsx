@@ -4,9 +4,8 @@ import ProjetClient from "@/components/ProjetClient";
 import type { Metadata } from "next";
 import type { Project } from "@/data/projects";
 
-export const revalidate = 0; // No caching - always fetch fresh data
-export const dynamic = 'force-dynamic'; // Force dynamic rendering
-export const fetchCache = 'force-no-store'; // Disable fetch cache
+// 60초 캐싱, 관리자 수정 시 revalidatePath로 즉시 갱신
+export const revalidate = 60;
 
 interface PageProps {
   params: Promise<{
