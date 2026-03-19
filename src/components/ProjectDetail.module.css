@@ -382,9 +382,9 @@
 
 /* Resizer Handle */
 .resizer {
-  width: 2px; /* Even pixel for subpixel alignment */
-  min-width: 2px;
-  max-width: 2px;
+  width: 1px;
+  min-width: 1px;
+  max-width: 1px;
   background-color: #e0e0e0;
   /* cursor managed by inline style */
   position: relative;
@@ -422,13 +422,13 @@
 /* Scrollbar Indicator on Resizer (Blog section only) */
 .scrollbarIndicator {
   position: absolute;
-  left: 50%;
-  width: 4px;
+  left: 0;
+  width: 1px;
   height: 64px;
   background-color: #e0e0e0;
+  box-shadow: -1px 0 0 #e0e0e0, 1px 0 0 #e0e0e0;
   cursor: grab;
   z-index: 20;
-  transform: translateX(-50%);
 }
 
 .scrollbarIndicatorFull {
