@@ -119,7 +119,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
 
   // Minimum blog width in pixels
   const minBlogWidth = 500;
-  const resizerWidth = 81; // margin-left 80px + width 1px
+  const resizerWidth = 1; // width 1px (no margins)
 
   // Calculate minimum gallery percentage based on max image width
   const calculateMinGalleryPercent = useCallback((containerWidth: number) => {
@@ -908,7 +908,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       <div
         ref={blogSectionRef}
         className={styles.infoColumn}
-        style={{ width: isDesktop ? `calc(${100 - leftPaneWidth}% - 81px)` : '100%', flexShrink: 0 }}
+        style={{ width: isDesktop ? `calc(${100 - leftPaneWidth}% - 1px)` : '100%', flexShrink: 0 }}
       >
         {/* Project Navigation with Edit Button */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>

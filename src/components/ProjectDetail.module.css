@@ -61,6 +61,11 @@
 
   .infoColumn {
     padding-left: 165px; /* Align with logo left edge (20 + 30 + 83 + 32 = 165px) */
+    padding-right: 40px; /* Spacing from resizer */
+  }
+
+  .imageColumn {
+    padding-left: 40px; /* Spacing from resizer */
   }
 }
 
@@ -159,7 +164,6 @@
 /* Blog Section */
 .blogSection {
   flex-grow: 1;
-  padding-right: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px; /* Reduced gap */
@@ -393,8 +397,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-left: 80px; /* Left margin for spacing */
-  margin-right: 0; /* Reset right margin */
+  margin-left: 0; /* No left margin */
+  margin-right: 0; /* No right margin */
   height: 100vh; /* Full viewport height */
   padding-top: 0;
   padding-bottom: 0;
@@ -412,6 +416,7 @@
   top: 0;
   bottom: 0;
   cursor: inherit; /* Inherit from parent which is controlled by React */
+  pointer-events: none; /* Don't capture clicks - let indicator handle them */
 }
 
 .resizerHandleIcon {
@@ -422,13 +427,22 @@
 /* Scrollbar Indicator on Resizer (Blog section only) */
 .scrollbarIndicator {
   position: absolute;
-  left: 0;
-  width: 1px;
+  left: -4px;
+  width: 9px; /* Clickable area: 4px left + 1px line + 4px right */
   height: 64px;
-  background-color: #e0e0e0;
-  box-shadow: -1px 0 0 #e0e0e0, 1px 0 0 #e0e0e0;
+  background-color: transparent;
   cursor: grab;
   z-index: 20;
+}
+
+.scrollbarIndicator::before {
+  content: '';
+  position: absolute;
+  left: 4px; /* Align with resizer: -4px + 4px = 0px */
+  width: 1px;
+  height: 100%;
+  background-color: #e0e0e0;
+  box-shadow: -1px 0 0 #e0e0e0, 1px 0 0 #e0e0e0;
 }
 
 .scrollbarIndicatorFull {
@@ -457,7 +471,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 80px; /* Increased gap from 20px to 30px */
-  padding-left: 40px;
 }
 
 @media (max-width: 768px) {
