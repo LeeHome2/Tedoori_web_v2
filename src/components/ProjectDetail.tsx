@@ -1317,11 +1317,11 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                      {item.type === 'image' || item.type === 'video' ? (
                          item.src ? (
                             <div style={{ position: 'relative', height: '100%', width: 'auto' }}>
-                                <img 
-                                    src={item.src} 
-                                    alt={`Thumbnail ${index}`} 
+                                <img
+                                    src={item.src}
+                                    alt={`Thumbnail ${index}`}
+                                    loading="lazy"
                                     style={{ height: '100%', width: 'auto' }}
-                                    {...({ fetchPriority: 'low' } as React.ImgHTMLAttributes<HTMLImageElement>)} 
                                 />
                                 {item.type === 'video' && (
                                     <div style={{
@@ -1437,12 +1437,12 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                                 
                                 {imageUrl && imageUrl.trim() !== "" && (
                                     <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '0', overflow: 'hidden' }}>
-                                        <Image 
-                                            src={imageUrl} 
-                                            alt="Preview" 
+                                        <Image
+                                            src={imageUrl}
+                                            alt="Preview"
                                             fill
+                                            sizes="400px"
                                             style={{ objectFit: 'cover' }}
-                                            unoptimized
                                         />
                                     </div>
                                 )}

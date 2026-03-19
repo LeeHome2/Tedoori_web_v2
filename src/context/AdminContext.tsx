@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -79,7 +80,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (event === 'SIGNED_IN' && session) {
         setIsAdmin(true);
         setAdminMode(true);

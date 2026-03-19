@@ -1,10 +1,10 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
+// 60초 캐싱, 수정 시 revalidatePath로 즉시 갱신
+export const revalidate = 60;
 
 export interface GalleryImage {
   id: string;
@@ -39,7 +39,7 @@ export async function GET() {
   }
 
   const response = NextResponse.json(data || []);
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   return response;
 }
 
@@ -77,6 +77,7 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
+    revalidatePath('/about');
     return NextResponse.json(data);
   } catch (error: unknown) {
     console.error('Failed to add gallery image:', error);
@@ -110,6 +111,7 @@ export async function PUT(request: Request) {
       });
 
       await Promise.all(updatePromises);
+      revalidatePath('/about');
       return NextResponse.json({ success: true });
     }
 
@@ -130,6 +132,7 @@ export async function PUT(request: Request) {
 
     if (error) throw error;
 
+    revalidatePath('/about');
     return NextResponse.json(data);
   } catch (error: unknown) {
     console.error('Failed to update gallery image:', error);
@@ -158,6 +161,7 @@ export async function DELETE(request: Request) {
 
     if (error) throw error;
 
+    revalidatePath('/about');
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error('Failed to delete gallery image:', error);

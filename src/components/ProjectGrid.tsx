@@ -25,28 +25,29 @@ export default function ProjectGrid() {
     setIsMounted(true);
   }, []);
 
-  // Fetch news and essays for memo link selection
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const [newsRes, essaysRes] = await Promise.all([
-          fetch('/api/news'),
-          fetch('/api/essays')
-        ]);
-        if (newsRes.ok) {
-          const newsData = await newsRes.json();
-          setNewsItems(newsData.map((item: {id: string; title: string}) => ({ id: item.id, title: item.title })));
-        }
-        if (essaysRes.ok) {
-          const essaysData = await essaysRes.json();
-          setEssayItems(essaysData.map((item: {id: string; title: string}) => ({ id: item.id, title: item.title })));
-        }
-      } catch (err) {
-        console.error('Failed to fetch news/essays:', err);
+  // Fetch news and essays for memo link selection - 모달 열릴 때만 조회
+  const [linkItemsFetched, setLinkItemsFetched] = useState(false);
+
+  const fetchLinkItems = useCallback(async () => {
+    if (linkItemsFetched) return; // 이미 조회했으면 스킵
+    try {
+      const [newsRes, essaysRes] = await Promise.all([
+        fetch('/api/news'),
+        fetch('/api/essays')
+      ]);
+      if (newsRes.ok) {
+        const newsData = await newsRes.json();
+        setNewsItems(newsData.map((item: {id: string; title: string}) => ({ id: item.id, title: item.title })));
       }
-    };
-    fetchItems();
-  }, []);
+      if (essaysRes.ok) {
+        const essaysData = await essaysRes.json();
+        setEssayItems(essaysData.map((item: {id: string; title: string}) => ({ id: item.id, title: item.title })));
+      }
+      setLinkItemsFetched(true);
+    } catch (err) {
+      console.error('Failed to fetch news/essays:', err);
+    }
+  }, [linkItemsFetched]);
   
   // Upload State
   const [imageUrl, setImageUrl] = useState('');
@@ -116,7 +117,8 @@ export default function ProjectGrid() {
       setHasDetailLink(true);
       setVisibility('public');
       setIsModalOpen(true);
-  }, []);
+      fetchLinkItems(); // 모달 열릴 때 news/essays 조회
+  }, [fetchLinkItems]);
 
   // Register add action for header
   useEffect(() => {
@@ -143,6 +145,7 @@ export default function ProjectGrid() {
       setHasDetailLink(project.hasDetailLink !== undefined ? project.hasDetailLink : true);
       setVisibility(project.isVisible === undefined || project.isVisible === true ? 'public' : (project.isVisible === false ? 'private' : project.isVisible as 'public' | 'team' | 'private'));
       setIsModalOpen(true);
+      fetchLinkItems(); // 모달 열릴 때 news/essays 조회
   };
 
   const closeModal = () => {
@@ -497,12 +500,12 @@ export default function ProjectGrid() {
                                 
                                 {imageUrl && imageUrl.trim() !== "" && (
                                     <div style={{ position: 'relative', width: '100%', height: '200px', marginBottom: '10px', background: '#f0f0f0', borderRadius: '0', overflow: 'hidden' }}>
-                                        <Image 
-                                            src={imageUrl} 
-                                            alt="Preview" 
+                                        <Image
+                                            src={imageUrl}
+                                            alt="Preview"
                                             fill
+                                            sizes="400px"
                                             style={{ objectFit: 'cover' }}
-                                            unoptimized // For local uploads
                                         />
                                     </div>
                                 )}

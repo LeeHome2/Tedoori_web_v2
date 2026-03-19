@@ -404,7 +404,6 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                   sizes={hasCustomSize ? `${dimensions.width}px` : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
                   placeholder="empty"
                   style={imageStyle}
-                  unoptimized={hasCustomSize}
               />
           ) : (
               <div className={styles.imagePlaceholder} style={{ width: dimensions.width || 600, height: dimensions.height || 400, background: '#f0f0f0' }} />

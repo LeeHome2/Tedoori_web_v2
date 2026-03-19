@@ -867,12 +867,12 @@ export default function AboutPage() {
                       alt=""
                       width={displayWidth || 400}
                       height={displayHeight || 300}
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
                       }}
-                      unoptimized
                     />
 
                     {/* Admin overlay (ProjectCard style) - visible when editing and not resizing */}

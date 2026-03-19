@@ -1,11 +1,10 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
-// Disable all caching for this API route
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
+// 60초 캐싱, 수정 시 revalidatePath로 즉시 갱신
+export const revalidate = 60;
 
 export interface AboutBlock {
   id: string;
@@ -45,7 +44,7 @@ export async function GET() {
   }));
 
   const response = NextResponse.json(normalizedData);
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   return response;
 }
 
@@ -83,6 +82,8 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
+    revalidatePath('/about');
+
     // Return with fontFamily for frontend consistency
     return NextResponse.json({
       ...data,
@@ -118,6 +119,7 @@ export async function PUT(request: Request) {
       });
 
       await Promise.all(updatePromises);
+      revalidatePath('/about');
       return NextResponse.json({ success: true });
     }
 
@@ -137,6 +139,8 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) throw error;
+
+    revalidatePath('/about');
 
     // Return with fontFamily for frontend consistency
     return NextResponse.json({
@@ -170,6 +174,7 @@ export async function DELETE(request: Request) {
 
     if (error) throw error;
 
+    revalidatePath('/about');
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error('Failed to delete block:', error);

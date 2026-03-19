@@ -402,7 +402,6 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                                       fill={item.type === 'video' && !hasCustomSize}
                                       sizes={hasCustomSize ? `${dimensions.width}px` : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
                                       className={styles.image}
-                                      unoptimized
                                       loading="lazy"
                                       style={
                                           item.visibility === 'private'

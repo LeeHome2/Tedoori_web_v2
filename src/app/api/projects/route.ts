@@ -3,11 +3,10 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import type { Project } from '@/data/projects';
 import type { ProjectRow, ProjectDetails } from '@/types/database';
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
-// Disable all caching for this API route
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
+// GET은 60초 캐싱, 수정 시 revalidatePath로 즉시 갱신
+export const revalidate = 60;
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies();
@@ -101,9 +100,7 @@ export async function GET() {
   });
 
   const response = NextResponse.json(projects);
-  // Disable caching
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   return response;
 }
 
@@ -238,10 +235,11 @@ export async function POST(request: Request) {
     descriptionBlocks: data.details?.descriptionBlocks || [],
   };
 
-  const response = NextResponse.json(savedProject);
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-  response.headers.set('Pragma', 'no-cache');
-  return response;
+  // 캐시 무효화 - 홈페이지와 프로젝트 페이지
+  revalidatePath('/');
+  revalidatePath('/projet/[id]', 'page');
+
+  return NextResponse.json(savedProject);
 }
 
 export async function PUT(request: Request) {
@@ -272,10 +270,10 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const response = NextResponse.json({ success: true });
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-    response.headers.set('Pragma', 'no-cache');
-    return response;
+    // 순서 변경 후 캐시 무효화
+    revalidatePath('/');
+
+    return NextResponse.json({ success: true });
   }
 
   // Single project update
@@ -356,10 +354,11 @@ export async function PUT(request: Request) {
     descriptionBlocks: data.details?.descriptionBlocks || [],
   };
 
-  const response = NextResponse.json(updatedProject);
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-  response.headers.set('Pragma', 'no-cache');
-  return response;
+  // 캐시 무효화
+  revalidatePath('/');
+  revalidatePath(`/projet/${data.id}`);
+
+  return NextResponse.json(updatedProject);
 }
 
 export async function DELETE(request: Request) {
@@ -389,8 +388,8 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Project not found' }, { status: 404 });
   }
 
-  const response = NextResponse.json({ success: true });
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-  response.headers.set('Pragma', 'no-cache');
-  return response;
+  // 캐시 무효화
+  revalidatePath('/');
+
+  return NextResponse.json({ success: true });
 }
