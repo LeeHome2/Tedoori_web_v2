@@ -27,6 +27,12 @@ export default function FitTitle({
 
     if (!container || !titleEl) return;
 
+    // Skip text fitting on mobile - let CSS handle wrapping
+    if (window.innerWidth <= 768) {
+      titleEl.style.fontSize = '14px';
+      return;
+    }
+
     // Get the date element
     const dateEl = container.querySelector('[data-date]') as HTMLElement;
     if (!dateEl) return;

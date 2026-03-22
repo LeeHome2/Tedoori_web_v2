@@ -117,6 +117,7 @@
     margin-bottom: 50px;
     padding-left: 0;
     padding-right: 0;
+    overflow: visible;
   }
 
   .pageContainer .contentWrapper {
@@ -126,10 +127,12 @@
 
   .contentTitle {
     font-size: 14px;
-    width: 100%;
-    display: flex;
+    width: fit-content;
     max-width: 100%;
-    overflow: hidden;
+    display: inline-flex;
+    flex-wrap: wrap;
+    overflow: visible;
+    white-space: normal;
   }
 
   .contentDate {
@@ -142,8 +145,10 @@
     font-size: 14px !important;
     min-width: 0;
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    white-space: normal;
+    word-break: keep-all;
+    text-overflow: clip;
   }
 
   /* Gallery area - inline below content on mobile */
