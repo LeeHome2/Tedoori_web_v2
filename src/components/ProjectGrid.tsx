@@ -406,7 +406,7 @@ export default function ProjectGrid() {
               position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
               background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
           }}>
-              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '400px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+              <div style={{ background: 'white', padding: '20px', borderRadius: '0', width: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                       <h2 style={{ margin: '0', fontSize: '18px' }}>{editingProject ? 'Edit' : 'Add'}</h2>
                       <select
