@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createAdminClient } from '@/lib/supabase/server';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+// Cloudflare R2 Client
+const r2Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
 
 async function isAdmin() {
   const cookieStore = await cookies();
@@ -39,7 +49,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    const supabase = createAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Validation: Check file magic bytes (first few bytes to verify actual file type)
@@ -63,47 +72,18 @@ export async function POST(request: Request) {
     const randomStr = Math.random().toString(36).substring(2, 15);
     const filename = `${Date.now()}-${randomStr}${fileExtension}`;
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('project-images')
-      .upload(filename, buffer, {
-        contentType: file.type,
-        upsert: false
-      });
+    // Upload to Cloudflare R2
+    const command = new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: filename,
+      Body: buffer,
+      ContentType: file.type,
+    });
 
-    if (error) {
-      console.error('Supabase upload error:', error);
-      // Try to create bucket if it doesn't exist (only for admin client)
-      if (error.message.includes('Bucket not found')) {
-           const { error: bucketError } = await supabase.storage.createBucket('project-images', {
-               public: true,
-               allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-               fileSizeLimit: 10485760
-           });
-           if (!bucketError) {
-               // Retry upload
-               const { error: retryError } = await supabase.storage
-                   .from('project-images')
-                   .upload(filename, buffer, {
-                       contentType: file.type,
-                       upsert: false
-                   });
-               
-               if (retryError) {
-                   return NextResponse.json({ error: `Upload failed: ${retryError.message}` }, { status: 500 });
-               }
-           } else {
-               return NextResponse.json({ error: 'Storage bucket not found and creation failed' }, { status: 500 });
-           }
-      } else {
-          return NextResponse.json({ error: `Upload failed: ${error.message}` }, { status: 500 });
-      }
-    }
+    await r2Client.send(command);
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('project-images')
-      .getPublicUrl(filename);
+    // Construct public URL
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${filename}`;
 
     return NextResponse.json({
       url: publicUrl,
