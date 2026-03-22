@@ -51,13 +51,15 @@ export default function Header() {
           <div className={styles.rightGroup}>
             {/* Add Button - Admin Mode Only */}
             {isAdmin && adminMode && addAction && (
-              <button
-                onClick={addAction}
-                className={styles.addBtn}
-                title="Add"
-              >
-                ADD
-              </button>
+              <div className={styles.addBtnWrapper}>
+                <button
+                  onClick={addAction}
+                  className={styles.addBtn}
+                  title="Add"
+                >
+                  ADD
+                </button>
+              </div>
             )}
 
             {/* TEDOORI Dropdown */}

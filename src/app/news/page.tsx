@@ -275,9 +275,7 @@ function NewsPageContent() {
                             style={{
                               maxHeight: isExpanded ? '2000px' : '0',
                               overflow: 'hidden',
-                              transition: isExpanded
-                                ? 'max-height 0.4s ease-in-out 0.25s'
-                                : 'max-height 0.2s ease-in-out',
+                              transition: isExpanded ? 'max-height 0.3s ease-in-out' : 'none',
                             }}
                           >
                             <div

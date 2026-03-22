@@ -33,13 +33,18 @@
   position: relative;
   z-index: 102;
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   gap: 50px;
   margin-right: 115px;
   pointer-events: auto;
+  padding-top: 20px;
 }
 
 .menuWrapper {
+  position: relative;
+}
+
+.addBtnWrapper {
   position: relative;
 }
 
@@ -50,8 +55,8 @@
   font-size: 12pt;
   font-weight: 500;
   text-transform: uppercase;
-  margin-top: 23px;
   padding: 10px 15px;
+  margin: 0 -15px;
   color: #202124;
 }
 
@@ -102,16 +107,13 @@
 
 .menuTrigger {
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  height: 20px;
-  margin-top: 33px;
-  margin-right: 0;
   transition: opacity 0.2s ease;
   line-height: 1;
   padding: 10px 15px;
-  margin: 23px -15px 0 -15px; /* 패딩 보정 */
+  margin: 0 -15px;
 }
 
 .menuText {
@@ -135,7 +137,7 @@
 }
 
 .menuList li {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .menuList a {
@@ -144,8 +146,8 @@
   text-transform: capitalize;
   font-weight: 500;
   display: block;
-  padding: 8px 12px;
-  margin: -8px -12px;
+  padding: 5px 12px;
+  margin: -5px -12px;
 }
 
 .menuList a:hover {
@@ -156,8 +158,8 @@
   text-transform: capitalize;
   font-weight: 500;
   display: block;
-  padding: 8px 12px;
-  margin: -8px -12px;
+  padding: 5px 12px;
+  margin: -5px -12px;
 }
 
 .menuList button:hover {

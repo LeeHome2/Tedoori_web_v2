@@ -289,11 +289,13 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
   const [blogScrollPercent, setBlogScrollPercent] = useState(0);
   const [isDraggingBlogScrollbar, setIsDraggingBlogScrollbar] = useState(false);
   const [blogHasScroll, setBlogHasScroll] = useState(false);
+  const [blogScrollThumbHeight, setBlogScrollThumbHeight] = useState(64); // Dynamic thumb height
   const scrollbarTrackRef = useRef<HTMLDivElement>(null);
 
   // Track blog section scroll position
   useEffect(() => {
     const blogSection = blogSectionRef.current;
+    const track = scrollbarTrackRef.current;
     if (!blogSection) return;
 
     const handleScroll = () => {
@@ -301,6 +303,22 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
       const { scrollTop, scrollHeight, clientHeight } = blogSection;
       const maxScroll = scrollHeight - clientHeight;
       setBlogHasScroll(maxScroll > 0);
+
+      // Calculate dynamic thumb height based on visible ratio
+      if (track && scrollHeight > 0) {
+        const trackRect = track.getBoundingClientRect();
+        const trackTop = 0;
+        const trackBottom = trackRect.height;
+        const availableTrackHeight = trackBottom - trackTop;
+
+        // Thumb height = (visible area / total content) * track height
+        const ratio = clientHeight / scrollHeight;
+        const minThumbHeight = 30; // Minimum thumb height
+        const maxThumbHeight = availableTrackHeight;
+        const thumbHeight = Math.max(minThumbHeight, Math.min(maxThumbHeight, ratio * availableTrackHeight));
+        setBlogScrollThumbHeight(thumbHeight);
+      }
+
       if (maxScroll > 0) {
         setBlogScrollPercent(scrollTop / maxScroll);
       } else {
@@ -323,49 +341,112 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     };
   }, [isDraggingBlogScrollbar]);
 
-  // Handle blog scrollbar drag
+  // Handle blog scrollbar drag (supports both scrolling and resizing)
   const handleBlogScrollbarMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingBlogScrollbar(true);
 
     const track = scrollbarTrackRef.current;
     const blogSection = blogSectionRef.current;
     if (!track || !blogSection) return;
 
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let mode: 'undecided' | 'scroll' | 'resize' = 'undecided';
+    const threshold = 5; // pixels to determine direction
+
     const rect = track.getBoundingClientRect();
-    const trackTop = 150;
-    const trackBottom = rect.height - 20;
-    const trackHeight = trackBottom - trackTop - 64; // Account for indicator height
+    const trackTop = 0;
+    const trackBottom = rect.height;
+    const thumbHeight = blogScrollThumbHeight;
+    const trackHeight = trackBottom - trackTop - thumbHeight;
 
     // Calculate initial offset from indicator center to mouse position
     const indicatorTop = trackTop + blogScrollPercent * trackHeight;
-    const initialOffset = e.clientY - rect.top - indicatorTop - 32;
+    const initialScrollOffset = e.clientY - rect.top - indicatorTop - thumbHeight / 2;
 
-    const updateScroll = (clientY: number) => {
-      const currentRect = track.getBoundingClientRect();
-      const relativeY = Math.max(0, Math.min(clientY - currentRect.top - trackTop - 32 - initialOffset, trackHeight));
-      const percent = trackHeight > 0 ? relativeY / trackHeight : 0;
-
-      const { scrollHeight, clientHeight } = blogSection;
-      const maxScroll = scrollHeight - clientHeight;
-      blogSection.scrollTop = percent * maxScroll;
-      setBlogScrollPercent(Math.max(0, Math.min(1, percent)));
-    };
+    // For resizing - calculate initial offset
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    const resizerMargin = 80;
+    const availableWidth = containerRect?.width || 0;
+    const currentBlogWidthPx = (100 - leftPaneWidth) / 100 * availableWidth;
+    const currentResizerX = (containerRect?.left || 0) + currentBlogWidthPx + resizerMargin;
+    const initialResizeOffset = e.clientX - currentResizerX;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      updateScroll(moveEvent.clientY);
+      const deltaX = Math.abs(moveEvent.clientX - startX);
+      const deltaY = Math.abs(moveEvent.clientY - startY);
+
+      // Determine mode based on initial movement direction
+      if (mode === 'undecided') {
+        if (deltaX > threshold || deltaY > threshold) {
+          mode = deltaX > deltaY ? 'resize' : 'scroll';
+          if (mode === 'scroll') {
+            setIsDraggingBlogScrollbar(true);
+          } else {
+            isResizing.current = true;
+            document.body.style.cursor = "ew-resize";
+            document.body.style.userSelect = "none";
+          }
+        }
+        return;
+      }
+
+      if (mode === 'scroll') {
+        // Scroll logic
+        const currentRect = track.getBoundingClientRect();
+        const relativeY = Math.max(0, Math.min(moveEvent.clientY - currentRect.top - trackTop - thumbHeight / 2 - initialScrollOffset, trackHeight));
+        const percent = trackHeight > 0 ? relativeY / trackHeight : 0;
+
+        const { scrollHeight, clientHeight } = blogSection;
+        const maxScroll = scrollHeight - clientHeight;
+        blogSection.scrollTop = percent * maxScroll;
+        setBlogScrollPercent(Math.max(0, Math.min(1, percent)));
+      } else if (mode === 'resize') {
+        // Resize logic (same as handleMouseMove in startResizing)
+        if (!containerRef.current) return;
+        const containerRectNow = containerRef.current.getBoundingClientRect();
+        const paddingRight = 0;
+        const availableWidthNow = containerRectNow.width - paddingRight;
+        const blogWidthPx = moveEvent.clientX - containerRectNow.left - resizerMargin - initialResizeOffset;
+        const blogWidthPercent = (blogWidthPx / availableWidthNow) * 100;
+        let newWidth = 100 - blogWidthPercent;
+
+        // Calculate limits
+        const gridPaddingLeft = 40;
+        const safetyBuffer = 20;
+        const minGalleryWidthPx = maxGalleryItemWidth + gridPaddingLeft + safetyBuffer;
+        const minGalleryPercent = (minGalleryWidthPx / availableWidthNow) * 100;
+        const maxGalleryWidthPx = availableWidthNow - minBlogWidth - resizerWidth;
+        const maxGalleryPercent = (maxGalleryWidthPx / availableWidthNow) * 100;
+
+        const effectiveMin = Math.max(10, minGalleryPercent);
+        const effectiveMax = Math.min(90, maxGalleryPercent);
+        if (newWidth < effectiveMin) newWidth = effectiveMin;
+        if (newWidth > effectiveMax) newWidth = effectiveMax;
+
+        const galleryWidthPx = Math.round((newWidth / 100) * availableWidthNow);
+        newWidth = (galleryWidthPx / availableWidthNow) * 100;
+
+        setLeftPaneWidth(newWidth);
+      }
     };
 
     const handleMouseUp = () => {
-      setIsDraggingBlogScrollbar(false);
+      if (mode === 'scroll') {
+        setIsDraggingBlogScrollbar(false);
+      } else if (mode === 'resize') {
+        isResizing.current = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      }
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [blogScrollPercent]);
+  }, [blogScrollPercent, blogScrollThumbHeight, leftPaneWidth, maxGalleryItemWidth]);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -1000,7 +1081,8 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
           <div
             className={`${styles.scrollbarIndicator} ${styles.scrollbarIndicatorFull}`}
             style={{
-              top: `calc(150px + (100vh - 170px - 64px) * ${blogScrollPercent})`,
+              top: `calc((100vh - ${blogScrollThumbHeight}px) * ${blogScrollPercent})`,
+              height: `${blogScrollThumbHeight}px`,
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
