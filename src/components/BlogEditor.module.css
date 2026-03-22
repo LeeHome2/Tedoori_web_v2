@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #333;
+  color: #202124;
 }
 
 .toolBtn:hover {
@@ -116,5 +116,5 @@
 }
 
 .editorContent :global(.ProseMirror img.ProseMirror-selectednode) {
-  outline: 2px solid #2a2a2a;
+  outline: 2px solid #202124;
 }

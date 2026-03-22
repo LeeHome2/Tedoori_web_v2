@@ -27,7 +27,7 @@
   cursor: pointer;
   font-size: 11px;
   font-weight: 500;
-  color: #333;
+  color: #202124;
   transition: all 0.15s ease;
 }
 
@@ -59,7 +59,7 @@
 
 .sizeInput:focus {
   outline: none;
-  border-color: #333;
+  border-color: #202124;
 }
 
 /* Remove number input arrows */
@@ -92,7 +92,7 @@
 }
 
 .lockBtn.locked {
-  color: #333;
+  color: #202124;
 }
 
 .fixedToggle {
@@ -113,12 +113,12 @@
   width: 14px;
   height: 14px;
   cursor: pointer;
-  accent-color: #333;
+  accent-color: #202124;
 }
 
 .checkboxLabel {
   font-size: 12px;
-  color: #333;
+  color: #202124;
   user-select: none;
 }
 
@@ -142,11 +142,11 @@
 
 .alignBtn:hover {
   background: #f0f0f0;
-  color: #333;
+  color: #202124;
 }
 
 .alignBtn.active {
   background: #e0e0e0;
   border-color: #ccc;
-  color: #333;
+  color: #202124;
 }

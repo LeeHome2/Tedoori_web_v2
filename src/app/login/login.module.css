@@ -19,7 +19,7 @@
   text-align: center;
   margin-bottom: 2rem;
   font-size: 1.5rem;
-  color: #333;
+  color: #202124;
 }
 
 .form {
@@ -36,7 +36,7 @@
 
 .formGroup label {
   font-weight: 500;
-  color: #333;
+  color: #202124;
 }
 
 .formGroup input {

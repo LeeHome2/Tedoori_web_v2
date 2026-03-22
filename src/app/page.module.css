@@ -2,7 +2,7 @@
   --background: #fafafa;
   --foreground: #fff;
 
-  --text-primary: #2a2a2a;
+  --text-primary: #202124;
   --text-secondary: #666;
 
   --button-primary-hover: #383838;
@@ -128,8 +128,8 @@ a.secondary {
   }
 
   .page {
-    --background: #2a2a2a;
-    --foreground: #2a2a2a;
+    --background: #202124;
+    --foreground: #202124;
 
     --text-primary: #ededed;
     --text-secondary: #999;

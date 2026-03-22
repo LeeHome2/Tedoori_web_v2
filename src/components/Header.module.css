@@ -50,9 +50,9 @@
   font-size: 12pt;
   font-weight: 500;
   text-transform: uppercase;
-  margin-top: 33px;
-  padding: 0;
-  color: #2a2a2a;
+  margin-top: 23px;
+  padding: 10px 15px;
+  color: #202124;
 }
 
 .addBtn:hover {
@@ -84,18 +84,19 @@
   top: 100%;
   left: 0;
   opacity: 0;
-  transform: translate(0, -10px);
+  transform: translateY(-8px);
   pointer-events: none;
   background: transparent;
   padding-top: 10px;
   min-width: 150px;
   text-align: left;
   z-index: 9999;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .menuNav.open {
   opacity: 1;
-  transform: translate(0, 0);
+  transform: translateY(0);
   pointer-events: auto;
 }
 
@@ -109,6 +110,8 @@
   margin-right: 0;
   transition: opacity 0.2s ease;
   line-height: 1;
+  padding: 10px 15px;
+  margin: 23px -15px 0 -15px; /* 패딩 보정 */
 }
 
 .menuText {
@@ -137,9 +140,12 @@
 
 .menuList a {
   text-decoration: none;
-  color: #2a2a2a;
+  color: #202124;
   text-transform: capitalize;
   font-weight: 500;
+  display: block;
+  padding: 8px 12px;
+  margin: -8px -12px;
 }
 
 .menuList a:hover {
@@ -149,6 +155,9 @@
 .menuList button {
   text-transform: capitalize;
   font-weight: 500;
+  display: block;
+  padding: 8px 12px;
+  margin: -8px -12px;
 }
 
 .menuList button:hover {
@@ -213,11 +222,13 @@
   }
 
   .menuTrigger {
-    margin-top: 9px;
+    margin-top: -1px;
+    margin-left: -15px;
+    margin-right: -15px;
   }
 
   .addBtn {
-    margin-top: 13px;
+    margin-top: 3px;
   }
 
   .menuNav {

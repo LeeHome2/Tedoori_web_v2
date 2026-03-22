@@ -79,8 +79,8 @@
     width: 10px;
     height: 10px;
     margin-top: 2px;
-    border-top: 2px solid black;
-    border-left: 2px solid black;
+    border-top: 2px solid #202124;
+    border-left: 2px solid #202124;
 }
 
 .arrowLeftSmall {

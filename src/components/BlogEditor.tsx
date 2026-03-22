@@ -99,7 +99,7 @@ export default function BlogEditor({ content, editable, onChange, projectId }: B
       FontSize,
       Highlight,
       Dropcursor.configure({
-        color: '#2a2a2a',
+        color: '#202124',
         width: 2,
       }),
       // HardBreak (Shift+Enter) is included in StarterKit

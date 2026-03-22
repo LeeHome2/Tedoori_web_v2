@@ -65,7 +65,7 @@
 
 .overlayInfo {
   /* Ensure visibility below image */
-  color: #2a2a2a; 
+  color: #202124; 
   font-size: 13px;
   line-height: 1.2;
   margin-top: 8px; /* Spacing from image */
@@ -110,7 +110,7 @@
 .editBtn, .deleteBtn, .resizeToggleBtn {
     padding: 3px 6px;
     background: #f0f0f0;
-    color: #333;
+    color: #202124;
     border: 1px solid #ddd;
     border-radius: 0;
     cursor: pointer;
@@ -253,7 +253,7 @@
 
 /* Resize Styles */
 .resizing {
-    outline: 2px dashed #2a2a2a;
+    outline: 2px dashed #202124;
     z-index: 50;
     overflow: visible !important;
 }
@@ -267,7 +267,7 @@
     width: 12px;
     height: 12px;
     background: white;
-    border: 1px solid black;
+    border: 1px solid #202124;
     z-index: 20;
 }
 
@@ -288,7 +288,7 @@
     flex-direction: column;
     gap: 8px;
     min-width: 200px;
-    border: 1px solid black;
+    border: 1px solid #202124;
 }
 
 .resizeControlsRow {
@@ -320,7 +320,7 @@
 
 .resizeBtn {
     padding: 6px 12px;
-    background: #2a2a2a;
+    background: #202124;
     color: white;
     border: none;
     border-radius: 0;
@@ -331,7 +331,7 @@
 
 .resizeBtn.cancel {
     background: #eee;
-    color: #2a2a2a;
+    color: #202124;
     border: 1px solid #ccc;
 }
 
@@ -340,13 +340,13 @@
     border: none;
     padding: 0;
     font-size: 12px;
-    color: #333;
+    color: #202124;
     text-decoration: underline;
     cursor: pointer;
 }
 
 .resetLink:hover {
-    color: #2a2a2a;
+    color: #202124;
 }
 
 /* Video Styles */
@@ -388,7 +388,7 @@
     width: 90%;
     max-width: 1000px;
     aspect-ratio: 16 / 9;
-    background: #2a2a2a;
+    background: #202124;
 }
 
 .closeVideo {
@@ -426,7 +426,7 @@
     height: 100%;
     font-size: 16px;
     line-height: 1.6;
-    color: #333;
+    color: #202124;
     text-align: center;
     white-space: pre-wrap;
     overflow: hidden;
@@ -439,7 +439,7 @@
     background: transparent;
     font-size: 16px;
     line-height: 1.6;
-    color: #333;
+    color: #202124;
     text-align: center;
     resize: none;
     outline: none;

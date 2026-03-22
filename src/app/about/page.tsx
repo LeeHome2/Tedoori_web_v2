@@ -743,7 +743,7 @@ export default function AboutPage() {
                         </div>
                       ) : (
                         <div
-                          style={{ color: '#2a2a2a', whiteSpace: 'pre-wrap', fontFamily: (block.fontFamily || (block as any).font_family) === 'serif' ? '"Noto Serif KR", serif' : '"Noto Sans KR", sans-serif' }}
+                          style={{ color: '#202124', whiteSpace: 'pre-wrap', fontFamily: (block.fontFamily || (block as any).font_family) === 'serif' ? '"Noto Serif KR", serif' : '"Noto Sans KR", sans-serif' }}
                           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.content.replace(/\n/g, '<br>'), { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
                         />
                       )}
@@ -856,7 +856,7 @@ export default function AboutPage() {
                     width: displayWidth ? `${displayWidth}px` : 'auto',
                     maxWidth: '100%',
                     position: 'relative',
-                    outline: isCurrentlyResizing ? '2px dashed #2a2a2a' : 'none',
+                    outline: isCurrentlyResizing ? '2px dashed #202124' : 'none',
                     zIndex: isCurrentlyResizing ? 50 : 'auto',
                   }}
                 >
