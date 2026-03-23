@@ -441,8 +441,8 @@
   left: 4px; /* Align with resizer: -4px + 4px = 0px */
   width: 1px;
   height: 100%;
-  background-color: #999;
-  box-shadow: -1px 0 0 #999, 1px 0 0 #999;
+  background-color: #bbb;
+  box-shadow: -1px 0 0 #bbb, 1px 0 0 #bbb;
 }
 
 .scrollbarIndicatorFull {
