@@ -102,17 +102,31 @@
   .infoColumn {
     flex-shrink: 0;
     padding-left: 20px; /* Reset padding for mobile */
+    padding-right: 20px; /* Match left padding for balanced text */
     padding-bottom: 20px;
     padding-top: 150px;
     border-bottom: 1px solid #eee; /* Added separator line */
     margin-bottom: 20px; /* Spacing after line */
     overflow: visible; /* Show full content on mobile */
     height: auto;
+    box-sizing: border-box; /* Prevent padding from causing overflow */
   }
 
   .blogSection {
     margin-left: 0; /* Align with logo left edge */
     padding-right: 0; /* Remove right padding on mobile */
+  }
+
+  .blogContent {
+    overflow-x: hidden; /* Prevent horizontal overflow */
+  }
+
+  .blogContent img {
+    max-width: 100% !important; /* Force all images to fit */
+  }
+
+  .blogContent img[data-fixed-size="true"] {
+    max-width: 100% !important; /* Override fixed-size on mobile */
   }
 
   .grid {
@@ -173,6 +187,8 @@
     font-size: 16px;
     line-height: 1.8;
     color: #202124;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .blogContent p {
@@ -683,12 +699,19 @@
   min-height: 200px; /* Ensure visibility */
   border-radius: 0; /* Square corners */
   border: none;
-  overflow-y: auto; /* Scrollable if too long */
+  overflow: hidden; /* Hidden by default */
   word-wrap: break-word; /* Break long words */
   white-space: pre-wrap; /* Preserve newlines */
   color: #202124;
   display: flex;
   flex-direction: column;
+}
+.textItem:hover {
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.textItem::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
 
 /* Admin Image Controls */
@@ -855,14 +878,9 @@
   border: none;
 
   /* Text Handling */
-  overflow: hidden;
+  overflow: auto;
   word-wrap: break-word;
   white-space: pre-wrap; /* Preserve newlines but wrap */
-  
-  /* Multi-line ellipsis for long text */
-  display: -webkit-box;
-  -webkit-line-clamp: 12; /* Adjust based on typical content */
-  -webkit-box-orient: vertical;
   
   /* Font sizing */
   font-size: clamp(1rem, 2vmin, 2rem);

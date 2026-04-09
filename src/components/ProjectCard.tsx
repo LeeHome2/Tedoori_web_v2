@@ -440,7 +440,7 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                         onClick={(e) => e.stopPropagation()}
                         onMouseDown={(e) => e.stopPropagation()} // Prevent drag start
                         style={{
-                            fontFamily: project.memoStyle?.fontFamily,
+                            fontFamily: project.memoStyle?.fontFamily === 'serif' ? '"Noto Serif KR", serif' : project.memoStyle?.fontFamily === 'sans' ? '"Noto Sans KR", sans-serif' : project.memoStyle?.fontFamily,
                             fontSize: project.memoStyle?.fontSize,
                             color: project.memoStyle?.color,
                             textAlign: project.memoStyle?.textAlign,
@@ -449,7 +449,7 @@ export default function ProjectCard({ project, onEdit, priority = false }: Proje
                     />
                 ) : (
                     <div className={styles.memoText} style={{
-                        fontFamily: project.memoStyle?.fontFamily,
+                        fontFamily: project.memoStyle?.fontFamily === 'serif' ? '"Noto Serif KR", serif' : project.memoStyle?.fontFamily === 'sans' ? '"Noto Sans KR", sans-serif' : project.memoStyle?.fontFamily,
                         fontSize: project.memoStyle?.fontSize,
                         color: project.memoStyle?.color,
                         textAlign: project.memoStyle?.textAlign,

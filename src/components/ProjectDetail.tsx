@@ -602,6 +602,12 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     const item = project.galleryImages?.[itemIndex];
     if (!item) return;
 
+    // Admin mode + memo: open edit modal directly instead of lightbox
+    if (isAdmin && adminMode && item.type === 'text') {
+      openEditModal(itemIndex, item);
+      return;
+    }
+
     // Open lightbox for both admin and normal mode
     // Admin can use the "Edit" button in the overlay to edit items
     setCurrentItemIndex(itemIndex);
@@ -671,6 +677,12 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
     // Scroll navigation: scroll down = next, scroll up = previous
     let scrollTimeout: NodeJS.Timeout | null = null;
     const handleWheel = (e: WheelEvent) => {
+      // If scrolling over a lightbox text/memo item, let it scroll naturally
+      const target = e.target as HTMLElement;
+      if (target.closest(`.${styles.lightboxTextItem}`)) {
+        return;
+      }
+
       e.preventDefault();
 
       // Debounce to prevent rapid scrolling
@@ -1174,7 +1186,11 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                  <div 
                     className={styles.lightboxTextItem}
                     style={{
-                        fontFamily: currentItem.style?.fontFamily,
+                        fontFamily: currentItem.style?.fontFamily === 'serif'
+                            ? '"Noto Serif KR", serif'
+                            : currentItem.style?.fontFamily === 'sans'
+                              ? '"Noto Sans KR", sans-serif'
+                              : currentItem.style?.fontFamily,
                         fontSize: currentItem.style?.fontSize,
                         backgroundColor: currentItem.style?.backgroundColor,
                         color: currentItem.style?.color,
@@ -1518,14 +1534,14 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                                           />
                                       </div>
                                   </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', gridColumn: 'span 2' }}>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                       <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Alignment:</span>
-                                      <div style={{ display: 'flex', gap: '15px' }}>
+                                      <div style={{ display: 'flex', gap: '15px', marginTop: '0' }}>
                                           {['left', 'center', 'right', 'justify'].map(align => (
                                               <label key={align} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '12px' }}>
-                                                  <input 
-                                                      type="radio" 
-                                                      name="textAlign" 
+                                                  <input
+                                                      type="radio"
+                                                      name="textAlign"
                                                       value={align}
                                                       checked={memoStyle.textAlign === align || (!memoStyle.textAlign && align === 'left')}
                                                       onChange={(e) => setMemoStyle(prev => ({ ...prev, textAlign: e.target.value as any }))}
@@ -1534,6 +1550,17 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                                               </label>
                                           ))}
                                       </div>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font:</span>
+                                      <select
+                                          value={memoStyle.fontFamily || 'sans'}
+                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontFamily: e.target.value }))}
+                                          style={{ fontSize: '11px', padding: '2px 4px', border: '1px solid #ccc' }}
+                                      >
+                                          <option value="sans">Noto Sans</option>
+                                          <option value="serif">Noto Serif</option>
+                                      </select>
                                   </label>
                               </div>
                               <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
@@ -1551,7 +1578,7 @@ export default function ProjectDetail({ project: initialProject, prevProject, ne
                                             borderRadius: '0', 
                                             resize: 'vertical',
                                             // Preview styles
-                                            fontFamily: memoStyle.fontFamily,
+                                            fontFamily: memoStyle.fontFamily === 'serif' ? '"Noto Serif KR", serif' : memoStyle.fontFamily === 'sans' ? '"Noto Sans KR", sans-serif' : memoStyle.fontFamily,
                                             fontSize: memoStyle.fontSize,
                                             backgroundColor: memoStyle.backgroundColor,
                                             color: memoStyle.color,

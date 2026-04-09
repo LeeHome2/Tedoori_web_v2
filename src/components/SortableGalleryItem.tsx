@@ -140,6 +140,13 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   const hasTitle = item.showTitle && item.title;
   const isTextType = item.type === 'text';
 
+  // Resolve font family shorthand to CSS font-family
+  const resolvedFontFamily = item.style?.fontFamily === 'serif'
+    ? '"Noto Serif KR", serif'
+    : item.style?.fontFamily === 'sans'
+      ? '"Noto Sans KR", sans-serif'
+      : item.style?.fontFamily;
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isResizing ? 'none' : (transition ? `${transition}, width 0.3s ease, height 0.3s ease` : undefined),
@@ -488,7 +495,7 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                         resize: 'none',
                         border: 'none',
                         outline: '2px solid black', // Visual indicator for editing
-                        fontFamily: item.style?.fontFamily,
+                        fontFamily: resolvedFontFamily,
                         fontSize: item.style?.fontSize,
                         backgroundColor: item.style?.backgroundColor || '#ffffff',
                         color: item.style?.color,
@@ -500,31 +507,30 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
                 />
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: 'auto' }}>
-                    <div
-                        className={styles.textItem}
-                        onClick={handleTextClick}
-                        style={{
-                            ...(item.visibility === 'private' ? { opacity: 0.5 } : {}),
-                            width: hasCustomSize ? `${dimensions.width}px` : '100%',
-                            height: hasCustomSize ? `${dimensions.height}px` : '200px',
-                            minHeight: 'unset',
-                            fontFamily: item.style?.fontFamily,
-                            fontSize: item.style?.fontSize,
-                            backgroundColor: item.style?.backgroundColor || '#ffffff',
-                            color: item.style?.color,
-                            textAlign: item.style?.textAlign as any,
-                            padding: '20px',
-                            boxSizing: 'border-box',
-                            overflow: 'hidden',
-                            display: 'block',
-                            whiteSpace: 'pre-wrap', // Preserve line breaks
-                            cursor: isAdmin && adminMode ? 'text' : 'pointer',
-                            position: 'relative',
-                            flexShrink: 0
-                        }}
-                    >
-                        {item.content}
-                        {/* Admin Overlay - text 타입 내부에 배치 */}
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <div
+                            className={styles.textItem}
+                            onClick={handleTextClick}
+                            style={{
+                                ...(item.visibility === 'private' ? { opacity: 0.5 } : {}),
+                                width: hasCustomSize ? `${dimensions.width}px` : '100%',
+                                height: hasCustomSize ? `${dimensions.height}px` : '200px',
+                                minHeight: 'unset',
+                                fontFamily: resolvedFontFamily,
+                                fontSize: item.style?.fontSize,
+                                backgroundColor: item.style?.backgroundColor || '#ffffff',
+                                color: item.style?.color,
+                                textAlign: item.style?.textAlign as any,
+                                padding: '20px',
+                                boxSizing: 'border-box',
+                                display: 'block',
+                                whiteSpace: 'pre-wrap',
+                                cursor: isAdmin && adminMode ? 'text' : 'pointer',
+                            }}
+                        >
+                            {item.content}
+                        </div>
+                        {/* Admin Overlay - 스크롤 영역 바깥, 카드 영역 위에 고정 */}
                         {isAdmin && adminMode && !isResizing && !isEditingText && (
                             <div className={styles.adminOverlay}
                                  onClick={(e) => e.stopPropagation()}

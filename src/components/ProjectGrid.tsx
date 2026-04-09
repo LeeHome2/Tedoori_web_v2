@@ -582,14 +582,14 @@ export default function ProjectGrid() {
                                           />
                                       </div>
                                   </label>
-                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', gridColumn: 'span 2' }}>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                       <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Alignment:</span>
-                                      <div style={{ display: 'flex', gap: '15px' }}>
+                                      <div style={{ display: 'flex', gap: '15px', marginTop: '0' }}>
                                           {['left', 'center', 'right', 'justify'].map(align => (
                                               <label key={align} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '12px' }}>
-                                                  <input 
-                                                      type="radio" 
-                                                      name="textAlign" 
+                                                  <input
+                                                      type="radio"
+                                                      name="textAlign"
                                                       value={align}
                                                       checked={memoStyle.textAlign === align || (!memoStyle.textAlign && align === 'left')}
                                                       onChange={(e) => setMemoStyle(prev => ({ ...prev, textAlign: e.target.value as any }))}
@@ -598,6 +598,17 @@ export default function ProjectGrid() {
                                               </label>
                                           ))}
                                       </div>
+                                  </label>
+                                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                      <span style={{ fontWeight: 'bold', fontSize: '12px' }}>Font:</span>
+                                      <select
+                                          value={memoStyle.fontFamily || 'sans'}
+                                          onChange={(e) => setMemoStyle(prev => ({ ...prev, fontFamily: e.target.value }))}
+                                          style={{ fontSize: '11px', padding: '2px 4px', border: '1px solid #ccc' }}
+                                      >
+                                          <option value="sans">Noto Sans</option>
+                                          <option value="serif">Noto Serif</option>
+                                      </select>
                                   </label>
                               </div>
                               <label style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
@@ -615,7 +626,7 @@ export default function ProjectGrid() {
                                         borderRadius: '0', 
                                         resize: 'vertical',
                                         // Preview styles
-                                        fontFamily: memoStyle.fontFamily,
+                                        fontFamily: memoStyle.fontFamily === 'serif' ? '"Noto Serif KR", serif' : memoStyle.fontFamily === 'sans' ? '"Noto Sans KR", sans-serif' : memoStyle.fontFamily,
                                         fontSize: memoStyle.fontSize,
                                         backgroundColor: memoStyle.backgroundColor,
                                         color: memoStyle.color,
