@@ -141,11 +141,12 @@ export function SortableGalleryItem({ item, index, onDelete, onClick, onUpdate, 
   const isTextType = item.type === 'text';
 
   // Resolve font family shorthand to CSS font-family
-  const resolvedFontFamily = item.style?.fontFamily === 'serif'
+  const itemStyle = item.type === 'text' ? item.style : undefined;
+  const resolvedFontFamily = itemStyle?.fontFamily === 'serif'
     ? '"Noto Serif KR", serif'
-    : item.style?.fontFamily === 'sans'
+    : itemStyle?.fontFamily === 'sans'
       ? '"Noto Sans KR", sans-serif'
-      : item.style?.fontFamily;
+      : itemStyle?.fontFamily;
 
   const style = {
     transform: CSS.Transform.toString(transform),
