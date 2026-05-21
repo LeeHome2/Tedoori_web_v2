@@ -90,12 +90,22 @@
   text-overflow: ellipsis;
 }
 
-/* Tablet (iPad) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet (iPad) - including iPad Pro landscape */
+@media (min-width: 769px) and (max-width: 1400px) {
   .contentWrapper {
     margin-left: 30px;
-    width: calc(50vw - 70px);
+    width: calc(50vw - 60px);
     min-width: 150px;
+    overflow: visible;
+  }
+
+  .contentTitle {
+    overflow: visible;
+  }
+
+  .contentTitleText {
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .galleryArea {

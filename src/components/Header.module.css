@@ -181,8 +181,8 @@
   color: #666;
 }
 
-/* Tablet (iPad) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet (iPad) - including iPad Pro landscape */
+@media (min-width: 769px) and (max-width: 1400px) {
   .header {
     left: 0;
     padding: 30px;

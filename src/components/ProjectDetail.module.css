@@ -69,14 +69,35 @@
   }
 }
 
-/* Tablet (iPad) */
-@media (min-width: 769px) and (max-width: 1024px) {
+/* Tablet (iPad) - including iPad Pro landscape */
+@media (min-width: 769px) and (max-width: 1400px) {
   .container {
     padding-right: 0;
   }
 
   .infoColumn {
     padding-left: 30px;
+  }
+
+  .imageColumn {
+    padding-left: 20px;
+    padding-right: 30px;
+  }
+
+  /* Limit gallery image size on tablet */
+  .imageWrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .imageWrapper .image {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .grid {
+    gap: 40px;
   }
 }
 
