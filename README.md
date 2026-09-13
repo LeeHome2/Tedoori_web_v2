@@ -1,7 +1,4 @@
-<!--
-  Tedoori_web_v2 README 초안 — 이 내용을 레포 루트의 README.md 로 교체하세요.
-  [ ] 표시는 확인/교체 필요. 스크린샷 경로(docs/…)는 실제 이미지 추가 후 연결.
--->
+
 <div align="center">
 
 # 🏛️ Tedoori Web
