@@ -27,8 +27,7 @@
 - **무엇:** 실제 건축사사무소가 운영하는 프로젝트 포트폴리오 + 블로그 웹사이트 ([tedoori.net](https://tedoori.net) 배포·운영 중)
 - **왜:** 건축가가 개발자 없이도 직접 프로젝트/글/이미지를 올리고 정렬할 수 있는 **관리자 CMS**가 필요했음
 - **특징:** 별도 백오피스 없이, 같은 사이트에서 **관리자 모드 토글** 하나로 콘텐츠를 실시간 편집 (드래그 정렬 · WYSIWYG 에디터 · 이미지 업로드)
-- **기간·인원:** [ 2026.0X ~ 현재 · 개인/팀 여부 확인 ]
-- **내 역할:** [ 예: 프론트엔드·백엔드 풀스택 개발, Supabase 스키마 설계, 이미지 파이프라인 구축 — 실제 담당 파트로 교체 ]
+- **내 역할:** [ 프론트엔드·백엔드 풀스택 개발, Supabase 스키마 설계, 이미지 파이프라인 구축 ]
 
 <!-- 스크린샷 1~2장 추가 시 임팩트 큼. 예: docs/home.png, docs/admin.png -->
 <!-- ![메인 화면](docs/screenshot-home.png) -->
@@ -52,13 +51,13 @@
 
 ```mermaid
 flowchart LR
-    U[방문자 / 관리자] --> N[Next.js App Router<br/>SSR + Client]
-    N -->|API Routes| API[/api: projects · essays<br/>news · about · upload · auth/]
-    API --> DB[(Supabase<br/>PostgreSQL)]
-    API --> S[Supabase Storage<br/>이미지 호스팅]
-    N --> MAP[Google Maps API]
-    subgraph 이미지 파이프라인 (오프라인 스크립트)
-      SC[scrape<br/>cheerio] --> DL[download] --> OP[optimize<br/>sharp WebP] --> UP[upload<br/>Supabase/SFTP] --> US[upsert DB]
+    U["방문자 / 관리자"] --> N["Next.js App Router<br/>SSR + Client"]
+    N -->|"API Routes"| API["/api: projects · essays<br/>news · about · upload · auth"]
+    API --> DB[("Supabase<br/>PostgreSQL")]
+    API --> S["Supabase Storage<br/>이미지 호스팅"]
+    N --> MAP["Google Maps API"]
+    subgraph PIPE["이미지 파이프라인 (오프라인 스크립트)"]
+      SC["scrape<br/>cheerio"] --> DL["download"] --> OP["optimize<br/>sharp WebP"] --> UP["upload<br/>Supabase/SFTP"] --> US["upsert DB"]
     end
     US --> DB
 ```
@@ -127,8 +126,4 @@ Vercel에 GitHub 저장소를 연결하고 환경변수 3개를 설정하면 자
 
 ## 👤 역할
 
-[ 팀 프로젝트면 아래처럼, 개인이면 "개인 프로젝트 (풀스택)" 로 정리 ]
-
-| 이름 | 역할 |
-|---|---|
-| 이호민 | [ 담당 파트 — 예: 풀스택 개발 전반, Supabase 설계, 이미지 파이프라인 ] |
+[ 개인 프로젝트 (풀스택) ]
