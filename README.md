@@ -17,6 +17,7 @@
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
 
 **[🔗 라이브 사이트 tedoori.net](https://tedoori.net)**
+<img width="2493" height="1227" alt="image" src="https://github.com/user-attachments/assets/77493a74-18ed-44ce-9e8b-06fb16abe679" />
 
 </div>
 
