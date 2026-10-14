@@ -5,8 +5,8 @@ import type { ProjectRow, ProjectDetails } from '@/types/database';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-// GET은 60초 캐싱, 수정 시 revalidatePath로 즉시 갱신
-export const revalidate = 60;
+// This endpoint varies by authentication and must always return current data.
+export const revalidate = 0;
 
 async function getAuthenticatedClient() {
   const cookieStore = await cookies();
@@ -100,7 +100,7 @@ export async function GET() {
   });
 
   const response = NextResponse.json(projects);
-  response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  response.headers.set('Cache-Control', 'private, no-store');
   return response;
 }
 
@@ -357,6 +357,9 @@ export async function PUT(request: Request) {
   // 캐시 무효화
   revalidatePath('/');
   revalidatePath(`/projet/${data.id}`);
+  if (originalId && originalId !== data.id) {
+    revalidatePath(`/projet/${originalId}`);
+  }
 
   return NextResponse.json(updatedProject);
 }

@@ -59,6 +59,7 @@ export default function ProjectGrid() {
   const [isYoutube, setIsYoutube] = useState(false);
   const [youtubeId, setYoutubeId] = useState('');
   const [fetchingVideo, setFetchingVideo] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Memo State
   const [projectType, setProjectType] = useState<'project' | 'video' | 'memo'>('project');
@@ -276,6 +277,7 @@ export default function ProjectGrid() {
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      if (saving) return;
       const formData = new FormData(e.currentTarget);
 
       // Use state imageUrl instead of formData if available
@@ -305,36 +307,43 @@ export default function ProjectGrid() {
           isVisible: visibility,
       };
 
-      if (editingProject) {
-          // Keep existing slug/link if editing, unless user cleared link?
-          // For now, assume editing doesn't change slug/link unless we add inputs for them.
-          // Since we don't have inputs for slug, we preserve the original project's slug.
-          const originalId = editingProject.id;
-          const newId = projectData.id;
+      try {
+          setSaving(true);
+          if (editingProject) {
+              // Keep existing slug/link if editing, unless user cleared link?
+              // For now, assume editing doesn't change slug/link unless we add inputs for them.
+              // Since we don't have inputs for slug, we preserve the original project's slug.
+              const originalId = editingProject.id;
+              const newId = projectData.id;
 
-          // Check for duplicate ID if ID changed
-          if (originalId !== newId && projects.some(p => p.id === newId)) {
-              setUploadError("Project ID already exists. Please choose a unique ID.");
-              return;
-          }
+              // Check for duplicate ID if ID changed
+              if (originalId !== newId && projects.some(p => p.id === newId)) {
+                  setUploadError("Project ID already exists. Please choose a unique ID.");
+                  return;
+              }
 
-          // Ensure projectData has all required fields for update
-          const updatedProject = { ...editingProject, ...projectData };
+              // Ensure projectData has all required fields for update
+              const updatedProject = { ...editingProject, ...projectData };
 
-          if (originalId !== newId) {
-              await updateProject(updatedProject, originalId);
+              if (originalId !== newId) {
+                  await updateProject(updatedProject, originalId);
+              } else {
+                  await updateProject(updatedProject);
+              }
           } else {
-              await updateProject(updatedProject);
+              // Check for duplicate ID
+              if (projects.some(p => p.id === projectData.id)) {
+                  setUploadError("Project ID already exists. Please choose a unique ID.");
+                  return;
+              }
+              await addProject(projectData as Project);
           }
-      } else {
-          // Check for duplicate ID
-          if (projects.some(p => p.id === projectData.id)) {
-              setUploadError("Project ID already exists. Please choose a unique ID.");
-              return;
-          }
-          await addProject(projectData as Project);
+          closeModal();
+      } catch (error) {
+          setUploadError(error instanceof Error ? error.message : 'Failed to save project');
+      } finally {
+          setSaving(false);
       }
-      closeModal();
   };
 
   // Show loading only if we truly have no projects and are loading
@@ -592,7 +601,7 @@ export default function ProjectGrid() {
                                                       name="textAlign"
                                                       value={align}
                                                       checked={memoStyle.textAlign === align || (!memoStyle.textAlign && align === 'left')}
-                                                      onChange={(e) => setMemoStyle(prev => ({ ...prev, textAlign: e.target.value as any }))}
+                                                      onChange={(e) => setMemoStyle(prev => ({ ...prev, textAlign: e.target.value as NonNullable<MemoStyle['textAlign']> }))}
                                                   />
                                                   {align.charAt(0).toUpperCase() + align.slice(1)}
                                               </label>
@@ -686,8 +695,8 @@ export default function ProjectGrid() {
                                   Delete
                               </button>
                           )}
-                          <button type="submit" disabled={uploading || fetchingVideo} style={{ flex: 1, padding: '10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', textDecoration: 'underline', opacity: (uploading || fetchingVideo) ? 0.7 : 1 }}>
-                              {editingProject ? 'Update' : 'Create'}
+                          <button type="submit" disabled={uploading || fetchingVideo || saving} style={{ flex: 1, padding: '10px', background: 'none', color: 'black', border: 'none', cursor: 'pointer', textDecoration: 'underline', opacity: (uploading || fetchingVideo || saving) ? 0.7 : 1 }}>
+                              {saving ? 'Saving...' : editingProject ? 'Update' : 'Create'}
                           </button>
                       </div>
                   </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from 'react';
 import { Project } from '@/data/projects';
 import { useAdmin } from './AdminContext';
 
@@ -32,6 +32,9 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
   const [loading, setLoading] = useState(false); // Start with false if we have initial data
   const [error, setError] = useState<string | null>(null);
   const { isAdmin } = useAdmin();
+  const refreshVersion = useRef(0);
+  const pendingUpdates = useRef(0);
+  const updateVersions = useRef(new Map<string, number>());
 
   // Undo/Redo history
   const [history, setHistory] = useState<Project[][]>([initialProjects]);
@@ -40,23 +43,22 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
   const clearError = () => setError(null);
 
   const fetchProjects = useCallback(async () => {
+    if (pendingUpdates.current > 0) return;
+    const version = ++refreshVersion.current;
     setLoading(true);
     try {
       const res = await fetch('/api/projects', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to load projects');
       const data = await res.json();
+      if (version !== refreshVersion.current || pendingUpdates.current > 0) return;
       setProjects(data);
-      // Initialize history
-      if (historyIndex === -1) {
-          setHistory([data]);
-          setHistoryIndex(0);
-      }
     } catch (error) {
       console.error('Failed to fetch projects', error);
-      setError('Failed to load projects');
+      if (version === refreshVersion.current) setError('Failed to load projects');
     } finally {
-      setLoading(false);
+      if (version === refreshVersion.current) setLoading(false);
     }
-  }, [historyIndex]);
+  }, []);
 
   useEffect(() => {
     // Only fetch if we don't have initial data
@@ -154,10 +156,15 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
 
   const updateProject = async (project: Project, originalId?: string) => {
     const targetId = originalId || project.id;
-    const previousProjects = [...projects];
-    const newProjects = projects.map(p => p.id === targetId ? project : p);
-    setProjects(newProjects);
-    addToHistory(newProjects);
+    const previousProject = projects.find(p => p.id === targetId);
+    const version = (updateVersions.current.get(targetId) || 0) + 1;
+    updateVersions.current.set(targetId, version);
+    pendingUpdates.current++;
+    refreshVersion.current++;
+    setLoading(false);
+    setError(null);
+    const optimisticProject = { ...project, link: `/projet/${project.id}` };
+    setProjects(prev => prev.map(p => p.id === targetId ? optimisticProject : p));
 
     try {
         const body = originalId ? { ...project, originalId } : project;
@@ -166,13 +173,27 @@ export function ProjectProvider({ children, initialProjects = [] }: ProjectProvi
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-        if (!res.ok) throw new Error('Failed to update project');
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to update project');
+        }
         const updatedProject = await res.json();
-        // Replace local optimistic state with actual server response (e.g. synced slug/link)
-        setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+        if (updateVersions.current.get(targetId) !== version) return;
+        setProjects(prev => prev.map(p =>
+          p.id === targetId || p.id === project.id ? updatedProject : p
+        ));
+        addToHistory(projects.map(p => p.id === targetId ? updatedProject : p));
     } catch (e) {
-        setProjects(previousProjects);
-        setError('Failed to update project');
+        if (updateVersions.current.get(targetId) === version) {
+          setProjects(prev => prev.map(p =>
+            previousProject && (p.id === targetId || p.id === project.id) ? previousProject : p
+          ));
+          setError(e instanceof Error ? e.message : 'Failed to update project');
+        }
+        throw e;
+    } finally {
+        pendingUpdates.current--;
+        refreshVersion.current++;
     }
   };
 
